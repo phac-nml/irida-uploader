@@ -8,7 +8,8 @@ clean:
 	rm -rf .virtualenv
 	rm -rf build
 	find -name "*pyc" -delete
-	rm -rf Tests/integrationTests/repos/
+	rm -rf tests_integration/repos/
+	rm -rf tests_integration/tmp
 
 requirements:
 	python3 -m venv .virtualenv
@@ -22,9 +23,30 @@ windows: clean requirements
 	python -m nsist windows-installer.cfg
 	deactivate
 
-test: clean requirements 
+unittests: clean requirements
 	source .virtualenv/bin/activate
-	xvfb-run --auto-servernum --server-num=1 py.test --integration --irida-version=$(IRIDA_VERSION)
+	python3 -m unittest discover -s tests -t .
+	deactivate
+
+integrationtests: clean requirements
+	rm -rf tests_integration/repos/
+	mkdir tests_integration/tmp
+	mkdir tests_integration/tmp/output-files
+	mkdir tests_integration/tmp/reference-files
+	mkdir tests_integration/tmp/sequence-files
+	source .virtualenv/bin/activate
+	xvfb-run --auto-servernum --server-num=1 python3 start_integration_tests.py
+	deactivate
+
+integrationtestsdev: clean requirements
+	rm -rf tests_integration/repos/
+	mkdir tests_integration/tmp
+	mkdir tests_integration/tmp/output-files
+	mkdir tests_integration/tmp/reference-files
+	mkdir tests_integration/tmp/sequence-files
+	source .virtualenv/bin/activate
+	xvfb-run --auto-servernum --server-num=1 python3 start_integration_tests_dev.py
+	deactivate
 
 docs: requirements
 	source .virtualenv/bin/activate

@@ -13,6 +13,8 @@ To upload using the directory parser, Organize your files according to the follo
 
 ```
 
+Example files can be found: `/example_sample_sheets/directory_run/`
+
 ## File Names
 
 When uploading paired end reads, your file names must indicate forward/reverse.

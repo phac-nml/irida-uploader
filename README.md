@@ -27,6 +27,20 @@ This will create a new installer in the folder `build/nsis/` with a name similar
 Running Tests
 -------------
 
+Running the unittests can be done with the command:
+
+    $ make unittest
+
+To run integration tests your will need some additional software.
+
+    $ sudo apt install xvfb
+
+You will also need to download and install chromedriver http://chromedriver.chromium.org/downloads
+
+Running the IRIDA integration tests can be done with the command:
+
+    $ make integrationtests
+
 You can verify PEP8 conformity by running:
 
     $ ./scripts/verifyPEP8.sh
