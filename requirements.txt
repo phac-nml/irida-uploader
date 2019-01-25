@@ -1,0 +1,10 @@
+rauth==0.7.3
+autopep8==1.4
+pycodestyle
+requests==2.21.0
+appdirs==1.4.3
+pytest
+mkdocs
+cerberus
+pynsist==2.3
+argparse

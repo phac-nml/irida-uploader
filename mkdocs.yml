@@ -1,0 +1,18 @@
+site_name: IRIDA Uploader
+#repo_url: todo
+site_description: Documentation for the IRIDA Uploader
+theme: readthedocs
+#forces use of .html on docs pages so they can be browsed locally
+use_directory_urls: false
+
+nav:
+  - Overview: index.md
+  - configuration.md
+  - errors.md
+  - Parsers:
+      - parsers/directory.md
+      - parsers/miseq.md
+  - Developers:
+      - developers/api.md
+      - developers/parsers.md
+      - developers/objects.md

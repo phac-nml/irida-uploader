@@ -1,0 +1,15 @@
+*.pyc
+*.swp
+*.coverage
+*.bak
+*.log
+*.miseqUploaderInfo
+*.miseqUploaderComplete
+docs/_build/*
+build/
+.virtualenv
+.cache
+.idea/
+site/
+.python-version
+.pytest_cache/
