@@ -3,8 +3,6 @@
 *.coverage
 *.bak
 *.log
-*.miseqUploaderInfo
-*.miseqUploaderComplete
 docs/_build/*
 build/
 .virtualenv
