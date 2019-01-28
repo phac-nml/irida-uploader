@@ -8,3 +8,4 @@ mkdocs
 cerberus
 pynsist==2.3
 argparse
+recommonmark
