@@ -1,12 +1,3 @@
-#language: python
-#python:
-#  - "3.6"
-## command to install dependencies
-#install:
-#  - pip install --upgrade pip wheel
-#  - pip install -r requirements.txt
-#script:
-#  - python3 -m unittest discover -s tests -t .
 language: python
 python:
   - "3.6"
@@ -16,6 +7,10 @@ env:
     - "MYSQL_USER=test"
     - "MYSQL_PASSWORD=test"
     - "DB_MAX_WAIT_MILLIS=30000"
+  matrix:
+    - "TEST_SUITE=unit"
+    - "TEST_SUITE=integration_master"
+    - "TEST_SUITE=integratino_dev"
 addons:
   apt:
     packages:
@@ -29,11 +24,9 @@ before_install:
   - mkdir tests_integration/tmp/sequence-files
 before_script:
   - ln -s /usr/lib/chromium-browser/chromedriver ~/bin/chromedriver
-#  - "export PATH=$PATH:/usr/lib/chromium-browser/"
-# command to install dependencies
 install:
   - pip install --upgrade pip wheel
   - pip install -r requirements.txt
   - mysql -e "CREATE USER '$MYSQL_USER'@'localhost' IDENTIFIED BY '$MYSQL_PASSWORD'; GRANT ALL ON $MYSQL_DATABASE.* to '$MYSQL_USER'@'localhost';"
 script:
-  - xvfb-run --auto-servernum --server-num=1 python3 start_integration_tests.py
+  - ./travis_test.sh
