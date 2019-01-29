@@ -1,10 +1,16 @@
 from appdirs import user_log_dir
 import os
 import logging
+import time
+import datetime
 
+
+timestamp = datetime.datetime.fromtimestamp(time.time())
+timestamp = timestamp.strftime('%Y-%m-%d.%H-%M-%S')
 
 log_directory_name = "irida_uploader"
-log_file_name = 'irida-uploader.log'
+
+log_file_name = 'irida-uploader.' + timestamp + '.log'
 
 if not os.path.exists(user_log_dir(log_directory_name)):
     os.makedirs(user_log_dir(log_directory_name))
@@ -26,3 +32,5 @@ console = logging.StreamHandler()
 console.setLevel(logging.INFO)
 console.setFormatter(logging.Formatter(log_format))
 root_logger.addHandler(console)
+
+logging.info("Logging to file in: " + user_log_dir(log_directory_name))
