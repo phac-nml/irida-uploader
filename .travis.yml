@@ -29,4 +29,4 @@ install:
   - pip install -r requirements.txt
   - mysql -e "CREATE USER '$MYSQL_USER'@'localhost' IDENTIFIED BY '$MYSQL_PASSWORD'; GRANT ALL ON $MYSQL_DATABASE.* to '$MYSQL_USER'@'localhost';"
 script:
-  - ./travis_test.sh
+  - ./travis_test.sh $TEST_SUITE
