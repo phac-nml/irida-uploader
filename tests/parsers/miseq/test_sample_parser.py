@@ -366,7 +366,7 @@ class TestParseSampleList(unittest.TestCase):
         self.assertEqual(res[0].get_uploadable_dict(), sample.get_uploadable_dict())
         # Check sequencing file is correct
         self.assertEqual(res[0].sequence_file.properties_dict, sequence_file_properties)
-        self.assertEqual(res[0].sequence_file.file_list, file_list)
+        self.assertEqual(res[0].sequence_file.file_list.sort(), file_list.sort())
 
     def test_not_pf_list(self):
         """
