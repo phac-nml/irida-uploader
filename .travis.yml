@@ -10,6 +10,12 @@
 language: python
 python:
   - "3.6"
+env:
+  global:
+    - "MYSQL_DATABASE=irida_uploader_test"
+    - "MYSQL_USER=test"
+    - "MYSQL_PASSWORD=test"
+    - "DB_MAX_WAIT_MILLIS=30000"
 addons:
   apt:
     packages:
@@ -28,5 +34,6 @@ before_script:
 install:
   - pip install --upgrade pip wheel
   - pip install -r requirements.txt
+  - mysql -e "CREATE USER '$MYSQL_USER'@'localhost' IDENTIFIED BY '$MYSQL_PASSWORD'; GRANT ALL ON $MYSQL_DATABASE.* to '$MYSQL_USER'@'localhost';"
 script:
   - xvfb-run --auto-servernum --server-num=1 python3 start_integration_tests.py
