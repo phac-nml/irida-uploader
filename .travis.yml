@@ -1,9 +1,32 @@
+#language: python
+#python:
+#  - "3.6"
+## command to install dependencies
+#install:
+#  - pip install --upgrade pip wheel
+#  - pip install -r requirements.txt
+#script:
+#  - python3 -m unittest discover -s tests -t .
 language: python
 python:
   - "3.6"
+addons:
+  apt:
+    packages:
+      - chromium-chromedriver
+before_install:
+  - sudo apt-get install -y xvfb
+  - rm -rf tests_integration/repos/
+  - mkdir tests_integration/tmp
+  - mkdir tests_integration/tmp/output-files
+  - mkdir tests_integration/tmp/reference-files
+  - mkdir tests_integration/tmp/sequence-files
+before_script:
+  - ln -s /usr/lib/chromium-browser/chromedriver ~/bin/chromedriver
+#  - "export PATH=$PATH:/usr/lib/chromium-browser/"
 # command to install dependencies
 install:
   - pip install --upgrade pip wheel
   - pip install -r requirements.txt
 script:
-  - python3 -m unittest discover -s tests -t .
+  - xvfb-run --auto-servernum --server-num=1 python3 start_integration_tests.py
