@@ -10,7 +10,7 @@ env:
   matrix:
     - "TEST_SUITE=unit"
     - "TEST_SUITE=integration_master"
-    - "TEST_SUITE=integratino_dev"
+    - "TEST_SUITE=integration_dev"
 addons:
   apt:
     packages:
