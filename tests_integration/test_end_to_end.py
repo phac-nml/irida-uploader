@@ -109,20 +109,41 @@ class TestEndToEnd(unittest.TestCase):
                     sample_1_found = True
                     sequence_files = test_api.get_sequence_files(project_id, sample.sample_name)
                     self.assertEqual(len(sequence_files), 2)
-                    self.assertEqual(sequence_files[0]['fileName'], '01-1111_S1_L001_R1_001.fastq.gz')
-                    self.assertEqual(sequence_files[1]['fileName'], '01-1111_S1_L001_R2_001.fastq.gz')
+                    res_sequence_file_names = [
+                        sequence_files[0]['fileName'],
+                        sequence_files[1]['fileName']
+                    ]
+                    expected_sequence_file_names = [
+                        '01-1111_S1_L001_R1_001.fastq.gz',
+                        '01-1111_S1_L001_R2_001.fastq.gz'
+                    ]
+                    self.assertEqual(res_sequence_file_names.sort(), expected_sequence_file_names.sort())
                 elif sample.sample_name == "02-2222":
                     sample_2_found = True
                     sequence_files = test_api.get_sequence_files(project_id, sample.sample_name)
                     self.assertEqual(len(sequence_files), 2)
-                    self.assertEqual(sequence_files[0]['fileName'], '02-2222_S1_L001_R1_001.fastq.gz')
-                    self.assertEqual(sequence_files[1]['fileName'], '02-2222_S1_L001_R2_001.fastq.gz')
+                    res_sequence_file_names = [
+                        sequence_files[0]['fileName'],
+                        sequence_files[1]['fileName']
+                    ]
+                    expected_sequence_file_names = [
+                        '02-2222_S1_L001_R1_001.fastq.gz',
+                        '02-2222_S1_L001_R2_001.fastq.gz'
+                    ]
+                    self.assertEqual(res_sequence_file_names.sort(), expected_sequence_file_names.sort())
                 elif sample.sample_name == "03-3333":
                     sample_3_found = True
                     sequence_files = test_api.get_sequence_files(project_id, sample.sample_name)
                     self.assertEqual(len(sequence_files), 2)
-                    self.assertEqual(sequence_files[0]['fileName'], '03-3333_S1_L001_R1_001.fastq.gz')
-                    self.assertEqual(sequence_files[1]['fileName'], '03-3333_S1_L001_R2_001.fastq.gz')
+                    res_sequence_file_names = [
+                        sequence_files[0]['fileName'],
+                        sequence_files[1]['fileName']
+                    ]
+                    expected_sequence_file_names = [
+                        '03-3333_S1_L001_R1_001.fastq.gz',
+                        '03-3333_S1_L001_R2_001.fastq.gz'
+                    ]
+                    self.assertEqual(res_sequence_file_names.sort(), expected_sequence_file_names.sort())
 
         self.assertEqual(sample_1_found, True)
         self.assertEqual(sample_2_found, True)
