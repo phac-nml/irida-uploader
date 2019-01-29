@@ -21,9 +21,9 @@
 
 The IRIDA MiSeq Uploader can be run on any operating system that supports Python.
 
-You can download the source code on [GitHub]().
+You can download the source code on [GitHub](https://github.com/phac-nml/irida-uploader).
 
-TODO: You can download pre-built packages for Windows from our [GitHub releases page](https://github.com/phac-nml/irida-miseq-uploader/releases/latest).
+You can download pre-built packages for Windows from our [GitHub releases page](https://github.com/phac-nml/irida-uploader/releases).
 
 ### Installation
 
@@ -113,7 +113,7 @@ Use the the `irida-uploader.sh` script included with the source code to upload.
 Check the [Errors Page](errors.md) for help with common errors.
 
 ### Found a bug or have an idea for a feature?
-Create an issue on our [GitHub](todo: link to github)
+Create an issue on our [GitHub Issues Board](https://github.com/phac-nml/irida-uploader/issues)
 
 # Developers
 

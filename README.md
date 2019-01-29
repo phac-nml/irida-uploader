@@ -7,7 +7,7 @@ Download / Installation
 
 Installation instructions can be found in our documentation.
 
-[ReadTheDocs](todo:link to read the docs needs to go here)
+[ReadTheDocs](https://irida-uploader.readthedocs.io/en/latest/)
 
 Creating the Windows installer from source code
 ------------------------------
@@ -35,9 +35,11 @@ Note: No output is produced (other than `pip`-related output) if the PEP8 verifi
 
 Documentation
 ------------------------------
-Documentation is built by `mkdocs`. 
+You can [ReadTheDocs](https://irida-uploader.readthedocs.io/en/latest/) here.
 
-It can be built locally with:
+Alternatively, documentation is built locally using `mkdocs`. 
+
+It can be built with the command:
 
     $ make docs
 
@@ -47,5 +49,3 @@ Or you can install mkdocs to your system:
     $ mkdocs build
 
 HTML docs will be generated to `site/` for local browsing
-
-TODO: Alternatively ReadTheDocs here. (once we have it hosted)
