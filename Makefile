@@ -12,7 +12,7 @@ clean:
 	rm -rf tests_integration/tmp
 
 requirements:
-	python3 -m venv .virtualenv
+	python3.6 -m venv .virtualenv
 	source .virtualenv/bin/activate
 	pip install --upgrade pip wheel
 	pip install -r requirements.txt
