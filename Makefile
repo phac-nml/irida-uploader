@@ -16,17 +16,14 @@ requirements:
 	source .virtualenv/bin/activate
 	pip install --upgrade pip wheel
 	pip install -r requirements.txt
-	deactivate
 
 windows: clean requirements
 	source .virtualenv/bin/activate
 	python -m nsist windows-installer.cfg
-	deactivate
 
 unittests: clean requirements
 	source .virtualenv/bin/activate
 	python3 -m unittest discover -s tests -t .
-	deactivate
 
 integrationtests: clean requirements
 	rm -rf tests_integration/repos/
@@ -36,7 +33,6 @@ integrationtests: clean requirements
 	mkdir tests_integration/tmp/sequence-files
 	source .virtualenv/bin/activate
 	xvfb-run --auto-servernum --server-num=1 python3 start_integration_tests.py
-	deactivate
 
 integrationtestsdev: clean requirements
 	rm -rf tests_integration/repos/
@@ -46,11 +42,9 @@ integrationtestsdev: clean requirements
 	mkdir tests_integration/tmp/sequence-files
 	source .virtualenv/bin/activate
 	xvfb-run --auto-servernum --server-num=1 python3 start_integration_tests_dev.py
-	deactivate
 
 docs: requirements
 	source .virtualenv/bin/activate
 	mkdocs build
-	deactivate
 
 .ONESHELL:
