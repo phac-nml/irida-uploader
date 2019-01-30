@@ -25,23 +25,19 @@ unittests: clean requirements
 	source .virtualenv/bin/activate
 	python3 -m unittest discover -s tests -t .
 
-integrationtests: clean requirements
-	rm -rf tests_integration/repos/
+preintegration:
 	mkdir tests_integration/tmp
 	mkdir tests_integration/tmp/output-files
 	mkdir tests_integration/tmp/reference-files
 	mkdir tests_integration/tmp/sequence-files
-	source .virtualenv/bin/activate
-	xvfb-run --auto-servernum --server-num=1 python3 start_integration_tests.py
 
-integrationtestsdev: clean requirements
-	rm -rf tests_integration/repos/
-	mkdir tests_integration/tmp
-	mkdir tests_integration/tmp/output-files
-	mkdir tests_integration/tmp/reference-files
-	mkdir tests_integration/tmp/sequence-files
+integrationtests: clean requirements preintegration
 	source .virtualenv/bin/activate
-	xvfb-run --auto-servernum --server-num=1 python3 start_integration_tests_dev.py
+	xvfb-run --auto-servernum --server-num=1 python3 start_integration_tests.py master
+
+integrationtestsdev: clean requirements preintegration
+	source .virtualenv/bin/activate
+	xvfb-run --auto-servernum --server-num=1 python3 start_integration_tests.py development
 
 docs: requirements
 	source .virtualenv/bin/activate
