@@ -27,15 +27,23 @@ This will create a new installer in the folder `build/nsis/` with a name similar
 Running Tests
 -------------
 
+#### Unit tests
+
 Running the unittests can be done with the command:
 
     $ make unittest
+
+#### IRIDA Integration
 
 To run integration tests your will need some additional software.
 
     $ sudo apt install xvfb
 
 You will also need to download and install chromedriver http://chromedriver.chromium.org/downloads
+
+You will need to allow the IRIDA instance to the mysql database needed for the tests
+
+    $ mysql -e "CREATE USER 'test'@'localhost' IDENTIFIED BY 'test'; GRANT ALL ON irida_uploader_test.* to 'test'@'localhost';"
 
 Running the IRIDA integration tests can be done with the command:
 
