@@ -1,3 +1,13 @@
+"""
+This file is used to kick off the integration tests
+
+it can be used from command line like so:
+  $ xvfb-run --auto-servernum --server-num=1 python3 start_integration_tests.py <branch>
+where <branch> is the IRIDA github branch to test against
+
+This will start a xvfb instance to run the tests inside
+"""
+
 import argparse
 
 import tests_integration.tests_integration as tests_integration
