@@ -14,6 +14,9 @@ if len(path_to_module) == 0:
 
 
 class TestPrepareAndValidateForUpload(unittest.TestCase):
+    """
+    Tests the core.api_handler.prepare_and_validate_for_upload function
+    """
 
     sequencing_run = None
 
@@ -141,6 +144,9 @@ class TestPrepareAndValidateForUpload(unittest.TestCase):
 
 
 class TestUploadSequencingRun(unittest.TestCase):
+    """
+    Tests the core.api_handler.upload_sequencing_run function
+    """
 
     sequencing_run = None
 
@@ -222,6 +228,9 @@ class TestUploadSequencingRun(unittest.TestCase):
 
 
 class TestSendProject(unittest.TestCase):
+    """
+    Tests the core.api_handler.test_send_project function
+    """
 
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)

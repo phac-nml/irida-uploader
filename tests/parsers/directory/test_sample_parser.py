@@ -11,6 +11,9 @@ if len(path_to_module) == 0:
 
 
 class TestBuildSequencingRunFromSamples(unittest.TestCase):
+    """
+    Test building the sequencing run from a sample sheet with a csv reader
+    """
 
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)
@@ -102,6 +105,9 @@ class TestBuildSequencingRunFromSamples(unittest.TestCase):
 
 
 class TestGetCsvReader(unittest.TestCase):
+    """
+    Test that the csv reader behaves as expected
+    """
 
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)
@@ -160,6 +166,9 @@ class TestGetCsvReader(unittest.TestCase):
 
 
 class TestParseSampleList(unittest.TestCase):
+    """
+    test parsing the list of samples from a sample sheet
+    """
 
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)
@@ -218,6 +227,9 @@ class TestParseSampleList(unittest.TestCase):
 
 
 class TestParseSamples(unittest.TestCase):
+    """
+    Test validity or invalidity of parsed samples
+    """
 
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)

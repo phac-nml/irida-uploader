@@ -13,6 +13,9 @@ test_config_file_dir = os.path.join(path_to_module, "test_config_file_dir")
 
 
 class TestConfig(unittest.TestCase):
+    """
+    Tests the config module's functionality
+    """
 
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)

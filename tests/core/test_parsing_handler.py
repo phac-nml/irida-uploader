@@ -38,6 +38,9 @@ class TestGetParserFromConfig(unittest.TestCase):
 
 
 class TestParseAndValidate(unittest.TestCase):
+    """
+    Tests the core.parsing_handler.parse_and_validate function
+    """
 
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)

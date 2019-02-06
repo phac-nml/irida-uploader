@@ -4,7 +4,7 @@ from .integration_data_setup import SetupIridaData
 from .test_api_integration import TestApiIntegration
 from .test_end_to_end import TestEndToEnd
 
-
+# Modules level variables that can/will be changed when the setup starts
 base_url = "http://localhost:8080/api"
 username = "admin"
 password = "password1"
@@ -13,6 +13,12 @@ client_secret = ""
 
 
 def irida_setup(setup):
+    """
+    Kicks off setting up irida,
+    installs from github, resets the database, and runs it
+    :param setup:
+    :return:
+    """
     setup.install_irida()
     setup.reset_irida_db()
     setup.run_irida()
