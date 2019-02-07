@@ -1,5 +1,7 @@
 import argparse
 import global_settings
+import config
+import core
 
 
 class ConfigAction(argparse.Action):
@@ -56,9 +58,8 @@ def main():
 
 
 def upload(run_directory):
-    # We import here instead of at the top so argparse can set the config files before the config module is imported
-    from core import cli_entry
-    cli_entry.validate_and_upload_single_entry(run_directory)
+    config.setup()
+    core.cli_entry.validate_and_upload_single_entry(run_directory)
 
 
 # This is called when the program is run for the first time

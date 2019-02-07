@@ -163,6 +163,9 @@ def _parse_samples(sample_sheet_file):
 
     # fill in values for keys. line is currently below the [Data] headers
     for sample_number, line in enumerate(csv_reader):
+        # if the line is empty (like a blank line at the end of the file) continue
+        if not line:
+            continue
 
         if len(sample_dict.keys()) != len(line):
             """

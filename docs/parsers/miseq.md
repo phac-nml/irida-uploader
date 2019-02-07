@@ -17,6 +17,8 @@ The file structure for a miseq run should be correct by default, but if you are 
 └── SampleSheet.csv
 ```
 
+Example files can be found: `/example_sample_sheets/miseq_run/`
+
 ## Preparing your miseq sample sheet
 Before using the uploader, you must prepare your sequencing run with IRIDA-specific project IDs. You can either enter the project IDs when you're creating your sample sheet using the Illumina Experiment Manager or after creating the sample sheet by editing `SampleSheet.csv` with Microsoft Excel or Windows Notepad.
 

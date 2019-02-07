@@ -1,0 +1,24 @@
+language: python
+python:
+  - "3.6"
+env:
+  global:
+    - "MYSQL_DATABASE=irida_uploader_test"
+    - "MYSQL_USER=test"
+    - "MYSQL_PASSWORD=test"
+    - "DB_MAX_WAIT_MILLIS=30000"
+  matrix:
+    - "TEST_SUITE=unittests"
+    - "TEST_SUITE=integrationtests"
+    - "TEST_SUITE=integrationtestsdev"
+addons:
+  apt:
+    packages:
+      - chromium-chromedriver
+      - xvfb
+before_script:
+  - ln -s /usr/lib/chromium-browser/chromedriver ~/bin/chromedriver
+install:
+  - mysql -e "CREATE USER '$MYSQL_USER'@'localhost' IDENTIFIED BY '$MYSQL_PASSWORD'; GRANT ALL ON $MYSQL_DATABASE.* to '$MYSQL_USER'@'localhost';"
+script:
+  - make $TEST_SUITE
