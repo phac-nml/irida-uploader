@@ -8,6 +8,9 @@ from parsers.exceptions import SampleSheetError
 
 
 class TestValidation(unittest.TestCase):
+    """
+    Tests valid and invalid sample sheets
+    """
 
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)

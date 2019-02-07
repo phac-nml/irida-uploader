@@ -16,32 +16,32 @@ class TestApiIntegration(unittest.TestCase):
 
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)
-
-    def test_send_and_get_project(self):
-        """
-        Tests sending and receiving project data
-        :return:
-        """
-        test_api = api.ApiCalls(
+        self.test_api = api.ApiCalls(
             client_id=tests_integration.client_id,
             client_secret=tests_integration.client_secret,
             base_url=tests_integration.base_url,
             username=tests_integration.username,
             password=tests_integration.password
         )
+
+    def test_send_and_get_project(self):
+        """
+        Tests sending and receiving project data
+        :return:
+        """
         # try sending a project
         project_name = "test_project"
         project_description = "test_project_description"
         project = model.Project(name=project_name, description=project_description)
 
-        json_res = test_api.send_project(project)
+        json_res = self.test_api.send_project(project)
 
         # make sure the json response is what we expect it to be
         self.assertEqual(json_res['resource']['name'], project_name)
         self.assertEqual(json_res['resource']['projectDescription'], project_description)
 
         # get a list of all projects
-        proj_list = test_api.get_projects()
+        proj_list = self.test_api.get_projects()
         proj = proj_list[len(proj_list) - 1]
 
         # verify info matches what we uploaded
@@ -58,39 +58,25 @@ class TestApiIntegration(unittest.TestCase):
         upload a project and check if project can be found with the projects_exists method
         :return:
         """
-        test_api = api.ApiCalls(
-            client_id=tests_integration.client_id,
-            client_secret=tests_integration.client_secret,
-            base_url=tests_integration.base_url,
-            username=tests_integration.username,
-            password=tests_integration.password
-        )
         project_name = "test_project_exists"
         project_description = "test_project_exists_description"
         project = model.Project(name=project_name, description=project_description)
 
-        json_res = test_api.send_project(project)
+        json_res = self.test_api.send_project(project)
         project_id = json_res['resource']['identifier']
-        self.assertTrue(test_api.project_exists(project_id))
+        self.assertTrue(self.test_api.project_exists(project_id))
 
     def test_send_and_get_sample(self):
         """
         Tests sending and receiving sample data
         :return:
         """
-        test_api = api.ApiCalls(
-            client_id=tests_integration.client_id,
-            client_secret=tests_integration.client_secret,
-            base_url=tests_integration.base_url,
-            username=tests_integration.username,
-            password=tests_integration.password
-        )
         # set up a project to upload samples to
         project_name = "test_project_2"
         project_description = "test_project_description"
         project = model.Project(name=project_name, description=project_description)
 
-        proj_json_res = test_api.send_project(project)
+        proj_json_res = self.test_api.send_project(project)
         project_identifier = proj_json_res['resource']['identifier']
 
         # upload a sample
@@ -98,14 +84,14 @@ class TestApiIntegration(unittest.TestCase):
         sample_desc = "test_sample_desc"
         sample = model.Sample(sample_name, sample_desc)
 
-        sample_json_res = test_api.send_sample(sample, project_identifier)
+        sample_json_res = self.test_api.send_sample(sample, project_identifier)
 
         # make sure the returned values match what we tried to upload
         self.assertEqual(sample_json_res['resource']['sampleName'], sample_name)
         self.assertEqual(sample_json_res['resource']['description'], sample_desc)
 
         # get a list of samples on our project and make sure they match what we uploaded
-        sample_list = test_api.get_samples(project_identifier)
+        sample_list = self.test_api.get_samples(project_identifier)
 
         self.assertEqual(len(sample_list), 1)
         self.assertEqual(type(sample_list[0]), model.Sample)
@@ -117,19 +103,12 @@ class TestApiIntegration(unittest.TestCase):
         Upload a sample and make sure it can be found with the sample_exists method
         :return:
         """
-        test_api = api.ApiCalls(
-            client_id=tests_integration.client_id,
-            client_secret=tests_integration.client_secret,
-            base_url=tests_integration.base_url,
-            username=tests_integration.username,
-            password=tests_integration.password
-        )
         # create a project to upload samples to
         project_name = "test_project_exists"
         project_description = "test_project_exists_description"
         project = model.Project(name=project_name, description=project_description)
 
-        json_res = test_api.send_project(project)
+        json_res = self.test_api.send_project(project)
         project_id = json_res['resource']['identifier']
 
         # create and upload a sample, and verify it exists
@@ -137,27 +116,20 @@ class TestApiIntegration(unittest.TestCase):
         sample_desc = "test_sample_exists_desc"
         sample = model.Sample(sample_name, sample_desc)
 
-        test_api.send_sample(sample, project_id)
-        self.assertTrue(test_api.sample_exists(sample_name, project_id))
+        self.test_api.send_sample(sample, project_id)
+        self.assertTrue(self.test_api.sample_exists(sample_name, project_id))
 
     def test_send_and_get_sequence_files(self):
         """
         Tests sending and receiving sequence files
         :return:
         """
-        test_api = api.ApiCalls(
-            client_id=tests_integration.client_id,
-            client_secret=tests_integration.client_secret,
-            base_url=tests_integration.base_url,
-            username=tests_integration.username,
-            password=tests_integration.password
-        )
         # upload a project
         project_name = "test_project_2"
         project_description = "test_project_description"
         project = model.Project(name=project_name, description=project_description)
 
-        proj_json_res = test_api.send_project(project)
+        proj_json_res = self.test_api.send_project(project)
         project_identifier = proj_json_res['resource']['identifier']
 
         # upload a sample
@@ -165,7 +137,7 @@ class TestApiIntegration(unittest.TestCase):
         sample_desc = "test_sample_desc"
         sample = model.Sample(sample_name, sample_desc)
 
-        test_api.send_sample(sample, project_identifier)
+        self.test_api.send_sample(sample, project_identifier)
 
         # upload sequence files
         sequence_file_list = [
@@ -174,12 +146,12 @@ class TestApiIntegration(unittest.TestCase):
         ]
         sequence_file = model.SequenceFile(sequence_file_list)
 
-        upload_id = test_api.create_seq_run({'layoutType': 'PAIRED_END'})
+        upload_id = self.test_api.create_seq_run({'layoutType': 'PAIRED_END'})
 
-        test_api.send_sequence_files(sequence_file, sample_name, project_identifier, upload_id)
+        self.test_api.send_sequence_files(sequence_file, sample_name, project_identifier, upload_id)
 
         # verify sequence files match what we sent to IRIDA
-        returned_sequence_files = test_api.get_sequence_files(project_identifier, sample_name)
+        returned_sequence_files = self.test_api.get_sequence_files(project_identifier, sample_name)
 
         self.assertEqual(returned_sequence_files[0]['fileName'], 'file_1.fastq.gz')
         self.assertEqual(returned_sequence_files[1]['fileName'], 'file_2.fastq.gz')
@@ -190,19 +162,11 @@ class TestApiIntegration(unittest.TestCase):
         This test tests paired end runs
         :return:
         """
-        test_api = api.ApiCalls(
-            client_id=tests_integration.client_id,
-            client_secret=tests_integration.client_secret,
-            base_url=tests_integration.base_url,
-            username=tests_integration.username,
-            password=tests_integration.password
-        )
-
         # create a new paired end sequencing run on IRIDA
-        run_id = test_api.create_seq_run({'layoutType': 'PAIRED_END'})
+        run_id = self.test_api.create_seq_run({'layoutType': 'PAIRED_END'})
 
         # get a list of all sequencing runs and verify out new one is there and matches
-        response = test_api.get_seq_runs()
+        response = self.test_api.get_seq_runs()
 
         seq_run = None
         for run in response:
@@ -220,19 +184,11 @@ class TestApiIntegration(unittest.TestCase):
         This one tests single end runs
         :return:
         """
-        test_api = api.ApiCalls(
-            client_id=tests_integration.client_id,
-            client_secret=tests_integration.client_secret,
-            base_url=tests_integration.base_url,
-            username=tests_integration.username,
-            password=tests_integration.password
-        )
-
         # create a new paired end sequencing run on IRIDA
-        run_id = test_api.create_seq_run({'layoutType': 'SINGLE_END'})
+        run_id = self.test_api.create_seq_run({'layoutType': 'SINGLE_END'})
 
         # get a list of all sequencing runs and verify out new one is there and matches
-        response = test_api.get_seq_runs()
+        response = self.test_api.get_seq_runs()
 
         seq_run = None
         for run in response:
@@ -250,7 +206,7 @@ class TestApiIntegration(unittest.TestCase):
         :return:
         """
         def get_seq_run(run_identifier):
-            response = test_api.get_seq_runs()
+            response = self.test_api.get_seq_runs()
 
             s_run = None
             for run in response:
@@ -259,15 +215,7 @@ class TestApiIntegration(unittest.TestCase):
 
             return s_run
 
-        test_api = api.ApiCalls(
-            client_id=tests_integration.client_id,
-            client_secret=tests_integration.client_secret,
-            base_url=tests_integration.base_url,
-            username=tests_integration.username,
-            password=tests_integration.password
-        )
-
-        run_id = test_api.create_seq_run({'layoutType': 'PAIRED_END'})
+        run_id = self.test_api.create_seq_run({'layoutType': 'PAIRED_END'})
 
         seq_run = get_seq_run(run_id)
 
@@ -275,14 +223,14 @@ class TestApiIntegration(unittest.TestCase):
         self.assertEqual(seq_run['uploadStatus'], 'UPLOADING')
 
         # Test Error, uploading, and error
-        test_api.set_seq_run_error(run_id)
+        self.test_api.set_seq_run_error(run_id)
         seq_run = get_seq_run(run_id)
         self.assertEqual(seq_run['uploadStatus'], 'ERROR')
 
-        test_api.set_seq_run_uploading(run_id)
+        self.test_api.set_seq_run_uploading(run_id)
         seq_run = get_seq_run(run_id)
         self.assertEqual(seq_run['uploadStatus'], 'UPLOADING')
 
-        test_api.set_seq_run_complete(run_id)
+        self.test_api.set_seq_run_complete(run_id)
         seq_run = get_seq_run(run_id)
         self.assertEqual(seq_run['uploadStatus'], 'COMPLETE')

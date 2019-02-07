@@ -5,7 +5,7 @@ theme: readthedocs
 #forces use of .html on docs pages so they can be browsed locally
 use_directory_urls: false
 
-nav:
+pages:
   - Overview: index.md
   - configuration.md
   - errors.md

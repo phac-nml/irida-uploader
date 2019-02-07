@@ -10,6 +10,9 @@ if len(path_to_module) == 0:
 
 
 class TestValidateAndUploadSingleEntry(unittest.TestCase):
+    """
+    Tests the core.cli_entry.validate_and_upload_single_entry function
+    """
 
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)

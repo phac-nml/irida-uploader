@@ -24,7 +24,7 @@ def validate_sample_sheet(sample_sheet_file):
     all_data_headers_found = False
     data_sect_found = False
     header_sect_found = False
-    reads_sect_found = False # todo: mirror on the directory parser
+    reads_sect_found = False
     check_data_headers = False
 
     # status of required data headers

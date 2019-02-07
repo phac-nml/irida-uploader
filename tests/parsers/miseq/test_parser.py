@@ -11,6 +11,9 @@ if len(path_to_module) == 0:
 
 
 class TestFindRuns(unittest.TestCase):
+    """
+    Test finding runs in a directory filled with (possible) run directories
+    """
 
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)
@@ -53,6 +56,9 @@ class TestFindRuns(unittest.TestCase):
 
 
 class TestFindSingleRun(unittest.TestCase):
+    """
+    Test checking if a single directory is a run
+    """
 
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)
@@ -98,6 +104,9 @@ class TestFindSingleRun(unittest.TestCase):
 
 
 class TestGetSampleSheet(unittest.TestCase):
+    """
+    Test cases related to getting a sample sheet from a known run directory
+    """
 
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)
@@ -140,6 +149,9 @@ class TestGetSampleSheet(unittest.TestCase):
 
 
 class TestGetSequencingRun(unittest.TestCase):
+    """
+    Test building a sequencing run from a sample sheet
+    """
 
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)
@@ -173,6 +185,9 @@ class TestGetSequencingRun(unittest.TestCase):
 
 
 class TestFindDirectoryList(unittest.TestCase):
+    """
+    Test getting the list of directories
+    """
 
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)
