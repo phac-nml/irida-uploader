@@ -4,7 +4,7 @@ import os
 from model.directory_status import DirectoryStatus
 
 
-def get_directory_status(directory, sample_sheet=None):
+def get_directory_status(directory, sample_sheet):
     """
     Gets the directory status based off using '.miseqUploaderInfo' files to track progress
 
@@ -20,16 +20,15 @@ def get_directory_status(directory, sample_sheet=None):
         result.message = 'Directory cannot be accessed. Please check permissions'
         return result
 
-    if sample_sheet is not None:
-        file_list = next(os.walk(directory))[2]  # Gets the list of files in the directory
-        if sample_sheet not in file_list:
-            result.status = 'invalid'
-            result.message = 'Directory has no valid sample sheet file.'
-            return result
+    file_list = next(os.walk(directory))[2]  # Gets the list of files in the directory
+    if sample_sheet not in file_list:
+        result.status = 'invalid'
+        result.message = 'Directory has no valid sample sheet file with the name {}'.format(sample_sheet)
+        return result
 
-        if '.miseqUploaderInfo' not in file_list:  # no .miseqUploaderInfo file yet, has not been uploaded
-            result.status = 'new'
-            return result
+    if '.miseqUploaderInfo' not in file_list:  # no .miseqUploaderInfo file yet, has not been uploaded
+        result.status = 'new'
+        return result
 
     # Must check status of upload to determine if upload is completed
     uploader_info_file = os.path.join(directory, '.miseqUploaderInfo')

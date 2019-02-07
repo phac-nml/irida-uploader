@@ -24,6 +24,7 @@ def validate_sample_sheet(sample_sheet_file):
     all_data_headers_found = False
     data_sect_found = False
     header_sect_found = False
+    reads_sect_found = False
     check_data_headers = False
 
     # status of required data headers
@@ -42,6 +43,9 @@ def validate_sample_sheet(sample_sheet_file):
         elif "[Header]" in line:
             header_sect_found = True
 
+        elif "[Reads]" in line:
+            reads_sect_found = True
+
         elif check_data_headers:
 
             for data_header in found_data_headers.keys():
@@ -54,13 +58,16 @@ def validate_sample_sheet(sample_sheet_file):
 
             check_data_headers = False
 
-    if not all([header_sect_found, data_sect_found, all_data_headers_found]):
+    if not all([header_sect_found, data_sect_found, all_data_headers_found, reads_sect_found]):
 
         if header_sect_found is False:
             v_res.add_error(exceptions.SampleSheetError("[Header] section not found in SampleSheet", sample_sheet_file))
 
         if data_sect_found is False:
             v_res.add_error(exceptions.SampleSheetError("[Data] section not found in SampleSheet", sample_sheet_file))
+
+        if reads_sect_found is False:
+            v_res.add_error(exceptions.SampleSheetError("[Reads] section not found in SampleSheet", sample_sheet_file))
 
         if all_data_headers_found is False:
             missing_str = ""

@@ -1,0 +1,5 @@
+[Data]
+Sample_Name,Project_ID,File_Forward,File_Reverse
+my-sample-1,1,file_1.fastq.gz,file_2.fastq.gz
+my-sample-2,1,samp_F.fastq.gz,samp_R.fastq.gz
+my-sample-3,1,germ_f.fastq.gz,germ_r.fastq.gz

@@ -192,17 +192,21 @@ def _validate_pf_list(file_list):
             True: 2 files in list, where one contains `R1` in the correct position and the other contains `R2`
             False: Number of files <1 or >2, or 2 files do not contain `R1`/`R2` correctly
     """
-
+    if len(file_list) < 1:  # Invalid
+        return False
     if len(file_list) > 2:  # We should never expect more than 2 files, a forward & backwards read
         return False
     elif len(file_list) == 1:  # single read, valid
         return True
     else:
-        # check if one file is R1 and other is R2
-        regex_filter = ".*_S\\d+_L\\d{3}_R(\\d+)_\\S+\\.fastq.*$"
-        n1 = int(re.search(regex_filter, file_list[0]).group(1))
-        n2 = int(re.search(regex_filter, file_list[1]).group(1))
-        return (n1 != n2) and (n1 == 1 or n1 == 2) and (n2 == 1 or n2 == 2)
+        try:
+            # check if one file is R1 and other is R2
+            regex_filter = ".*_S\\d+_L\\d{3}_R(\\d+)_\\S+\\.fastq.*$"
+            n1 = int(re.search(regex_filter, file_list[0]).group(1))
+            n2 = int(re.search(regex_filter, file_list[1]).group(1))
+            return (n1 != n2) and (n1 == 1 or n1 == 2) and (n2 == 1 or n2 == 2)
+        except AttributeError:  # Attribute error means the file had invalid text in it
+            return False
 
 
 def _parse_samples(sample_sheet_file):
