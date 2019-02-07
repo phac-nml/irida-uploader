@@ -1,6 +1,7 @@
 IRIDA Uploader
 ==============
 
+[![Build Status](https://travis-ci.org/phac-nml/irida-uploader.svg?branch=development)](https://travis-ci.org/phac-nml/irida-uploader)
 
 Download / Installation
 --------------------
