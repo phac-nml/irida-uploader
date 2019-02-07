@@ -21,6 +21,10 @@ windows: clean requirements
 	source .virtualenv/bin/activate
 	python -m nsist windows-installer.cfg
 
+windowsgui: clean requirements
+	source .virtualenv/bin/activate
+	python -m nsist windows-gui-installer.cfg
+
 unittests: clean requirements
 	source .virtualenv/bin/activate
 	python3 -m unittest discover -s tests -t .

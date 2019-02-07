@@ -1,5 +1,6 @@
 from PyQt5 import QtWidgets
 import logging
+import sys
 
 from core import logger, cli_entry
 from config import config
@@ -104,12 +105,13 @@ class MyDialog(QtWidgets.QDialog, QPlainTextEditLogger):
         self._dir_button.setEnabled(True)
 
 
-if __name__ == '__main__':
-    app = None
-    if not QtWidgets.QApplication.instance():
-        app = QtWidgets.QApplication([])
+def main():
+    app = QtWidgets.QApplication(sys.argv)
     dlg = MyDialog()
     dlg.show()
-    dlg.raise_()
-    if app:
-        app.exec_()
+    # dlg.raise_()
+    sys.exit(app.exec_())
+
+
+if __name__ == '__main__':
+    main()
