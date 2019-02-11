@@ -106,6 +106,17 @@ Use the the `irida-uploader.sh` script included with the source code to upload.
 
 `./irida-uploader.sh /path/to/the/sequencing/run/`
 
+## Logging
+
+Logs are written to your system default logging directory
+
+#### Linux
+
+`/home/<user>/.cache/irida_uploader/log/`
+
+#### Windows
+
+`C:\Users\<username>\AppData\Local\irida_uploader\irida_uploader\Logs`
 
 # Problems?
 

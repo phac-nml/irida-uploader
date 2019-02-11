@@ -52,6 +52,8 @@ Running the IRIDA integration tests can be done with the command:
 
     $ make integrationtests
 
+Tests will be logged to `~/.cache/irida_uploader_test/log/irida-uploader.log`
+
 You can verify PEP8 conformity by running:
 
     $ ./scripts/verifyPEP8.sh

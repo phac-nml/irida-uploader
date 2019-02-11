@@ -23,6 +23,7 @@ windows: clean requirements
 
 unittests: clean requirements
 	source .virtualenv/bin/activate
+	export IRIDA_UPLOADER_TEST='True'
 	python3 -m unittest discover -s tests -t .
 
 preintegration:
@@ -33,10 +34,12 @@ preintegration:
 
 integrationtests: clean requirements preintegration
 	source .virtualenv/bin/activate
+	export IRIDA_UPLOADER_TEST='True'
 	xvfb-run --auto-servernum --server-num=1 python3 start_integration_tests.py master
 
 integrationtestsdev: clean requirements preintegration
 	source .virtualenv/bin/activate
+	export IRIDA_UPLOADER_TEST='True'
 	xvfb-run --auto-servernum --server-num=1 python3 start_integration_tests.py development
 
 docs: requirements
