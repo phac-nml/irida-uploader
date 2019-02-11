@@ -83,16 +83,29 @@ def validate_and_upload_single_entry(directory):
 
 
 def exit_error():
+    """
+    Returns an failed run exit code which ends the process when returned
+    :return: 1
+    """
     logging_end_block()
     return 1
 
 
 def exit_success():
+    """
+    Returns an success run exit code which ends the process when returned
+    :return: 0
+    """
     logging_end_block()
     return 0
 
 
 def logging_start_block():
+    """
+    Logs an information block to the console and file which indicates the start of an upload run.
+    Includes the uploader version number set in the global_settings module
+    :return:
+    """
     logging.info("==================================================")
     logging.info("---------------STARTING UPLOAD RUN----------------")
     logging.info("Uploader Version {}".format(global_settings.UPLOADER_VERSION))
@@ -100,6 +113,10 @@ def logging_start_block():
 
 
 def logging_end_block():
+    """
+    Logs an block to the console and file that indicates the end of an upload run.
+    :return:
+    """
     logging.info("==================================================")
     logging.info("----------------ENDING UPLOAD RUN-----------------")
     logging.info("==================================================")
