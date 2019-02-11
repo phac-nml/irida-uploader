@@ -4,6 +4,8 @@ import logging.handlers
 
 
 log_directory_name = "irida_uploader"
+if os.environ.get('IRIDA_UPLOADER_TEST'):
+        log_directory_name = "irida_uploader_test"
 log_file_path = os.path.join(user_log_dir(log_directory_name), 'irida-uploader.log')
 
 if not os.path.exists(user_log_dir(log_directory_name)):
