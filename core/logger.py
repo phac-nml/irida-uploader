@@ -3,9 +3,13 @@ import os
 import logging.handlers
 
 
+# Normal base logging directory name
 log_directory_name = "irida_uploader"
+# When running tests, the Makefile creates an environment variable IRIDA_UPLOADER_TEST to 'True'
+# If it exists then we are running a test and should be logging to the test logs directory
 if os.environ.get('IRIDA_UPLOADER_TEST'):
         log_directory_name = "irida_uploader_test"
+# Use systems default logging path, and append our named directory
 log_file_path = os.path.join(user_log_dir(log_directory_name), 'irida-uploader.log')
 
 if not os.path.exists(user_log_dir(log_directory_name)):
