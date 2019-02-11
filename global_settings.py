@@ -4,6 +4,6 @@ This file manages globals across files.
 It is used to handle passing a config file as a parameter
 """
 
-UPLOADER_VERSION = "0.1"
+UPLOADER_VERSION = "0.2"
 
 config_file = None
