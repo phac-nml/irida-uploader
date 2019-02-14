@@ -82,6 +82,23 @@ def validate_and_upload_single_entry(directory):
     return exit_success()
 
 
+def upload_first_new_run(run_directory_list):
+    logging.debug("upload_first_new_run:Starting {}".format(run_directory_list))
+    logging.info("Finding first new run in directory: {}".format(run_directory_list))
+
+    try:
+        first_run = parsing_handler.get_first_new_run(run_directory_list)
+    except Exception as e:  # TODO
+        raise e  # Todo
+
+    if first_run is None:
+        logging.info("Could not find a new run in directory: {}".format(run_directory_list))
+        return exit_success()  # TODO, should this be a success, or maybe a different error code (2) so that we can catch it when scripting with upload_first_new_run uploads
+
+    logging.info("New run found. Starting upload on directory: {}". format(first_run))
+    return validate_and_upload_single_entry(first_run)
+
+
 def exit_error():
     """
     Returns an failed run exit code which ends the process when returned
