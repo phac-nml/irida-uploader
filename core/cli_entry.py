@@ -126,6 +126,7 @@ def logging_start_block():
     logging.info("==================================================")
     logging.info("---------------STARTING UPLOAD RUN----------------")
     logging.info("Uploader Version {}".format(global_settings.UPLOADER_VERSION))
+    logging.info("Logging to file in: " + global_settings.log_file)
     logging.info("==================================================")
 
 

@@ -2,6 +2,8 @@ from appdirs import user_log_dir
 import os
 import logging.handlers
 
+import global_settings
+
 
 # Normal base logging directory name
 log_directory_name = "irida_uploader"
@@ -43,4 +45,4 @@ console.setLevel(logging.INFO)
 console.setFormatter(log_format)
 root_logger.addHandler(console)
 
-logging.info("Logging to file in: " + user_log_dir(log_directory_name))
+global_settings.log_file = user_log_dir(log_directory_name)
