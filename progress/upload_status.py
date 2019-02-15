@@ -3,6 +3,8 @@ import os
 
 from model.directory_status import DirectoryStatus
 
+from . import exceptions
+
 
 # Module level Constants
 # These define the status files valid fields and variables
@@ -17,6 +19,7 @@ STATUS_FIELD = "Upload Status"
 DIRECTORY_STATUS_NEW = 'new'
 DIRECTORY_STATUS_INVALID = 'invalid'
 DIRECTORY_STATUS_PARTIAL = 'partial'
+DIRECTORY_STATUS_ERROR = 'error'
 DIRECTORY_STATUS_COMPLETE = 'complete'
 
 # list for convenience
@@ -24,6 +27,7 @@ DIRECTORY_STATUS_LIST = [
     DIRECTORY_STATUS_NEW,
     DIRECTORY_STATUS_INVALID,
     DIRECTORY_STATUS_PARTIAL,
+    DIRECTORY_STATUS_ERROR,
     DIRECTORY_STATUS_COMPLETE
 ]
 
@@ -62,11 +66,12 @@ def get_directory_status(directory, sample_sheet):
         if status in DIRECTORY_STATUS_LIST:
             result.status = status
         else:  # the status found in the file is not in the defined list
-            raise Exception  # TODO
+            raise exceptions.DirectoryError("Cannot access directory", directory)
 
     return result
 
 
+# todo: need to test this function
 def write_directory_status(directory, status):
     """
     Writes a status to the status file:
@@ -74,17 +79,16 @@ def write_directory_status(directory, status):
 
     :param directory: directory status file is in (or will be created in)
     :param status: status to set the run to
-        Should be one of: 'new', 'partial', 'invalid', or 'complete'
+        Should be one of defined module level status constants
     :return: None
     """
 
     if not os.access(directory, os.W_OK):  # Cannot access upload directory
-        raise Exception  # TODO
+        raise exceptions.DirectoryError("Cannot access directory", directory)
 
     uploader_info_file = os.path.join(directory, STATUS_FILE_NAME)
 
-    data = {STATUS_FIELD: status}
-    json_data = json.loads(data)
+    json_data = {STATUS_FIELD: status}
 
     with open(uploader_info_file, "w") as json_file:
         json.dump(json_data, json_file)
