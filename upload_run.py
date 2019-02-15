@@ -70,13 +70,23 @@ def main():
 
 
 def upload(run_directory):
+    """
+    start upload on a single run directory
+    :param run_directory:
+    :return:
+    """
     config.setup()
     core.cli_entry.validate_and_upload_single_entry(run_directory)
 
 
-def upload_first_new_run(run_directory_list):
+def upload_first_new_run(directory):
+    """
+    Given a directory of potential run directories, upload the first one found
+    :param directory:
+    :return:
+    """
     config.setup()
-    core.cli_entry.upload_first_new_run(run_directory_list)
+    core.cli_entry.upload_first_new_run(directory)
 
 
 # This is called when the program is run for the first time

@@ -103,18 +103,26 @@ def validate_and_upload_single_entry(directory):
     return exit_success()
 
 
-def upload_first_new_run(run_directory_list):
-    logging.debug("upload_first_new_run:Starting {}".format(run_directory_list))
-    logging.info("Finding first new run in directory: {}".format(run_directory_list))
+def upload_first_new_run(directory):
+    """
+    This function acts as the point of entry for uploading a single run, in a directory containing potential runs
+
+    uses validate_and_upload_single_entry as its upload function
+
+    :param directory: directory of directories to try to upload from
+    :return:
+    """
+    logging.debug("upload_first_new_run:Starting {}".format(directory))
+    logging.info("Finding first new run in directory: {}".format(directory))
 
     try:
-        first_run = parsing_handler.get_first_new_run(run_directory_list)
+        first_run = parsing_handler.get_first_new_run(directory)
     except parsers.exceptions.DirectoryError as e:
         logging.info("Could not read directory while looking for runs")
         raise e
 
     if first_run is None:
-        logging.info("Could not find any new runs in directory: {}".format(run_directory_list))
+        logging.info("Could not find any new runs in directory: {}".format(directory))
         return exit_success()
 
     logging.info("New run found. Starting upload on directory: {}". format(first_run))
