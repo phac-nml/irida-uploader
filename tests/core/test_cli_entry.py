@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import patch
 from os import path
+import os
 
 from core import cli_entry
 
@@ -16,6 +17,12 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
 
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)
+
+    def tearDown(self):
+        print("Cleaning up status file")
+        status_file_path = path.join(path_to_module, "fake_ngs_data", "irida_uploader_status.info")
+        if path.exists(status_file_path):
+            os.remove(status_file_path)
 
     @patch("core.cli_entry.api_handler")
     @patch("core.cli_entry.parsing_handler")

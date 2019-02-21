@@ -1,5 +1,6 @@
 import unittest
 from os import path
+import os
 
 from tests_integration import tests_integration
 
@@ -14,6 +15,13 @@ from core.cli_entry import validate_and_upload_single_entry
 path_to_module = path.dirname(__file__)
 if len(path_to_module) == 0:
     path_to_module = '.'
+
+status_file_list = [
+    path.join(path_to_module, "fake_dir_data", "irida_uploader_status.info"),
+    path.join(path_to_module, "fake_ngs_data", "irida_uploader_status.info"),
+    path.join(path_to_module, "fake_ngs_data_nonexistent_project", "irida_uploader_status.info"),
+    path.join(path_to_module, "fake_ngs_data_parse_fail", "irida_uploader_status.info")
+]
 
 
 class TestEndToEnd(unittest.TestCase):
@@ -32,9 +40,15 @@ class TestEndToEnd(unittest.TestCase):
     def tearDown(self):
         """
         Return the sample config file to blank after tests
+
+        Deletes status file from data directories if they exist
         :return:
         """
         self.write_to_config_file("", "", "", "", "", "")
+
+        for status_file_path in status_file_list:
+            if path.exists(status_file_path):
+                os.remove(status_file_path)
 
     @staticmethod
     def write_to_config_file(client_id, client_secret, username, password, base_url, parser):
