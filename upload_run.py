@@ -57,6 +57,11 @@ argument_parser.add_argument('-c', '--config',
 #                              action='store_true',  # This line makes it not parse a variable
 #                              help='Uploader will accept a list of potential run directories. '
 #                                   'All runs found at the time of execution will be uploaded.')
+# Optional argument, Force uploading a run even if a non new status file exists
+argument_parser.add_argument('-f', '--force',
+                             action='store_true',  # This line makes it not parse a variable
+                             help='Uploader will ignore the status file, '
+                                  'and try to upload even when a run is in non new status.')
 
 
 def main():
@@ -67,17 +72,18 @@ def main():
     #     upload_all_runs(args.directory)
     # else:
     #     upload(args.directory)
-    upload(args.directory)
+    upload(args.directory, args.force)
 
 
-def upload(run_directory):
+def upload(run_directory, force_upload):
     """
     start upload on a single run directory
     :param run_directory:
+    :param force_upload:
     :return:
     """
     config.setup()
-    core.cli_entry.validate_and_upload_single_entry(run_directory)
+    core.cli_entry.validate_and_upload_single_entry(run_directory, force_upload)
 
 
 # def upload_all_runs(directory):
