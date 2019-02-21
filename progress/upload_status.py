@@ -1,4 +1,5 @@
 import json
+import time
 import os
 
 from model.directory_status import DirectoryStatus
@@ -14,6 +15,7 @@ STATUS_FILE_NAME = "irida_uploader_status.info"
 
 # Status field for a sequencing run
 STATUS_FIELD = "Upload Status"
+DATE_TIME_FIELD = "Date Time"
 
 # States that are valid for the status field
 DIRECTORY_STATUS_NEW = 'new'
@@ -77,6 +79,8 @@ def write_directory_status(directory, status):
     Writes a status to the status file:
     Overwrites anything that is in the file
 
+    Writes a timestamp to the time of last written
+
     :param directory: directory status file is in (or will be created in)
     :param status: status to set the run to
         Should be one of defined module level status constants
@@ -88,7 +92,16 @@ def write_directory_status(directory, status):
 
     uploader_info_file = os.path.join(directory, STATUS_FILE_NAME)
 
-    json_data = {STATUS_FIELD: status}
+    json_data = {STATUS_FIELD: status,
+                 DATE_TIME_FIELD: _get_date_time_field()}
 
     with open(uploader_info_file, "w") as json_file:
         json.dump(json_data, json_file)
+
+
+def _get_date_time_field():
+    """
+    Returns the current date and time as a string
+    :return:
+    """
+    return time.strftime("%Y-%m-%d %H:%M")

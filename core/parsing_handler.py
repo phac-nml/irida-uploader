@@ -53,35 +53,46 @@ def parse_and_validate(directory):
     return sequencing_run
 
 
-def get_first_new_run(directory):
-    """
-    Given a directory, get the list of runs that have not been uploaded and return the first one
+# def get_first_run(directory):
+#     """
+#     Given a directory, get the list of runs that have not been uploaded and return the first one
+#
+#     :param directory: directory containing list of run directories
+#     :return: directory, or None if no new run is found
+#     """
+#
+#     logging.info("*** Finding a new run ***")
+#     parser_instance = get_parser_from_config()
+#
+#     try:
+#         directory_status_list = parser_instance.find_runs(directory)
+#     except parsers.exceptions.DirectoryError as e:
+#         logging.debug("parsing_handler: Exception while getting sequence run list")
+#         raise e
+#
+#     for directory_status in directory_status_list:
+#         if run_is_new(directory_status):
+#             return directory_status.directory
+#
+#     return None
 
-    :param directory: directory containing list of run directories
-    :return: directory, or None if no new run is found
-    """
 
-    logging.info("*** Finding a new run ***")
+def run_is_new(directory):
+    """
+    Given a run directory, returns True or False if run is new
+    :param directory:
+    :return:
+    """
     parser_instance = get_parser_from_config()
-
-    try:
-        directory_status_list = parser_instance.find_runs(directory)
-    except parsers.exceptions.DirectoryError as e:
-        logging.debug("parsing_handler: Exception while getting sequence run list")
-        raise e
-
-    for directory_status in directory_status_list:
-        if run_is_new(directory_status):
-            return directory_status.directory
-
-    return None
+    status = parser_instance.find_single_run(directory)
+    return _run_is_new_via_directory_status(status)
 
 
-def run_is_new(directory_status):
+def _run_is_new_via_directory_status(directory_status):
     """
     Checks if a run directory is new or not
 
-    :param directory_status:
+    :param directory_status: a DirectoryStatus object created by the progress module
     :return: True or False
     """
     parser_instance = get_parser_from_config()

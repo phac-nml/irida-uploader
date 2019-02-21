@@ -52,21 +52,22 @@ argument_parser.add_argument('-c', '--config',
                              action=ConfigAction,
                              help='Path to an alternative configuration file. '
                                   'This overrides the default config file in the config directory')
-# Optional argument, uploads first new run found in a directory of runs
-argument_parser.add_argument('-s', '--single',
-                             action='store_true',  # This line makes it not parse a variable
-                             help='Uploader will accept a list of potential run directories. '
-                                  'The first "new" run found will be uploaded, and then the uploader will exit.')
+# Optional argument, uploads all runs found in a directory of runs
+# argument_parser.add_argument('-a', '--all',
+#                              action='store_true',  # This line makes it not parse a variable
+#                              help='Uploader will accept a list of potential run directories. '
+#                                   'All runs found at the time of execution will be uploaded.')
 
 
 def main():
     # Parse the arguments passed from the command line and start the upload
     args = argument_parser.parse_args()
 
-    if args.single:  # --single given
-        upload_first_new_run(args.directory)
-    else:
-        upload(args.directory)
+    # if args.all:  # --all given
+    #     upload_all_runs(args.directory)
+    # else:
+    #     upload(args.directory)
+    upload(args.directory)
 
 
 def upload(run_directory):
@@ -79,14 +80,14 @@ def upload(run_directory):
     core.cli_entry.validate_and_upload_single_entry(run_directory)
 
 
-def upload_first_new_run(directory):
-    """
-    Given a directory of potential run directories, upload the first one found
-    :param directory:
-    :return:
-    """
-    config.setup()
-    core.cli_entry.upload_first_new_run(directory)
+# def upload_all_runs(directory):
+#     """
+#     Given a directory of potential run directories, upload all the runs found
+#     :param directory:
+#     :return:
+#     """
+#     config.setup()
+#     core.cli_entry.upload_all_runs(directory)
 
 
 # This is called when the program is run for the first time
