@@ -7,6 +7,7 @@ Added functionality:
 * When uploading, a `irida_uploader_status.info` status file will be created in the run directory
 * If a status file exists, trying to upload will fail and give a message saying an upload has already been attempted
 * using `--force` or `-f` when uploading bypasses this check
+* Now uploader writes logs to run folder, for that specific upload
 
 Beta 0.1
 ---------

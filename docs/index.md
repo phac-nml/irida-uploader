@@ -114,7 +114,9 @@ You can edit this file to set a runs status to `new` to reupload, or use the `--
 
 ## Logging
 
-Logs are written to your system default logging directory
+Logs about individual runs are written to the sequencing run directory that they are uploaded from.
+
+Full debug logs are written to your system default logging directory
 
 #### Linux
 
