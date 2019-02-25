@@ -73,7 +73,6 @@ def get_directory_status(directory, sample_sheet):
     return result
 
 
-# todo: need to test this function
 def write_directory_status(directory, status):
     """
     Writes a status to the status file:
