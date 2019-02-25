@@ -5,7 +5,7 @@ from pprint import pformat
 import api
 import parsers
 import global_settings
-from progress import upload_status
+import progress
 
 from . import api_handler, parsing_handler
 
@@ -41,8 +41,8 @@ def validate_and_upload_single_entry(directory, force_upload=False):
 
     # Add progress file to directory
     try:
-        upload_status.write_directory_status(directory, upload_status.DIRECTORY_STATUS_PARTIAL)
-    except upload_status.exceptions.DirectoryError as e:
+        progress.write_directory_status(directory, progress.DIRECTORY_STATUS_PARTIAL)
+    except progress.exceptions.DirectoryError as e:
         logging.error("ERROR! Error while trying to write status file to directory {} with error message: {}"
                       "".format(e.directory, e.message))
         logging.info("Samples not uploaded!")
@@ -102,8 +102,8 @@ def validate_and_upload_single_entry(directory, force_upload=False):
 
     # Set progress file to complete
     try:
-        upload_status.write_directory_status(directory, upload_status.DIRECTORY_STATUS_COMPLETE)
-    except upload_status.exceptions.DirectoryError as e:
+        progress.write_directory_status(directory, progress.DIRECTORY_STATUS_COMPLETE)
+    except progress.exceptions.DirectoryError as e:
         # this is an exceptionally rare case (successful upload, but fails to write progress)
         logging.ERROR("ERROR! Error while trying to write status file to directory {} with error message: {}"
                       "".format(e.directory, e.message))
@@ -116,57 +116,6 @@ def validate_and_upload_single_entry(directory, force_upload=False):
     return exit_success()
 
 
-# def upload_all_runs(directory):
-#     """
-#     This function acts as the point of entry for uploading all runs in a directory containing potential runs
-#
-#     After each upload, the function will reparse the list of potential runs,
-#         such that if new runs are added while a run is going, it will also be found and uploaded
-#
-#     uses validate_and_upload_single_entry as its upload function
-#
-#     :param directory: directory of directories to try to upload from
-#     :return:
-#     """
-#     logging.debug("upload_first_new_run:Starting {}".format(directory))
-#     logging.info("Finding first new run in directory: {}".format(directory))
-#
-#     # Get a new run
-#     try:
-#         run_to_upload = parsing_handler.get_first_new_run(directory)
-#     except parsers.exceptions.DirectoryError:
-#         logging.error("Could not read directory while looking for runs")
-#         return exit_error()  # If no run is found, there were no runs found in directory
-#     if run_to_upload is None:
-#         logging.info("Could not find any new runs in directory: {}".format(directory))
-#         return exit_success()
-#
-#     failed_to_upload_directory_list = []
-#
-#     # There is >=1 run, so upload and re run
-#     while run_to_upload:
-#         logging.info("New run found. Starting upload on directory: {}".format(run_to_upload))
-#         result = validate_and_upload_single_entry(run_to_upload)
-#         if result == EXIT_CODE_ERROR:
-#             failed_to_upload_directory_list.append(run_to_upload)
-#             logging.warning("Error occurred while trying to upload run in directory: {}".format(run_to_upload))
-#             logging.warning("See log for more details")
-#
-#         try:
-#             run_to_upload = parsing_handler.get_first_new_run(directory)
-#         except parsers.exceptions.DirectoryError:  # Very rare case, since a run was already read from this dir
-#             logging.error("Could not read directory while looking for runs")
-#             return exit_error()
-#
-#     if len(failed_to_upload_directory_list) > 0:
-#         logging.error("One or more runs failed to upload: Please see log for more details")
-#         for dir_error in failed_to_upload_directory_list:
-#             logging.error("The following directory was not uploaded successfully: {}".format(dir_error))
-#         return exit_error()
-#
-#     return exit_success()
-
-
 def exit_error(run_directory=None):
     """
     Returns an failed run exit code which ends the process when returned
@@ -175,8 +124,8 @@ def exit_error(run_directory=None):
     """
     if run_directory:
         try:
-            upload_status.write_directory_status(run_directory, upload_status.DIRECTORY_STATUS_ERROR)
-        except upload_status.exceptions.DirectoryError as e:
+            progress.write_directory_status(run_directory, progress.DIRECTORY_STATUS_ERROR)
+        except progress.exceptions.DirectoryError as e:
             # this is an exceptionally rare case (wrote to directory at start, but fails to write on exit)
             logging.ERROR("ERROR! Error on exit while trying to write status file to directory {} "
                           "with error message: {}".format(e.directory, e.message))

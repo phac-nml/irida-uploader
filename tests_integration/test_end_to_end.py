@@ -8,6 +8,7 @@ import global_settings
 import config
 import api
 import model
+import progress
 
 from core.cli_entry import validate_and_upload_single_entry
 
@@ -19,6 +20,7 @@ if len(path_to_module) == 0:
 status_file_list = [
     path.join(path_to_module, "fake_dir_data", "irida_uploader_status.info"),
     path.join(path_to_module, "fake_ngs_data", "irida_uploader_status.info"),
+    path.join(path_to_module, "fake_ngs_data_force", "irida_uploader_status.info"),
     path.join(path_to_module, "fake_ngs_data_nonexistent_project", "irida_uploader_status.info"),
     path.join(path_to_module, "fake_ngs_data_parse_fail", "irida_uploader_status.info")
 ]
@@ -318,6 +320,133 @@ class TestEndToEnd(unittest.TestCase):
 
         # Do the upload
         upload_result = validate_and_upload_single_entry(path.join(path_to_module, "fake_ngs_data_parse_fail"))
+
+        # Make sure the upload was a failure
+        self.assertEqual(upload_result, 1)
+
+    def test_valid_miseq_with_status_file_force(self):
+        """
+        Test a valid miseq directory for upload from end to end
+        We create a status file that indicates the files have already been uploaded,
+        and then use the force option to upload anyways
+        :return:
+        """
+        # Set our sample config file to use miseq parser and the correct irida credentials
+        self.write_to_config_file(
+            client_id=tests_integration.client_id,
+            client_secret=tests_integration.client_secret,
+            username=tests_integration.username,
+            password=tests_integration.password,
+            base_url=tests_integration.base_url,
+            parser="miseq"
+        )
+
+        # instance an api
+        test_api = api.ApiCalls(
+            client_id=tests_integration.client_id,
+            client_secret=tests_integration.client_secret,
+            base_url=tests_integration.base_url,
+            username=tests_integration.username,
+            password=tests_integration.password
+        )
+
+        # Create a test project, the uploader does not make new projects on its own
+        # so one must exist to upload samples into
+        # This may not be the project that the files get uploaded to,
+        # but one will be made in the case this is the only test being run
+        project_name = "test_project_3"
+        project_description = "test_project_description"
+        project = model.Project(name=project_name, description=project_description)
+        test_api.send_project(project)
+        # We always upload to project "1" so that tests will be consistent no matter how many / which tests are run
+        project_id = "1"
+
+        # Write a status file to the upload directory that we can force past
+        progress.write_directory_status(directory=path.join(path_to_module, "fake_ngs_data_force"),
+                                        status=progress.DIRECTORY_STATUS_COMPLETE)
+
+        # Do the upload, with force option
+        upload_result = validate_and_upload_single_entry(path.join(path_to_module, "fake_ngs_data_force"), True)
+
+        # Make sure the upload was a success
+        self.assertEqual(upload_result, 0)
+
+        # Verify the files were uploaded
+        sample_list = test_api.get_samples(project_id)
+
+        sample_1_found = False
+        sample_2_found = False
+        sample_3_found = False
+
+        for sample in sample_list:
+            if sample.sample_name in ["01-1111", "02-2222", "03-3333"]:
+                if sample.sample_name == "01-1111":
+                    sample_1_found = True
+                    sequence_files = test_api.get_sequence_files(project_id, sample.sample_name)
+                    self.assertEqual(len(sequence_files), 2)
+                    res_sequence_file_names = [
+                        sequence_files[0]['fileName'],
+                        sequence_files[1]['fileName']
+                    ]
+                    expected_sequence_file_names = [
+                        '01-1111_S1_L001_R1_001.fastq.gz',
+                        '01-1111_S1_L001_R2_001.fastq.gz'
+                    ]
+                    self.assertEqual(res_sequence_file_names.sort(), expected_sequence_file_names.sort())
+                elif sample.sample_name == "02-2222":
+                    sample_2_found = True
+                    sequence_files = test_api.get_sequence_files(project_id, sample.sample_name)
+                    self.assertEqual(len(sequence_files), 2)
+                    res_sequence_file_names = [
+                        sequence_files[0]['fileName'],
+                        sequence_files[1]['fileName']
+                    ]
+                    expected_sequence_file_names = [
+                        '02-2222_S1_L001_R1_001.fastq.gz',
+                        '02-2222_S1_L001_R2_001.fastq.gz'
+                    ]
+                    self.assertEqual(res_sequence_file_names.sort(), expected_sequence_file_names.sort())
+                elif sample.sample_name == "03-3333":
+                    sample_3_found = True
+                    sequence_files = test_api.get_sequence_files(project_id, sample.sample_name)
+                    self.assertEqual(len(sequence_files), 2)
+                    res_sequence_file_names = [
+                        sequence_files[0]['fileName'],
+                        sequence_files[1]['fileName']
+                    ]
+                    expected_sequence_file_names = [
+                        '03-3333_S1_L001_R1_001.fastq.gz',
+                        '03-3333_S1_L001_R2_001.fastq.gz'
+                    ]
+                    self.assertEqual(res_sequence_file_names.sort(), expected_sequence_file_names.sort())
+
+        self.assertEqual(sample_1_found, True)
+        self.assertEqual(sample_2_found, True)
+        self.assertEqual(sample_3_found, True)
+
+    def test_valid_miseq_with_status_file_already_uploaded(self):
+        """
+        Test a valid miseq directory for upload from end to end
+        We create a status file that indicates the files have already been uploaded,
+        Then make sure it does not upload
+        :return:
+        """
+        # Set our sample config file to use miseq parser and the correct irida credentials
+        self.write_to_config_file(
+            client_id=tests_integration.client_id,
+            client_secret=tests_integration.client_secret,
+            username=tests_integration.username,
+            password=tests_integration.password,
+            base_url=tests_integration.base_url,
+            parser="miseq"
+        )
+
+        # Write a status file to the upload directory
+        progress.write_directory_status(directory=path.join(path_to_module, "fake_ngs_data"),
+                                        status=progress.DIRECTORY_STATUS_COMPLETE)
+
+        # Do the upload, without force option
+        upload_result = validate_and_upload_single_entry(path.join(path_to_module, "fake_ngs_data"), False)
 
         # Make sure the upload was a failure
         self.assertEqual(upload_result, 1)
