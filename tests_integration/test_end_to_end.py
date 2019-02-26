@@ -17,12 +17,12 @@ path_to_module = path.dirname(__file__)
 if len(path_to_module) == 0:
     path_to_module = '.'
 
-status_file_list = [
-    path.join(path_to_module, "fake_dir_data", "irida_uploader_status.info"),
-    path.join(path_to_module, "fake_ngs_data", "irida_uploader_status.info"),
-    path.join(path_to_module, "fake_ngs_data_force", "irida_uploader_status.info"),
-    path.join(path_to_module, "fake_ngs_data_nonexistent_project", "irida_uploader_status.info"),
-    path.join(path_to_module, "fake_ngs_data_parse_fail", "irida_uploader_status.info")
+CLEANUP_DIRECTORY_LIST = [
+    path.join(path_to_module, "fake_dir_data"),
+    path.join(path_to_module, "fake_ngs_data"),
+    path.join(path_to_module, "fake_ngs_data_force"),
+    path.join(path_to_module, "fake_ngs_data_nonexistent_project"),
+    path.join(path_to_module, "fake_ngs_data_parse_fail")
 ]
 
 
@@ -48,9 +48,13 @@ class TestEndToEnd(unittest.TestCase):
         """
         self.write_to_config_file("", "", "", "", "", "")
 
-        for status_file_path in status_file_list:
+        for directory_path in CLEANUP_DIRECTORY_LIST:
+            status_file_path = path.join(directory_path, 'irida_uploader_status.info')
             if path.exists(status_file_path):
                 os.remove(status_file_path)
+            log_file_path = path.join(directory_path, 'irida-uploader.log')
+            if path.exists(log_file_path):
+                os.remove(log_file_path)
 
     @staticmethod
     def write_to_config_file(client_id, client_secret, username, password, base_url, parser):

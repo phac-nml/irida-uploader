@@ -2,7 +2,6 @@
 *.swp
 *.coverage
 *.bak
-*.log
 docs/_build/*
 build/
 .virtualenv

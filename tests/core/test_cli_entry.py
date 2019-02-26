@@ -20,6 +20,9 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
 
     def tearDown(self):
         print("Cleaning up status file")
+        log_file_path = path.join(path_to_module, "fake_ngs_data", "irida-uploader.log")
+        if path.exists(log_file_path):
+            os.remove(log_file_path)
         status_file_path = path.join(path_to_module, "fake_ngs_data", "irida_uploader_status.info")
         if path.exists(status_file_path):
             os.remove(status_file_path)
@@ -54,6 +57,35 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
         mock_api_handler.prepare_and_validate_for_upload.assert_called_with("Fake Sequencing Run")
         # api should try to upload
         mock_api_handler.upload_sequencing_run.assert_called_with("Fake Sequencing Run")
+
+    @patch("core.cli_entry.api_handler")
+    @patch("core.cli_entry.parsing_handler")
+    def test_log_file_created(self, mock_parsing_handler, mock_api_handler):
+        """
+        Makes sure that all functions are called when a valid directory in given
+        :return:
+        """
+        class StubValidationResult:
+            @staticmethod
+            def is_valid():
+                return True
+
+        # add mock data to the function calls that are essential
+        mock_parsing_handler.parse_and_validate.side_effect = ["Fake Sequencing Run"]
+        mock_api_handler.initialize_api_from_config.side_effect = [None]
+        mock_api_handler.prepare_and_validate_for_upload.side_effect = [StubValidationResult]
+        mock_api_handler.upload_sequencing_run.side_effect = [None]
+
+        directory = path.join(path_to_module, "fake_ngs_data")
+        log_file = path.join(directory, "irida-uploader.log")
+
+        # Check that log file does not exist before starting
+        self.assertFalse(path.exists(log_file))
+
+        cli_entry.validate_and_upload_single_entry(directory)
+
+        # Make sure log file is created
+        self.assertTrue(path.exists(log_file))
 
     @patch("core.cli_entry.api_handler")
     @patch("core.cli_entry.parsing_handler")
