@@ -538,7 +538,6 @@ class ApiCalls(object):
                     # Todo: once message passing is in place, this might find its home in that module
                     bytes_read = 0
                     while data and not self._stop_upload:
-                        print_index = print_index + 1
                         bytes_read += len(data)
                         print("Progress: ", round(bytes_read/total_file_size*100, 2),
                               "% Uploaded     \r", end="")
