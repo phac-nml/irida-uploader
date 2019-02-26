@@ -62,11 +62,6 @@ argument_parser.add_argument('-f', '--force',
 def main():
     # Parse the arguments passed from the command line and start the upload
     args = argument_parser.parse_args()
-
-    # if args.all:  # --all given
-    #     upload_all_runs(args.directory)
-    # else:
-    #     upload(args.directory)
     upload(args.directory, args.force)
 
 
