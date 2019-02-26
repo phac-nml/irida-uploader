@@ -505,7 +505,7 @@ class ApiCalls(object):
         read_size = 32768
         self._stop_upload = False
 
-        def _send_file(filename, parameter_name, bytes_read=0):
+        def _send_file(filename, parameter_name):
             """This function is a generator that yields a multipart form-data
             entry for the specified file. This function will yield `read_size`
             bytes of the specified file name at a time as the generator is called.
@@ -516,9 +516,6 @@ class ApiCalls(object):
                 filename: the file to read and yield in `read_size` chunks to
                           the server.
                 parameter_name: the form field name to send to the server.
-                bytes_read: used for sending messages to the UI layer indicating
-                            the total number of bytes sent when sending the sample
-                            to the server.
             """
 
             # Send the boundary header section for the file
@@ -527,6 +524,9 @@ class ApiCalls(object):
                    "Content-Disposition: form-data; name=\"{parameter_name}\"; filename=\"{filename}\"\r\n\r\n").format(
                 boundary=boundary, parameter_name=parameter_name, filename=filename.replace("\\", "/"))).encode()
 
+            # Get total file size for progress
+            total_file_size = path.getsize(filename)
+
             # Send the contents of the file, read_size bytes at a time until
             # we've either read the entire file, or we've been instructed to
             # stop the upload by the UI
@@ -534,19 +534,19 @@ class ApiCalls(object):
             try:
                 with open(filename, "rb", read_size) as fastq_file:
                     data = fastq_file.read(read_size)
-                    # Todo: I'm not a big fan of having this here, but until the message passing/threading is done it is a easy way to show progress to the user on CLI
-                    dot_print_factor = 5 * read_size  # todo:remove when message passing/threading
-                    dot_read = 0  # todo:remove when message passing
+                    # Command line progress info printing
+                    # Todo: once message passing is in place, this might find its home in that module
+                    bytes_read = 0
                     while data and not self._stop_upload:
+                        print_index = print_index + 1
                         bytes_read += len(data)
-                        dot_read +=  len(data)  # todo:remove when message passing
-                        if dot_read % dot_print_factor == 0:  # todo:remove when message passing
-                            print(".", end="")  # this prints dots as the file is uploaded so the user can see progress
+                        print("Progress: ", round(bytes_read/total_file_size*100, 2),
+                              "% Uploaded     \r", end="")
                         # todo: rework send_message
                         # send_message(sample.upload_progress_topic, progress=bytes_read)
                         yield data
                         data = fastq_file.read(read_size)
-                    print()  # end cap to the dots we printed above todo:remove when message passing
+                    print()  # end cap to the dots we printed above
                     logging.info("Finished sending file {}".format(filename))
                     if self._stop_upload:
                         logging.info("Halting upload on user request.")
@@ -592,8 +592,7 @@ class ApiCalls(object):
                 logging.debug("api_calls._sample_upload_generator: is paired end read")
                 return itertools.chain(
                     _send_file(filename=sequence_file_up.file_list[0], parameter_name="file1"),
-                    _send_file(filename=sequence_file_up.file_list[1], parameter_name="file2",
-                               bytes_read=path.getsize(sequence_file_up.file_list[0])),
+                    _send_file(filename=sequence_file_up.file_list[1], parameter_name="file2"),
                     _send_parameters(parameter_name="parameters1", parameters=file_metadata_json),
                     _send_parameters(parameter_name="parameters2", parameters=file_metadata_json),
                     _finish_request())
