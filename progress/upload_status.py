@@ -33,7 +33,9 @@ def get_directory_status(directory, sample_sheet):
     # Must check status of upload to determine if upload is completed
     uploader_info_file = os.path.join(directory, '.miseqUploaderInfo')
     with open(uploader_info_file, "rb") as reader:
-        info_file = json.load(reader)
+        data = reader.read().decode()
+        # import pdb; pdb.set_trace()
+        info_file = json.loads(data)
         complete = info_file["Upload Status"] == "Complete"  # if True, done uploading, if False, partially done
         if complete:
             result.status = 'complete'
