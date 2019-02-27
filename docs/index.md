@@ -35,7 +35,7 @@ You will need to configure your uploader before running. See [Configuration](con
 
 #### Linux
 
-Make sure Python 3 (Version 3.5, 3.6 or 3.7) is installed
+Make sure Python 3.5 or newer is installed
 
     $ python3 --version
 
