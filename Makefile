@@ -14,8 +14,8 @@ clean:
 requirements:
 	python3 -m venv .virtualenv
 	source .virtualenv/bin/activate
-	pip install --upgrade pip wheel
-	pip install -r requirements.txt
+	pip3 install --upgrade wheel
+	pip3 install -r requirements.txt
 
 windows: clean requirements
 	source .virtualenv/bin/activate

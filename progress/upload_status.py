@@ -34,11 +34,10 @@ def get_directory_status(directory, sample_sheet):
     uploader_info_file = os.path.join(directory, '.miseqUploaderInfo')
     with open(uploader_info_file, "rb") as reader:
         data = reader.read().decode()
-        # import pdb; pdb.set_trace()
-        info_file = json.loads(data)
-        complete = info_file["Upload Status"] == "Complete"  # if True, done uploading, if False, partially done
-        if complete:
-            result.status = 'complete'
-        else:
-            result.status = 'partial'
-        return result
+    info_file = json.loads(data)
+    complete = info_file["Upload Status"] == "Complete"  # if True, done uploading, if False, partially done
+    if complete:
+        result.status = 'complete'
+    else:
+        result.status = 'partial'
+    return result
