@@ -1,23 +1,20 @@
 language: python
-#python:
-#  - 3.5
-#  - 3.6
-#env:
-global:
-  - "MYSQL_DATABASE=irida_uploader_test"
-  - "MYSQL_USER=test"
-  - "MYSQL_PASSWORD=test"
-  - "DB_MAX_WAIT_MILLIS=30000"
-matrix:
-  - "TEST_SUITE=unittests"
-  - "TEST_SUITE=integrationtests"
-  - "TEST_SUITE=integrationtestsdev"
-  include:
-    - python: 3.5
-    - python: 3.6
-    - python: 3.7
-      dist: xenial
-      sudo: true
+python:
+  - 3.5
+  - 3.6
+  - 3.7
+env:
+  global:
+    - "MYSQL_DATABASE=irida_uploader_test"
+    - "MYSQL_USER=test"
+    - "MYSQL_PASSWORD=test"
+    - "DB_MAX_WAIT_MILLIS=30000"
+  matrix:
+    - "TEST_SUITE=unittests"
+    - "TEST_SUITE=integrationtests"
+    - "TEST_SUITE=integrationtestsdev"
+  dist: xenial
+  sudo: true
 addons:
   apt:
     packages:
