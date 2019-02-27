@@ -35,13 +35,13 @@ You will need to configure your uploader before running. See [Configuration](con
 
 #### Linux
 
-Make sure Python 3.6 is installed
+Make sure Python 3 (Version 3.5, 3.6 or 3.7) is installed
 
-    $ python3.6 --version
+    $ python3 --version
 
 If python3 is not installed, install with
 
-    $ sudo apt-get install python3.6
+    $ sudo apt-get install python3
 
 Install pip:
 
