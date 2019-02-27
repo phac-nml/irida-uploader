@@ -13,8 +13,8 @@ env:
     - "TEST_SUITE=unittests"
     - "TEST_SUITE=integrationtests"
     - "TEST_SUITE=integrationtestsdev"
-dist: xenial
-sudo: true
+#dist: xenial
+#sudo: true
 services:
   mysql
 addons:
