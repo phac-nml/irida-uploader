@@ -22,7 +22,7 @@ addons:
     packages:
       - chromium-chromedriver
       - xvfb
-      - openjdk8
+      - oracle-java8-installer
       - maven
 before_script:
   - ln -s /usr/lib/chromium-browser/chromedriver ~/bin/chromedriver
