@@ -14,7 +14,9 @@ env:
     - "TEST_SUITE=integrationtests"
     - "TEST_SUITE=integrationtestsdev"
 dist: xenial
-#sudo: true
+sudo: required
+jdk:
+  - openjdk8
 services:
   mysql
 addons:
