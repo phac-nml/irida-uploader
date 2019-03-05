@@ -34,9 +34,10 @@ def validate_and_upload_single_entry(directory, force_upload=False):
     if not force_upload:
         run_is_new = parsing_handler.run_is_new(directory)
         if not run_is_new:
-            logging.error("ERROR! Run is not new. It has either been uploaded, or an upload was attempted with error. "
+            logging.error("ERROR! Run in directory {} is not new. It has either been uploaded, "
+                          "or an upload was attempted with error. "
                           "Please check the status file in the directory for more details. "
-                          "You can bypass this error by uploading with the --force argument.")
+                          "You can bypass this error by uploading with the --force argument.".format(directory))
             return exit_error()
 
     # Add progress file to directory
@@ -93,7 +94,7 @@ def validate_and_upload_single_entry(directory, force_upload=False):
     # Start upload
     logging.info("*** Starting Upload ***")
     try:
-        api_handler.upload_sequencing_run(sequencing_run)
+        run_id = api_handler.upload_sequencing_run(sequencing_run)
     except api.exceptions.IridaConnectionError as e:
         logging.error("Lost connection to Irida")
         logging.error("Errors: " + pformat(e.args))
@@ -102,7 +103,7 @@ def validate_and_upload_single_entry(directory, force_upload=False):
 
     # Set progress file to complete
     try:
-        progress.write_directory_status(directory, progress.DIRECTORY_STATUS_COMPLETE)
+        progress.write_directory_status(directory, progress.DIRECTORY_STATUS_COMPLETE, run_id=run_id)
     except progress.exceptions.DirectoryError as e:
         # this is an exceptionally rare case (successful upload, but fails to write progress)
         logging.ERROR("ERROR! Error while trying to write status file to directory {} with error message: {}"

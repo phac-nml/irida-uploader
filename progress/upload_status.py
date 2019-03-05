@@ -2,6 +2,7 @@ import json
 import time
 import os
 
+import config
 from model.directory_status import DirectoryStatus
 
 from . import exceptions
@@ -16,6 +17,8 @@ STATUS_FILE_NAME = "irida_uploader_status.info"
 # Status field for a sequencing run
 STATUS_FIELD = "Upload Status"
 DATE_TIME_FIELD = "Date Time"
+RUN_ID_FIELD = "Run ID"
+IRIDA_INSTANCE_FIELD = "IRIDA Instance"
 
 # States that are valid for the status field
 DIRECTORY_STATUS_NEW = 'new'
@@ -73,7 +76,7 @@ def get_directory_status(directory, sample_sheet):
     return result
 
 
-def write_directory_status(directory, status):
+def write_directory_status(directory, status, run_id=None):
     """
     Writes a status to the status file:
     Overwrites anything that is in the file
@@ -90,12 +93,17 @@ def write_directory_status(directory, status):
         raise exceptions.DirectoryError("Cannot access directory", directory)
 
     uploader_info_file = os.path.join(directory, STATUS_FILE_NAME)
-
-    json_data = {STATUS_FIELD: status,
-                 DATE_TIME_FIELD: _get_date_time_field()}
+    if run_id:
+        json_data = {STATUS_FIELD: status,
+                     DATE_TIME_FIELD: _get_date_time_field(),
+                     RUN_ID_FIELD: run_id,
+                     IRIDA_INSTANCE_FIELD: config.read_config_option('base_url')}
+    else:
+        json_data = {STATUS_FIELD: status,
+                     DATE_TIME_FIELD: _get_date_time_field()}
 
     with open(uploader_info_file, "w") as json_file:
-        json.dump(json_data, json_file)
+        json.dump(json_data, json_file, indent=4, sort_keys=True)
 
 
 def _get_date_time_field():

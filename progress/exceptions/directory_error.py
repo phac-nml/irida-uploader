@@ -4,11 +4,12 @@ class DirectoryError(Exception):
     """
 
     def __init__(self, message, directory):
-        """Initialize a IridaResourceError.
-
-        Args:
-            message: the summary message that's causing the error.
         """
+        Initialize a IridaResourceError
+        :param message: the summary message that's causing the error
+        :param directory: directory that has the error
+        """
+
         self._message = message
         self._directory = directory
 

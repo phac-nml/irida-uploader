@@ -108,9 +108,9 @@ Use the the `irida-uploader.sh` script included with the source code to upload.
 
 
 #### Note:
-After uploading, a `irida_uploader_status.info` file will be created which indicates if a run is complete, or has failed
+After uploading, an `irida_uploader_status.info` file will be created which indicates if a run is complete, or has failed
 
-You can edit this file to set a runs status to `new` to reupload, or use the `--force` option when running the uploader to ignore the status of a run directory.
+You can edit this file to set a run's status to `new` to reupload, or use the `--force` option when running the uploader to ignore the status of a run directory.
 
 ## Logging
 
