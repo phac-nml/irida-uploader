@@ -36,7 +36,8 @@ def validate_and_upload_single_entry(directory, force_upload=False):
         if not run_is_new:
             logging.error("ERROR! Run in directory {} is not new. It has either been uploaded, "
                           "or an upload was attempted with error. "
-                          "Please check the status file in the directory for more details. "
+                          "Please check the status file 'irida_uploader_status.info' "
+                          "in the run directory for more details. "
                           "You can bypass this error by uploading with the --force argument.".format(directory))
             return exit_error()
 

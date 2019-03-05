@@ -104,6 +104,7 @@ def write_directory_status(directory, status, run_id=None):
 
     with open(uploader_info_file, "w") as json_file:
         json.dump(json_data, json_file, indent=4, sort_keys=True)
+        json_file.write("\n")
 
 
 def _get_date_time_field():
