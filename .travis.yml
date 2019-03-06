@@ -23,9 +23,9 @@ addons:
       - chromium-chromedriver
       - xvfb
 before_script:
-  - export MAVEN_OPTS="-Xmx8G"
   - ln -s /usr/lib/chromium-browser/chromedriver ~/bin/chromedriver
 install:
   - mysql -e "CREATE USER '$MYSQL_USER'@'localhost' IDENTIFIED BY '$MYSQL_PASSWORD'; GRANT ALL ON $MYSQL_DATABASE.* to '$MYSQL_USER'@'localhost';"
 script:
+  - java -version
   - make $TEST_SUITE
