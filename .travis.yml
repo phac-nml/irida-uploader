@@ -24,7 +24,10 @@ addons:
       - xvfb
 before_script:
   - java -version
-  - sudo apt-get install oracle-java8-installer
+  - sudo add-apt-repository ppa:openjdk-r/ppa
+  - sudo apt-get update
+  - sudo apt-get install openjdk-8-jdk
+  - sudo update-alternatives --config java
   - java -version
   - ln -s /usr/lib/chromium-browser/chromedriver ~/bin/chromedriver
 install:
