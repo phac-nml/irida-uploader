@@ -56,7 +56,8 @@ class SetupIridaData:
                           '-Dirida.it.rootdirectory={}'.format(root_dir),
                           '-Dsequence.file.base.directory={}'.format(sequence_files),
                           '-Dreference.file.base.directory={}'.format(reference_file),
-                          '-Doutput.file.base.directory={}'.format(output_files)
+                          '-Doutput.file.base.directory={}'.format(output_files),
+                          '-e'
                           ]
 
         self.IRIDA_STOP = 'mvn jetty:stop'
