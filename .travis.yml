@@ -30,10 +30,11 @@ before_script:
   - sudo add-apt-repository ppa:openjdk-r/ppa -y
   - sudo apt-get update
   - sudo apt-get install openjdk-8-jdk -y
-  - JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
+  - export JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
+  - export PATH=${JAVA_HOME}/bin:$PATH
 #  - source /opt/jdk_switcher/jdk_switcher
 #  - jdk_switcher use openjdk-8
-  - $TRAVIS_BUILD_DIR/install-jdk.sh --install openjdk8 --target $JAVA_HOME
+#  - $TRAVIS_BUILD_DIR/install-jdk.sh --install openjdk8 --target $JAVA_HOME
   - java -version
   - echo $JAVA_HOME
   - ln -s /usr/lib/chromium-browser/chromedriver ~/bin/chromedriver
