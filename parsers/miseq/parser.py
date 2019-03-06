@@ -11,6 +11,10 @@ from . import sample_parser, validation
 class Parser:
 
     @staticmethod
+    def get_sample_sheet_file_name():
+        return 'SampleSheet.csv'
+
+    @staticmethod
     def _find_directory_list(directory):
         """Find and return all directories in the specified directory.
 
@@ -45,7 +49,7 @@ class Parser:
         runs = []
         directory_list = Parser._find_directory_list(directory)
         for d in directory_list:
-            runs.append(progress.get_directory_status(d, 'SampleSheet.csv'))
+            runs.append(progress.get_directory_status(d, Parser.get_sample_sheet_file_name()))
 
         return runs
 
@@ -59,7 +63,7 @@ class Parser:
         """
         logging.info("looking for run in {}".format(directory))
 
-        return progress.get_directory_status(directory, 'SampleSheet.csv')
+        return progress.get_directory_status(directory, Parser.get_sample_sheet_file_name())
 
     @staticmethod
     def get_sample_sheet(directory):
@@ -78,7 +82,7 @@ class Parser:
             raise exceptions.DirectoryError("The directory is not accessible, "
                                             "can not parse samples from this directory {}".format(directory), directory)
 
-        sample_sheet_file_name = 'SampleSheet.csv'
+        sample_sheet_file_name = Parser.get_sample_sheet_file_name()
         file_list = next(os.walk(directory))[2]  # Gets the list of files in the directory
         if sample_sheet_file_name not in file_list:
             logging.error("No sample sheet file in the MiSeq format found")
