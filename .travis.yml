@@ -23,9 +23,11 @@ addons:
       - chromium-chromedriver
       - xvfb
 before_script:
+  - java -version
+  - sudo apt-get install oracle-java8-installer
+  - java -version
   - ln -s /usr/lib/chromium-browser/chromedriver ~/bin/chromedriver
 install:
   - mysql -e "CREATE USER '$MYSQL_USER'@'localhost' IDENTIFIED BY '$MYSQL_PASSWORD'; GRANT ALL ON $MYSQL_DATABASE.* to '$MYSQL_USER'@'localhost';"
 script:
-  - java -version
   - make $TEST_SUITE
