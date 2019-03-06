@@ -28,7 +28,8 @@ before_script:
   - sudo add-apt-repository ppa:openjdk-r/ppa -y
   - sudo apt-get update
   - sudo apt-get install openjdk-8-jdk -y
-  - JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
+#  - JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
+  - jdk_switcher use openjdk-8-jdk
   - java -version
   - echo $JAVA_HOME
   - ln -s /usr/lib/chromium-browser/chromedriver ~/bin/chromedriver
