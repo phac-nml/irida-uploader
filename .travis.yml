@@ -9,7 +9,6 @@ env:
     - "MYSQL_USER=test"
     - "MYSQL_PASSWORD=test"
     - "DB_MAX_WAIT_MILLIS=30000"
-    - 'JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"'
   matrix:
     - "TEST_SUITE=unittests"
     - "TEST_SUITE=integrationtests"
@@ -25,12 +24,13 @@ addons:
       - xvfb
 before_script:
   - java -version
+  - echo $JAVA_HOME
   - sudo add-apt-repository ppa:openjdk-r/ppa -y
   - sudo apt-get update
   - sudo apt-get install openjdk-8-jdk -y
-#  - sudo update-alternatives --config java
-  -
+  - JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
   - java -version
+  - echo $JAVA_HOME
   - ln -s /usr/lib/chromium-browser/chromedriver ~/bin/chromedriver
 install:
   - mysql -e "CREATE USER '$MYSQL_USER'@'localhost' IDENTIFIED BY '$MYSQL_PASSWORD'; GRANT ALL ON $MYSQL_DATABASE.* to '$MYSQL_USER'@'localhost';"
