@@ -87,6 +87,8 @@ def write_directory_status(directory, status, run_id=None):
     :param directory: directory status file is in (or will be created in)
     :param status: status to set the run to
         Should be one of defined module level status constants
+    :param run_id: optional, when used, the run id will be included in the status file,
+        along with the irida instance the run is uploaded to.
     :return: None
     """
 
