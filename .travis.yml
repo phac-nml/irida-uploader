@@ -22,7 +22,7 @@ addons:
     packages:
       - chromium-chromedriver
       - xvfb
-  mariadb: '15.1'
+  mariadb: '10.0'
 before_script:
   - echo $TRAVIS_BUILD_DIR
   - ls -a $TRAVIS_BUILD_DIR
