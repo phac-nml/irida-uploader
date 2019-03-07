@@ -106,6 +106,12 @@ Use the the `irida-uploader.sh` script included with the source code to upload.
 
 `./irida-uploader.sh /path/to/the/sequencing/run/`
 
+
+#### Note:
+After uploading, an `irida_uploader_status.info` file will be created which indicates if a run is complete, or has failed
+
+You can delete this file to make it ready for reupload, or use the `--force` option when running the uploader to ignore the status of a run directory.
+
 ## Logging
 
 Logs are written to your system default logging directory
