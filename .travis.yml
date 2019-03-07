@@ -28,8 +28,6 @@ addons:
   mariadb: '10.0'
 
 before_script:
-  - echo $TRAVIS_BUILD_DIR
-  - ls -a $TRAVIS_BUILD_DIR
   - java -version
   - echo $JAVA_HOME
   - sudo add-apt-repository ppa:openjdk-r/ppa -y
