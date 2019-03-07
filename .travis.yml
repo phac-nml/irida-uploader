@@ -15,13 +15,14 @@ env:
     - "TEST_SUITE=integrationtestsdev"
 dist: xenial
 sudo: required
-services:
-  mysql
+#services:
+#  mariadb
 addons:
   apt:
     packages:
       - chromium-chromedriver
       - xvfb
+  mariadb: '15.1'
 before_script:
   - echo $TRAVIS_BUILD_DIR
   - ls -a $TRAVIS_BUILD_DIR
