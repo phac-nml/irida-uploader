@@ -11,6 +11,7 @@ from . import sample_parser, validation
 class Parser:
 
     SAMPLE_SHEET_FILE_NAME = 'SampleSheet.csv'
+    UPLOAD_COMPLETE_FILE_NAME = 'CompletedJobInfo.xml'
 
     @staticmethod
     def get_required_file_list():
@@ -18,7 +19,10 @@ class Parser:
         Returns a list of files that are required for a run directory to be considered valid
         :return: [files_names]
         """
-        return [Parser.SAMPLE_SHEET_FILE_NAME]
+        return [
+            Parser.SAMPLE_SHEET_FILE_NAME,
+            Parser.UPLOAD_COMPLETE_FILE_NAME
+        ]
 
     @staticmethod
     def _find_directory_list(directory):

@@ -24,6 +24,23 @@ class TestGetDirectoryStatus(unittest.TestCase):
         self.assertEqual(res.status, progress.DIRECTORY_STATUS_NEW)
         self.assertIsNone(res.message)
 
+    def test_new_directory_multiple_files(self):
+        directory = path.join(path_to_module, "new_dir_two_files")
+
+        res = progress.get_directory_status(directory, ["SampleSheet.csv", 'CompletedJobInfo.xml'])
+
+        self.assertEqual(res.status, progress.DIRECTORY_STATUS_NEW)
+        self.assertIsNone(res.message)
+
+    def test_new_directory_one_file_missing(self):
+        directory = path.join(path_to_module, "new_dir")
+
+        res = progress.get_directory_status(directory, ["SampleSheet.csv", 'not_a_file.txt'])
+
+        self.assertEqual(res.status, progress.DIRECTORY_STATUS_INVALID)
+        self.assertIsNotNone(res.message)
+
+
     def test_new_directory_with_info_file(self):
         directory = path.join(path_to_module, "new_dir_with_info_file")
 
