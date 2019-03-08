@@ -119,7 +119,7 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
         # Make sure parsing and validation is done
         mock_parsing_handler.parse_and_validate.assert_called_with(directory)
         # api must be initialized
-        mock_api_handler.initialize_api_from_config.assert_called()
+        mock_api_handler.initialize_api_from_config.assert_called_with()
         # api must prep for upload
         mock_api_handler.prepare_and_validate_for_upload.assert_called_with("Fake Sequencing Run")
         # api should try to upload
@@ -154,7 +154,7 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
         # Make sure parsing and validation is done
         mock_parsing_handler.parse_and_validate.assert_called_with(directory)
         # api must be initialized
-        mock_api_handler.initialize_api_from_config.assert_called()
+        mock_api_handler.initialize_api_from_config.assert_called_with()
         # api must prep for upload
         mock_api_handler.prepare_and_validate_for_upload.assert_called_with("Fake Sequencing Run")
         # api should try to upload
