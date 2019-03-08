@@ -47,11 +47,18 @@ root_logger.addHandler(console)
 
 global_settings.log_file = user_log_dir(log_directory_name)
 
-
+# manages the logging directory
+# only one directory can have a logger at a time
 directory_logger = None
 
 
 def add_log_to_directory(directory):
+    """
+    Starts up a logging handler that creates a log file in the directory being uploaded
+
+    :param directory: directory to create a logger in
+    :return: None
+    """
     logging.info("Adding log file to {}".format(directory))
     log_file = os.path.join(directory, 'irida-uploader.log')
     global directory_logger
@@ -66,6 +73,11 @@ def add_log_to_directory(directory):
 
 
 def remove_directory_logger():
+    """
+    Deletes the existing directory logger so logging stops
+
+    :return: None
+    """
     global directory_logger
     root_logger.removeHandler(directory_logger)
     logging.info("Stopped active logging to run directory")
