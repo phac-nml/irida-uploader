@@ -2,6 +2,7 @@ import json
 import time
 import os
 
+import config
 from model.directory_status import DirectoryStatus
 
 from . import exceptions
@@ -16,6 +17,8 @@ STATUS_FILE_NAME = "irida_uploader_status.info"
 # Status field for a sequencing run
 STATUS_FIELD = "Upload Status"
 DATE_TIME_FIELD = "Date Time"
+RUN_ID_FIELD = "Run ID"
+IRIDA_INSTANCE_FIELD = "IRIDA Instance"
 
 # States that are valid for the status field
 DIRECTORY_STATUS_NEW = 'new'
@@ -63,17 +66,18 @@ def get_directory_status(directory, sample_sheet):
     # Must check status of upload to determine if upload is completed
     uploader_info_file = os.path.join(directory, STATUS_FILE_NAME)
     with open(uploader_info_file, "rb") as reader:
-        info_file = json.load(reader)
-        status = info_file[STATUS_FIELD]
-        if status in DIRECTORY_STATUS_LIST:
-            result.status = status
-        else:  # the status found in the file is not in the defined list
-            raise exceptions.DirectoryError("Cannot access directory", directory)
+        data = reader.read().decode()
+    info_file = json.loads(data)
+    status = info_file[STATUS_FIELD]
+    if status in DIRECTORY_STATUS_LIST:
+        result.status = status
+    else:  # the status found in the file is not in the defined list
+        raise exceptions.DirectoryError("Invalid Status in status file", directory)
 
     return result
 
 
-def write_directory_status(directory, status):
+def write_directory_status(directory, status, run_id=None):
     """
     Writes a status to the status file:
     Overwrites anything that is in the file
@@ -83,6 +87,8 @@ def write_directory_status(directory, status):
     :param directory: directory status file is in (or will be created in)
     :param status: status to set the run to
         Should be one of defined module level status constants
+    :param run_id: optional, when used, the run id will be included in the status file,
+        along with the irida instance the run is uploaded to.
     :return: None
     """
 
@@ -90,12 +96,18 @@ def write_directory_status(directory, status):
         raise exceptions.DirectoryError("Cannot access directory", directory)
 
     uploader_info_file = os.path.join(directory, STATUS_FILE_NAME)
-
-    json_data = {STATUS_FIELD: status,
-                 DATE_TIME_FIELD: _get_date_time_field()}
+    if run_id:
+        json_data = {STATUS_FIELD: status,
+                     DATE_TIME_FIELD: _get_date_time_field(),
+                     RUN_ID_FIELD: run_id,
+                     IRIDA_INSTANCE_FIELD: config.read_config_option('base_url')}
+    else:
+        json_data = {STATUS_FIELD: status,
+                     DATE_TIME_FIELD: _get_date_time_field()}
 
     with open(uploader_info_file, "w") as json_file:
-        json.dump(json_data, json_file)
+        json.dump(json_data, json_file, indent=4, sort_keys=True)
+        json_file.write("\n")
 
 
 def _get_date_time_field():

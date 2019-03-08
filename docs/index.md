@@ -35,13 +35,13 @@ You will need to configure your uploader before running. See [Configuration](con
 
 #### Linux
 
-Make sure Python 3.6 is installed
+Make sure Python 3.5 or newer is installed
 
-    $ python3.6 --version
+    $ python3 --version
 
 If python3 is not installed, install with
 
-    $ sudo apt-get install python3.6
+    $ sudo apt-get install python3
 
 Install pip:
 
@@ -108,9 +108,9 @@ Use the the `irida-uploader.sh` script included with the source code to upload.
 
 
 #### Note:
-After uploading, a `irida_uploader_status.info` file will be created which indicates if a run is complete, or has failed
+After uploading, an `irida_uploader_status.info` file will be created which indicates if a run is complete, or has failed
 
-You can edit this file to set a runs status to `new` to reupload, or use the `--force` option when running the uploader to ignore the status of a run directory.
+You can delete this file to make it ready for reupload, or use the `--force` option when running the uploader to ignore the status of a run directory.
 
 ## Logging
 
