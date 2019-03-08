@@ -37,13 +37,13 @@ DIRECTORY_STATUS_LIST = [
 ]
 
 
-def get_directory_status(directory, sample_sheet):
+def get_directory_status(directory, required_file_list):
     """
     Gets the directory status based off using '.miseqUploaderInfo' files to track progress
 
     :param directory: the directory to search for a run
-    :param sample_sheet: optional param: if a sample sheet is required for a run,
-        the file name for the sample sheet can be added here to validate that it exists
+    :param required_file_list: optional param: a list of required files that
+        are required for that run to be considered valid. Example: ['SampleSheet.csv']
     :return: directory and status dictionary
     """
     result = DirectoryStatus(directory)
@@ -54,10 +54,11 @@ def get_directory_status(directory, sample_sheet):
         return result
 
     file_list = next(os.walk(directory))[2]  # Gets the list of files in the directory
-    if sample_sheet not in file_list:
-        result.status = DIRECTORY_STATUS_INVALID
-        result.message = 'Directory has no valid sample sheet file with the name {}'.format(sample_sheet)
-        return result
+    for file_name in required_file_list:
+        if file_name not in file_list:
+            result.status = DIRECTORY_STATUS_INVALID
+            result.message = 'Directory is missing required file with filename {}'.format(file_name)
+            return result
 
     if STATUS_FILE_NAME not in file_list:  # no irida_uploader_status.info file yet, has not been uploaded
         result.status = DIRECTORY_STATUS_NEW

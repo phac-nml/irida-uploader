@@ -74,7 +74,7 @@ def _run_is_new_via_directory_status(directory_status):
     parser_instance = get_parser_from_config()
     result = upload_status.get_directory_status(
         directory_status.directory,
-        parser_instance.get_sample_sheet_file_name()
+        parser_instance.get_required_file_list()
     )
 
     return result.status == upload_status.DIRECTORY_STATUS_NEW
