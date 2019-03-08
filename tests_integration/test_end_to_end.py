@@ -22,7 +22,8 @@ CLEANUP_DIRECTORY_LIST = [
     path.join(path_to_module, "fake_ngs_data"),
     path.join(path_to_module, "fake_ngs_data_force"),
     path.join(path_to_module, "fake_ngs_data_nonexistent_project"),
-    path.join(path_to_module, "fake_ngs_data_parse_fail")
+    path.join(path_to_module, "fake_ngs_data_parse_fail"),
+    path.join(path_to_module, "fake_ngs_data_no_completed_file")
 ]
 
 
@@ -451,6 +452,29 @@ class TestEndToEnd(unittest.TestCase):
 
         # Do the upload, without force option
         upload_result = validate_and_upload_single_entry(path.join(path_to_module, "fake_ngs_data"), False)
+
+        # Make sure the upload was a failure
+        self.assertEqual(upload_result, 1)
+
+    def test_invalid_miseq_no_completed_file(self):
+        """
+        Test a valid miseq directory for upload from end to end
+        We create a status file that indicates the files have already been uploaded,
+        Then make sure it does not upload
+        :return:
+        """
+        # Set our sample config file to use miseq parser and the correct irida credentials
+        self.write_to_config_file(
+            client_id=tests_integration.client_id,
+            client_secret=tests_integration.client_secret,
+            username=tests_integration.username,
+            password=tests_integration.password,
+            base_url=tests_integration.base_url,
+            parser="miseq"
+        )
+
+        # Do the upload, without force option
+        upload_result = validate_and_upload_single_entry(path.join(path_to_module, "fake_ngs_data_no_completed_file"), False)
 
         # Make sure the upload was a failure
         self.assertEqual(upload_result, 1)
