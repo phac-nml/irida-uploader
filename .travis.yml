@@ -1,6 +1,10 @@
 language: python
+
 python:
-  - "3.6"
+  - 3.5
+  - 3.6
+  - 3.7
+
 env:
   global:
     - "MYSQL_DATABASE=irida_uploader_test"
@@ -11,14 +15,33 @@ env:
     - "TEST_SUITE=unittests"
     - "TEST_SUITE=integrationtests"
     - "TEST_SUITE=integrationtestsdev"
+
+dist: xenial
+
+sudo: required
+
 addons:
   apt:
     packages:
       - chromium-chromedriver
       - xvfb
+  mariadb: '10.0'
+
 before_script:
+  - java -version
+  - echo $JAVA_HOME
+  - sudo add-apt-repository ppa:openjdk-r/ppa -y
+  - sudo apt-get update
+  - sudo apt-get install openjdk-8-jdk -y
+  - export JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
+  - export PATH=${JAVA_HOME}/bin:$PATH
+  - java -version
+  - echo $JAVA_HOME
   - ln -s /usr/lib/chromium-browser/chromedriver ~/bin/chromedriver
+
 install:
   - mysql -e "CREATE USER '$MYSQL_USER'@'localhost' IDENTIFIED BY '$MYSQL_PASSWORD'; GRANT ALL ON $MYSQL_DATABASE.* to '$MYSQL_USER'@'localhost';"
+  - mysql -e "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));"
+
 script:
   - make $TEST_SUITE
