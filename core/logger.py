@@ -59,9 +59,15 @@ def add_log_to_directory(directory):
     :param directory: directory to create a logger in
     :return: None
     """
+    global directory_logger
+
+    # If there is already a directory logger in place, throw an exception
+    if directory_logger:
+        logging.error("A directory logger already exists!")
+        raise Exception("ERROR:add_log_to_directory: A directory logger already exists!")
+
     logging.info("Adding log file to {}".format(directory))
     log_file = os.path.join(directory, 'irida-uploader.log')
-    global directory_logger
     directory_logger = logging.handlers.RotatingFileHandler(
         filename=log_file,
         maxBytes=(1024 * 1024 * 1024 * 10),  # 10GB max file size
@@ -80,4 +86,5 @@ def remove_directory_logger():
     """
     global directory_logger
     root_logger.removeHandler(directory_logger)
+    directory_logger = None
     logging.info("Stopped active logging to run directory")
