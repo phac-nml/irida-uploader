@@ -7,7 +7,7 @@ import parsers
 import global_settings
 import progress
 
-from . import api_handler, parsing_handler
+from . import api_handler, parsing_handler, logger
 
 EXIT_CODE_ERROR = 1
 EXIT_CODE_SUCCESS = 0
@@ -27,7 +27,7 @@ def validate_and_upload_single_entry(directory, force_upload=False):
     :param force_upload: When set to true, the upload status file will be ignored and file will attempt to be uploaded
     :return:
     """
-    logging_start_block()
+    logging_start_block(directory)
     logging.debug("validate_and_upload_single_entry:Starting {}".format(directory))
 
     # Only upload if run is new, or force_upload is True
@@ -144,12 +144,13 @@ def exit_success():
     return EXIT_CODE_SUCCESS
 
 
-def logging_start_block():
+def logging_start_block(directory):
     """
     Logs an information block to the console and file which indicates the start of an upload run.
     Includes the uploader version number set in the global_settings module
     :return:
     """
+    logger.add_log_to_directory(directory)
     logging.info("==================================================")
     logging.info("---------------STARTING UPLOAD RUN----------------")
     logging.info("Uploader Version {}".format(global_settings.UPLOADER_VERSION))
@@ -165,3 +166,5 @@ def logging_end_block():
     logging.info("==================================================")
     logging.info("----------------ENDING UPLOAD RUN-----------------")
     logging.info("==================================================")
+    logger.remove_directory_logger()
+

@@ -114,7 +114,9 @@ You can delete this file to make it ready for reupload, or use the `--force` opt
 
 ## Logging
 
-Logs are written to your system default logging directory
+Logs about individual runs are written to the sequencing run directory that they are uploaded from.
+
+Full debug logs are written to your system default logging directory
 
 #### Linux
 
