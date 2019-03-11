@@ -139,7 +139,20 @@ def validate_and_upload_single_entry(directory, force_upload=False):
     return exit_success()
 
 
-def exit_error():
+def batch_upload_single_entry(batch_directory, force_upload=False):
+    """
+    This function acts as a single point of entry for batch uploading run directories
+
+    TODO:
+
+    :param batch_directory: Directory containing sequencing run directories to upload
+    :param force_upload: When set to true, the upload status file will be ignored and file will attempt to be uploaded
+    :return:
+    """
+    logging.info("TODO")
+
+
+def exit_error(run_directory=None):
     """
     Returns an failed run exit code which ends the process when returned
     :return: 1

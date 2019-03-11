@@ -59,12 +59,22 @@ argument_parser.add_argument('-f', '--force',
                              action='store_true',  # This line makes it not parse a variable
                              help='Uploader will ignore the status file, '
                                   'and try to upload even when a run is in non new status.')
+# Optional argument, Upload all sequencing runs in a directory of runs
+argument_parser.add_argument('-b', '--batch',
+                             action='store_true',  # This line makes it not parse a variable
+                             help='Uploader will expect a directory containing a sequencing run directories, '
+                                  'and upload in batch. '
+                                  'The list of runs is generated at start time '
+                                  '(Runs added to directory mid upload will not be uploaded).')
 
 
 def main():
     # Parse the arguments passed from the command line and start the upload
     args = argument_parser.parse_args()
-    upload(args.directory, args.force)
+    if args.batch:
+        return upload_batch(args.directory, args.force)
+    else:
+        return upload(args.directory, args.force)
 
 
 def upload(run_directory, force_upload):
@@ -76,6 +86,17 @@ def upload(run_directory, force_upload):
     """
     config.setup()
     core.cli_entry.validate_and_upload_single_entry(run_directory, force_upload)
+
+
+def upload_batch(batch_directory, force_upload):
+    """
+    Start uploading runs in the batch directory
+    :param batch_directory:
+    :param force_upload:
+    :return:
+    """
+    config.setup()
+    core.cli_entry.batch_upload_single_entry(batch_directory, force_upload)
 
 
 # This is called when the program is run for the first time
