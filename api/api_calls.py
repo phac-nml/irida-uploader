@@ -15,7 +15,6 @@ from urllib.error import URLError
 import model
 
 from . import exceptions
-# from messaging.pubsub import send_message, ApiMessage, MessageTopics
 
 
 # TODO: rework send_message, Not to be done until starting work on UI,
@@ -471,7 +470,6 @@ class ApiCalls(object):
                                                     err_msg=response.text,
                                                     sample_data=str(sample)
                                               ), sample.sample_name)
-            # send_message(sample.upload_failed_topic, exception=e)  # todo: send_message rework
             raise e
 
         return json_res
@@ -541,8 +539,6 @@ class ApiCalls(object):
                         bytes_read += len(data)
                         print("Progress: ", round(bytes_read/total_file_size*100, 2),
                               "% Uploaded     \r", end="")
-                        # todo: rework send_message
-                        # send_message(sample.upload_progress_topic, progress=bytes_read)
                         yield data
                         data = fastq_file.read(read_size)
                     print()  # end cap to the dots we printed above
@@ -626,15 +622,10 @@ class ApiCalls(object):
 
         if sequence_file.is_paired_end():
             logging.debug("api_calls: sending paired-end file")
-            # todo: Test this functionality with the new _get_link errors,
-            # todo: make sure the errors that we throw are not breaking paired vs unpaired
             url = self._get_link(seq_url, "sample/sequenceFiles/pairs")
         else:
             logging.debug("api_calls: sending single-end file")
             url = seq_url
-
-        # todo: rework send_message
-        # send_message(sample.upload_started_topic)
 
         logging.debug("Sending files to [{}]".format(url))
         data_pkg = _sample_upload_generator(sequence_file)
@@ -652,15 +643,11 @@ class ApiCalls(object):
 
         if response.status_code == HTTPStatus.CREATED:
             json_res = json.loads(response.text)
-            # todo: rework send_message
-            # send_message(sample.upload_completed_topic, sample=sample)
         else:
             e = exceptions.IridaConnectionError("Error {status_code}: {err_msg}\n".format(
                                                 status_code=str(response.status_code), err_msg=response.reason))
             logging.error("Error while uploading [{}]: [{}]".format(sample_name, response.reason))
             logging.debug("response.text: " + response.text)
-            # todo: rework send_message
-            # send_message(sample.upload_failed_topic, exception=e)
             raise e
 
         return json_res
