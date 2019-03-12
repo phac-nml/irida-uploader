@@ -17,8 +17,6 @@ import model
 from . import exceptions
 
 
-# TODO: rework send_message, Not to be done until starting work on UI,
-#   so we don't over dev the messaging before we know what we need
 class ApiCalls(object):
 
     def __init__(self, client_id, client_secret,
