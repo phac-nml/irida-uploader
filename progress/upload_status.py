@@ -20,22 +20,6 @@ DATE_TIME_FIELD = "Date Time"
 RUN_ID_FIELD = "Run ID"
 IRIDA_INSTANCE_FIELD = "IRIDA Instance"
 
-# States that are valid for the status field
-DIRECTORY_STATUS_NEW = 'new'
-DIRECTORY_STATUS_INVALID = 'invalid'
-DIRECTORY_STATUS_PARTIAL = 'partial'
-DIRECTORY_STATUS_ERROR = 'error'
-DIRECTORY_STATUS_COMPLETE = 'complete'
-
-# list for convenience
-DIRECTORY_STATUS_LIST = [
-    DIRECTORY_STATUS_NEW,
-    DIRECTORY_STATUS_INVALID,
-    DIRECTORY_STATUS_PARTIAL,
-    DIRECTORY_STATUS_ERROR,
-    DIRECTORY_STATUS_COMPLETE
-]
-
 
 def get_directory_status(directory, required_file_list):
     """
@@ -49,19 +33,19 @@ def get_directory_status(directory, required_file_list):
     result = DirectoryStatus(directory)
 
     if not os.access(directory, os.W_OK):
-        result.status = DIRECTORY_STATUS_INVALID
+        result.status = DirectoryStatus.INVALID
         result.message = 'Directory cannot be accessed. Please check permissions'
         return result
 
     file_list = next(os.walk(directory))[2]  # Gets the list of files in the directory
     for file_name in required_file_list:
         if file_name not in file_list:
-            result.status = DIRECTORY_STATUS_INVALID
+            result.status = DirectoryStatus.INVALID
             result.message = 'Directory is missing required file with filename {}'.format(file_name)
             return result
 
     if STATUS_FILE_NAME not in file_list:  # no irida_uploader_status.info file yet, has not been uploaded
-        result.status = DIRECTORY_STATUS_NEW
+        result.status = DirectoryStatus.NEW
         return result
 
     # Must check status of upload to determine if upload is completed
@@ -70,7 +54,7 @@ def get_directory_status(directory, required_file_list):
         data = reader.read().decode()
     info_file = json.loads(data)
     status = info_file[STATUS_FIELD]
-    if status in DIRECTORY_STATUS_LIST:
+    if status in DirectoryStatus.VALID_STATUS_LIST:
         result.status = status
     else:  # the status found in the file is not in the defined list
         raise exceptions.DirectoryError("Invalid Status in status file", directory)
@@ -78,32 +62,30 @@ def get_directory_status(directory, required_file_list):
     return result
 
 
-def write_directory_status(directory, status, run_id=None):
+def write_directory_status(directory_status, run_id=None):
     """
     Writes a status to the status file:
     Overwrites anything that is in the file
 
     Writes a timestamp to the time of last written
 
-    :param directory: directory status file is in (or will be created in)
-    :param status: status to set the run to
-        Should be one of defined module level status constants
+    :param directory_status: DirectoryStatus object containing status to write to directory
     :param run_id: optional, when used, the run id will be included in the status file,
         along with the irida instance the run is uploaded to.
     :return: None
     """
 
-    if not os.access(directory, os.W_OK):  # Cannot access upload directory
-        raise exceptions.DirectoryError("Cannot access directory", directory)
+    if not os.access(directory_status.directory, os.W_OK):  # Cannot access upload directory
+        raise exceptions.DirectoryError("Cannot access directory", directory_status.directory)
 
-    uploader_info_file = os.path.join(directory, STATUS_FILE_NAME)
+    uploader_info_file = os.path.join(directory_status.directory, STATUS_FILE_NAME)
     if run_id:
-        json_data = {STATUS_FIELD: status,
+        json_data = {STATUS_FIELD: directory_status.status,
                      DATE_TIME_FIELD: _get_date_time_field(),
                      RUN_ID_FIELD: run_id,
                      IRIDA_INSTANCE_FIELD: config.read_config_option('base_url')}
     else:
-        json_data = {STATUS_FIELD: status,
+        json_data = {STATUS_FIELD: directory_status.status,
                      DATE_TIME_FIELD: _get_date_time_field()}
 
     with open(uploader_info_file, "w") as json_file:

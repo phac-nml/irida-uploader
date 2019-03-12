@@ -4,6 +4,21 @@ class DirectoryStatus:
     contain the relevant data.
     """
 
+    # States that are valid for the status field
+    NEW = 'new'
+    INVALID = 'invalid'
+    PARTIAL = 'partial'
+    ERROR = 'error'
+    COMPLETE = 'complete'
+
+    VALID_STATUS_LIST = [
+        NEW,
+        INVALID,
+        PARTIAL,
+        ERROR,
+        COMPLETE
+    ]
+
     def __init__(self, directory):
         """
         :param directory: Directory of a potential run
@@ -33,3 +48,18 @@ class DirectoryStatus:
     @message.setter
     def message(self, message):
         self._message = message
+
+    def is_new(self):
+        return self.status == self.NEW
+
+    def is_invalid(self):
+        return self.status == self.INVALID
+
+    def is_partial(self):
+        return self.status == self.PARTIAL
+
+    def is_error(self):
+        return self.status == self.ERROR
+
+    def is_complete(self):
+        return self.status == self.COMPLETE
