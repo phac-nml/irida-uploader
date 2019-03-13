@@ -9,6 +9,7 @@ Added functionality:
 * using `--force` or `-f` when uploading bypasses this check
 * Added support for python versions 3.5 to 3.7 (previously was locked to 3.6 only)
 * Now uploader writes logs to run folder, for that specific upload
+* When uploading, a progress percentage will be printed to the command line (Linux + Windows)
 
 Beta 0.1
 ---------

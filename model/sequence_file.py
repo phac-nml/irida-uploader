@@ -9,8 +9,6 @@ index2
 etc.
 """
 
-from os import path
-
 
 class SequenceFile:
 
@@ -39,9 +37,6 @@ class SequenceFile:
         if self._properties_dict in key:
             ret_val = self._properties_dict[key]
         return ret_val
-
-    def get_files_size(self):
-        return sum([path.getsize(f) for f in self._file_list])
 
     @property
     def file_list(self):

@@ -15,11 +15,8 @@ from urllib.error import URLError
 import model
 
 from . import exceptions
-# from messaging.pubsub import send_message, ApiMessage, MessageTopics
 
 
-# TODO: rework send_message, Not to be done until starting work on UI,
-#   so we don't over dev the messaging before we know what we need
 class ApiCalls(object):
 
     def __init__(self, client_id, client_secret,
@@ -471,7 +468,6 @@ class ApiCalls(object):
                                                     err_msg=response.text,
                                                     sample_data=str(sample)
                                               ), sample.sample_name)
-            # send_message(sample.upload_failed_topic, exception=e)  # todo: send_message rework
             raise e
 
         return json_res
@@ -505,7 +501,7 @@ class ApiCalls(object):
         read_size = 32768
         self._stop_upload = False
 
-        def _send_file(filename, parameter_name, bytes_read=0):
+        def _send_file(filename, parameter_name):
             """This function is a generator that yields a multipart form-data
             entry for the specified file. This function will yield `read_size`
             bytes of the specified file name at a time as the generator is called.
@@ -516,9 +512,6 @@ class ApiCalls(object):
                 filename: the file to read and yield in `read_size` chunks to
                           the server.
                 parameter_name: the form field name to send to the server.
-                bytes_read: used for sending messages to the UI layer indicating
-                            the total number of bytes sent when sending the sample
-                            to the server.
             """
 
             # Send the boundary header section for the file
@@ -527,6 +520,9 @@ class ApiCalls(object):
                    "Content-Disposition: form-data; name=\"{parameter_name}\"; filename=\"{filename}\"\r\n\r\n").format(
                 boundary=boundary, parameter_name=parameter_name, filename=filename.replace("\\", "/"))).encode()
 
+            # Get total file size for progress
+            total_file_size = path.getsize(filename)
+
             # Send the contents of the file, read_size bytes at a time until
             # we've either read the entire file, or we've been instructed to
             # stop the upload by the UI
@@ -534,19 +530,16 @@ class ApiCalls(object):
             try:
                 with open(filename, "rb", read_size) as fastq_file:
                     data = fastq_file.read(read_size)
-                    # Todo: I'm not a big fan of having this here, but until the message passing/threading is done it is a easy way to show progress to the user on CLI
-                    dot_print_factor = 5 * read_size  # todo:remove when message passing/threading
-                    dot_read = 0  # todo:remove when message passing
+                    # Command line progress info printing
+                    # Todo: once message passing is in place, this might find its home in that module
+                    bytes_read = 0
                     while data and not self._stop_upload:
                         bytes_read += len(data)
-                        dot_read +=  len(data)  # todo:remove when message passing
-                        if dot_read % dot_print_factor == 0:  # todo:remove when message passing
-                            print(".", end="")  # this prints dots as the file is uploaded so the user can see progress
-                        # todo: rework send_message
-                        # send_message(sample.upload_progress_topic, progress=bytes_read)
+                        print("Progress: ", round(bytes_read/total_file_size*100, 2),
+                              "% Uploaded     \r", end="")
                         yield data
                         data = fastq_file.read(read_size)
-                    print()  # end cap to the dots we printed above todo:remove when message passing
+                    print()  # end cap to the dots we printed above
                     logging.info("Finished sending file {}".format(filename))
                     if self._stop_upload:
                         logging.info("Halting upload on user request.")
@@ -592,8 +585,7 @@ class ApiCalls(object):
                 logging.debug("api_calls._sample_upload_generator: is paired end read")
                 return itertools.chain(
                     _send_file(filename=sequence_file_up.file_list[0], parameter_name="file1"),
-                    _send_file(filename=sequence_file_up.file_list[1], parameter_name="file2",
-                               bytes_read=path.getsize(sequence_file_up.file_list[0])),
+                    _send_file(filename=sequence_file_up.file_list[1], parameter_name="file2"),
                     _send_parameters(parameter_name="parameters1", parameters=file_metadata_json),
                     _send_parameters(parameter_name="parameters2", parameters=file_metadata_json),
                     _finish_request())
@@ -628,15 +620,10 @@ class ApiCalls(object):
 
         if sequence_file.is_paired_end():
             logging.debug("api_calls: sending paired-end file")
-            # todo: Test this functionality with the new _get_link errors,
-            # todo: make sure the errors that we throw are not breaking paired vs unpaired
             url = self._get_link(seq_url, "sample/sequenceFiles/pairs")
         else:
             logging.debug("api_calls: sending single-end file")
             url = seq_url
-
-        # todo: rework send_message
-        # send_message(sample.upload_started_topic)
 
         logging.debug("Sending files to [{}]".format(url))
         data_pkg = _sample_upload_generator(sequence_file)
@@ -654,15 +641,11 @@ class ApiCalls(object):
 
         if response.status_code == HTTPStatus.CREATED:
             json_res = json.loads(response.text)
-            # todo: rework send_message
-            # send_message(sample.upload_completed_topic, sample=sample)
         else:
             e = exceptions.IridaConnectionError("Error {status_code}: {err_msg}\n".format(
                                                 status_code=str(response.status_code), err_msg=response.reason))
             logging.error("Error while uploading [{}]: [{}]".format(sample_name, response.reason))
             logging.debug("response.text: " + response.text)
-            # todo: rework send_message
-            # send_message(sample.upload_failed_topic, exception=e)
             raise e
 
         return json_res
