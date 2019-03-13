@@ -62,7 +62,7 @@ If you already have these packages installed, ensure they are up to date
 Download the source code
 
     $ git clone https://github.com/phac-nml/irida-uploader
-    $ cd irida-miseq-uploader
+    $ cd irida-uploader
 
 Build a virtualenv and install the dependencies automatically with `make`:
 
