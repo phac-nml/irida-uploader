@@ -61,8 +61,8 @@ If you already have these packages installed, ensure they are up to date
 
 Download the source code
 
-    $ git clone https://github.com/phac-nml/irida-miseq-uploader
-    $ cd irida-miseq-uploader
+    $ git clone https://github.com/phac-nml/irida-uploader
+    $ cd irida-uploader
 
 Build a virtualenv and install the dependencies automatically with `make`:
 
@@ -102,7 +102,7 @@ Open a Command Prompt terminal and use the `iridauploader` command to upload
 
 ### Linux:
 
-Use the the `irida-uploader.sh` script included with the source code to upload.
+Use the `irida-uploader.sh` script included with the source code to upload.
 
 `./irida-uploader.sh /path/to/the/sequencing/run/`
 

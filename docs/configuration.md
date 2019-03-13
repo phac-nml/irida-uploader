@@ -56,4 +56,4 @@ Example:
 
 ### Linux:
 
-Use the the `irida-uploader.sh` script included with the source code to upload.
+Use the `irida-uploader.sh` script included with the source code to upload.
