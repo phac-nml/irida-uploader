@@ -367,8 +367,9 @@ class TestEndToEnd(unittest.TestCase):
         project_id = "1"
 
         # Write a status file to the upload directory that we can force past
-        progress.write_directory_status(directory=path.join(path_to_module, "fake_ngs_data_force"),
-                                        status=progress.DIRECTORY_STATUS_COMPLETE)
+        directory_status = model.DirectoryStatus(directory=path.join(path_to_module, "fake_ngs_data_force"))
+        directory_status.status = model.DirectoryStatus.COMPLETE
+        progress.write_directory_status(directory_status)
 
         # Do the upload, with force option
         upload_result = validate_and_upload_single_entry(path.join(path_to_module, "fake_ngs_data_force"), True)
@@ -447,8 +448,9 @@ class TestEndToEnd(unittest.TestCase):
         )
 
         # Write a status file to the upload directory
-        progress.write_directory_status(directory=path.join(path_to_module, "fake_ngs_data"),
-                                        status=progress.DIRECTORY_STATUS_COMPLETE)
+        directory_status = model.DirectoryStatus(directory=path.join(path_to_module, "fake_ngs_data"))
+        directory_status.status = model.DirectoryStatus.COMPLETE
+        progress.write_directory_status(directory_status)
 
         # Do the upload, without force option
         upload_result = validate_and_upload_single_entry(path.join(path_to_module, "fake_ngs_data"), False)
