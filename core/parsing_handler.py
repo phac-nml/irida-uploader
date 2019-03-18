@@ -60,3 +60,14 @@ def get_run_status(directory):
     parser_instance = get_parser_from_config()
     status = parser_instance.find_single_run(directory)
     return status
+
+
+def get_run_status_list(batch_directory):
+    """
+    Given a directory containing potential runs, returns a list ofDirectoryStatus objects created by the parser
+    :param batch_directory:
+    :return: list of DirectoryStatus objects
+    """
+    parser_instance = get_parser_from_config()
+    status_list = parser_instance.find_runs(batch_directory)
+    return status_list

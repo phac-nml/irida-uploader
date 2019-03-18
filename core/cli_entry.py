@@ -29,7 +29,7 @@ def validate_and_upload_single_entry(directory, force_upload=False):
     :return:
     """
     logging_start_block(directory)
-    logging.debug("validate_and_upload_single_entry:Starting {}".format(directory))
+    logging.debug("validate_and_upload_single_entry:Starting {} with force={}".format(directory, force_upload))
 
     directory_status = parsing_handler.get_run_status(directory)
     # Check if a run is invalid, an invalid run cannot be uploaded.
@@ -143,13 +143,36 @@ def batch_upload_single_entry(batch_directory, force_upload=False):
     """
     This function acts as a single point of entry for batch uploading run directories
 
-    TODO:
+    It uses validate_and_upload_single_entry as it function for uploading the individual runs
+
+    A list of runs to be uploaded is generated at start up, and all found runs will be attempted to be uploaded.
 
     :param batch_directory: Directory containing sequencing run directories to upload
     :param force_upload: When set to true, the upload status file will be ignored and file will attempt to be uploaded
     :return:
     """
-    logging.info("TODO")
+    logging.debug("batch_upload_single_entry:Starting {} with force={}".format(batch_directory, force_upload))
+
+    directory_status_list = parsing_handler.get_run_status_list(batch_directory)
+
+    logging.info("Found {} potential run directories".format(len(directory_status_list)))
+    for directory_status in directory_status_list:
+        if directory_status.is_invalid():
+            logging.info("DIRECTORY: %s\n"
+                         "%30sSTATUS:  %s\n"
+                         "%30sDETAILS: %s"
+                         % (directory_status.directory, "", directory_status.status, "", directory_status.message))
+        else:
+            logging.info("DIRECTORY: %s\n"
+                         "%30sSTATUS:  %s"
+                         % (directory_status.directory, "", directory_status.status))
+
+    if force_upload:
+        logging.info("Starting upload of all non invalid runs. (Running with --force)")
+    else:
+        logging.info("Starting upload of all new runs.")
+
+    return exit_success()
 
 
 def exit_error(run_directory=None):

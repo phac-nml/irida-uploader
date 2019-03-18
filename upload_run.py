@@ -91,7 +91,7 @@ def upload(run_directory, force_upload):
     :return:
     """
     config.setup()
-    core.cli_entry.validate_and_upload_single_entry(run_directory, force_upload)
+    return core.cli_entry.validate_and_upload_single_entry(run_directory, force_upload)
 
 
 def upload_batch(batch_directory, force_upload):
@@ -102,7 +102,7 @@ def upload_batch(batch_directory, force_upload):
     :return:
     """
     config.setup()
-    core.cli_entry.batch_upload_single_entry(batch_directory, force_upload)
+    return core.cli_entry.batch_upload_single_entry(batch_directory, force_upload)
 
 
 # This is called when the program is run for the first time
