@@ -14,23 +14,17 @@ EXIT_CODE_ERROR = 1
 EXIT_CODE_SUCCESS = 0
 
 
-def validate_and_upload_single_entry(directory, force_upload=False):
+def upload_run_single_entry(directory, force_upload=False):
     """
     This function acts as a single point of entry for uploading a directory
+    todo: rewrite
 
-    Handles parsing and validating the directory for samples
-    Sets up the api layer based on config file
-    Verifies samples is able to be uploaded (verifies projects exist)
-    Initializes objects/routes on IRIDA to accept Samples (creates samples if they don't exist)
-    Starts the upload
+    Handles getting a directories run status, and running if conditions are met (valid run, new run or forced upload).
 
-    :param directory: Directory of the sequencing run to upload
-    :param force_upload: When set to true, the upload status file will be ignored and file will attempt to be uploaded
+    :param directory:
+    :param force_upload:
     :return:
     """
-    logging_start_block(directory)
-    logging.debug("validate_and_upload_single_entry:Starting {} with force={}".format(directory, force_upload))
-
     directory_status = parsing_handler.get_run_status(directory)
     # Check if a run is invalid, an invalid run cannot be uploaded.
     if directory_status.status_equals(DirectoryStatus.INVALID):
@@ -48,6 +42,27 @@ def validate_and_upload_single_entry(directory, force_upload=False):
                           "You can bypass this error by uploading with the --force argument.".format(directory))
             return exit_error()
 
+    return _validate_and_upload(directory_status)
+
+
+def _validate_and_upload(directory_status):
+    """
+    This function attempts to upload a single run directory
+
+    todo: rewrite
+    Handles parsing and validating the directory for samples
+    Sets up the api layer based on config file
+    Verifies samples is able to be uploaded (verifies projects exist)
+    Initializes objects/routes on IRIDA to accept Samples (creates samples if they don't exist)
+    Starts the upload
+
+    :param directory: Directory of the sequencing run to upload
+    :param force_upload: When set to true, the upload status file will be ignored and file will attempt to be uploaded
+    :return:
+    """
+    logging_start_block(directory_status.directory)
+    logging.debug("upload_run_single_entry:Starting {}".format(directory_status.directory))
+
     # Add progress file to directory
     try:
         directory_status.status = DirectoryStatus.PARTIAL
@@ -60,7 +75,7 @@ def validate_and_upload_single_entry(directory, force_upload=False):
 
     # Do parsing (Also offline validation)
     try:
-        sequencing_run = parsing_handler.parse_and_validate(directory)
+        sequencing_run = parsing_handler.parse_and_validate(directory_status.directory)
     except parsers.exceptions.DirectoryError as e:
         # Directory was not valid for some reason
         logging.error("ERROR! An error occurred with directory '{}', with message: {}".format(e.directory, e.message))
@@ -132,7 +147,7 @@ def validate_and_upload_single_entry(directory, force_upload=False):
                       "".format(e.directory, e.message))
         logging.info("Samples were uploaded, but progress file may be incorrect!")
 
-    logging.info("Samples in directory '{}' have finished uploading!".format(directory))
+    logging.info("Samples in directory '{}' have finished uploading!".format(directory_status.directory))
 
     logging_end_block()
 
@@ -143,7 +158,7 @@ def batch_upload_single_entry(batch_directory, force_upload=False):
     """
     This function acts as a single point of entry for batch uploading run directories
 
-    It uses validate_and_upload_single_entry as it function for uploading the individual runs
+    It uses upload_run_single_entry as it function for uploading the individual runs
 
     A list of runs to be uploaded is generated at start up, and all found runs will be attempted to be uploaded.
 
@@ -168,10 +183,19 @@ def batch_upload_single_entry(batch_directory, force_upload=False):
                          % (directory_status.directory, "", directory_status.status))
 
     if force_upload:
-        logging.info("Starting upload of all non invalid runs. (Running with --force)")
+        upload_list = [x for x in directory_status_list if not x.is_invalid()]
+        logging.info("Starting upload for all non invalid runs. {} runs found. "
+                     "(Running with --force)".format(len(upload_list)))
     else:
-        logging.info("Starting upload of all new runs.")
+        upload_list = [x for x in directory_status_list if x.is_new()]
+        logging.info("Starting upload for all new runs. {} runs found.".format(len(upload_list)))
 
+    for directory_status in upload_list:
+        logging.info("Starting upload for {}".format(directory_status.directory))
+        result = _validate_and_upload(directory_status)
+        print("THING ASDF: {}".format(result))#todo
+
+    logging.info("Finished, Exiting!")
     return exit_success()
 
 

@@ -14,7 +14,7 @@ if len(path_to_module) == 0:
 
 class TestValidateAndUploadSingleEntry(unittest.TestCase):
     """
-    Tests the core.cli_entry.validate_and_upload_single_entry function
+    Tests the core.cli_entry.upload_run_single_entry function
     """
 
     def setUp(self):
@@ -42,6 +42,8 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
         Makes sure that all functions are called when a valid directory in given
         :return:
         """
+        directory = path.join(path_to_module, "fake_ngs_data")
+
         class StubValidationResult:
             @staticmethod
             def is_valid():
@@ -56,19 +58,18 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
                 return status == DirectoryStatus.NEW
 
         # add mock data to the function calls that are essential
-        mock_parsing_handler.get_run_status.side_effect = [StubDirectoryStatus]
+        stub_directory_status = StubDirectoryStatus()
+        mock_parsing_handler.get_run_status.side_effect = [stub_directory_status]
         mock_parsing_handler.parse_and_validate.side_effect = ["Fake Sequencing Run"]
         mock_api_handler.initialize_api_from_config.side_effect = [None]
         mock_api_handler.prepare_and_validate_for_upload.side_effect = [StubValidationResult]
         mock_api_handler.upload_sequencing_run.side_effect = [None]
         mock_progress.write_directory_status.side_effect = [None, None]
 
-        directory = path.join(path_to_module, "fake_ngs_data")
-
-        cli_entry.validate_and_upload_single_entry(directory, force_upload=False)
+        cli_entry.upload_run_single_entry(directory, force_upload=False)
 
         # Make sure directory status is init
-        mock_progress.write_directory_status.assert_called_with(StubDirectoryStatus, run_id=None)
+        mock_progress.write_directory_status.assert_called_with(stub_directory_status, run_id=None)
         # Make sure parsing and validation is done
         mock_parsing_handler.parse_and_validate.assert_called_with(directory)
         # api must be initialized
@@ -90,12 +91,12 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
         """
 
         directory = path.join(path_to_module, "fake_ngs_data")
+        directory_status = DirectoryStatus(directory)
         log_file = path.join(directory, "irida-uploader.log")
-
         # Check that log file does not exist before starting
         self.assertFalse(path.exists(log_file))
 
-        cli_entry.validate_and_upload_single_entry(directory)
+        cli_entry._validate_and_upload(directory_status)
 
         # Make sure log file is created
         self.assertTrue(path.exists(log_file))
@@ -110,6 +111,9 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
         When parsing, it should be valid
         :return:
         """
+
+        directory = path.join(path_to_module, "fake_ngs_data")
+
         class StubValidationResult:
             @staticmethod
             def is_valid():
@@ -132,15 +136,14 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
                 return status == DirectoryStatus.NEW
 
         # add mock data to the function calls that are essential
-        mock_parsing_handler.get_run_status.side_effect = [StubDirectoryStatus]
+        stub_directory_status = StubDirectoryStatus()
+        mock_parsing_handler.get_run_status.side_effect = [stub_directory_status]
         mock_parsing_handler.parse_and_validate.side_effect = ["Fake Sequencing Run"]
         mock_api_handler.initialize_api_from_config.side_effect = [None]
         mock_api_handler.prepare_and_validate_for_upload.side_effect = [StubValidationResult]
         mock_api_handler.upload_sequencing_run.side_effect = [None]
 
-        directory = path.join(path_to_module, "fake_ngs_data")
-
-        cli_entry.validate_and_upload_single_entry(directory)
+        cli_entry.upload_run_single_entry(directory)
 
         # Make sure the validation is tried
         mock_api_handler.prepare_and_validate_for_upload.assert_called_with("Fake Sequencing Run")
@@ -174,7 +177,7 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
 
         directory = path.join(path_to_module, "fake_ngs_data")
 
-        cli_entry.validate_and_upload_single_entry(directory)
+        cli_entry.upload_run_single_entry(directory)
 
         # Check that run status was found
         mock_parsing_handler.get_run_status.assert_called_with(directory)
@@ -231,6 +234,9 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
         In this case, we are forcing an upload, so no run is new check should happen
         :return:
         """
+
+        directory = path.join(path_to_module, "fake_ngs_data")
+
         class StubValidationResult:
             @staticmethod
             def is_valid():
@@ -250,9 +256,7 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
         mock_api_handler.prepare_and_validate_for_upload.side_effect = [StubValidationResult]
         mock_api_handler.upload_sequencing_run.side_effect = [None]
 
-        directory = path.join(path_to_module, "fake_ngs_data")
-
-        cli_entry.validate_and_upload_single_entry(directory, True)
+        cli_entry.upload_run_single_entry(directory, True)
 
         # Check that run status was found
         mock_parsing_handler.get_run_status.assert_called_with(directory)
@@ -276,6 +280,8 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
         In this case, the run is new check should happen
         :return:
         """
+        directory = path.join(path_to_module, "fake_ngs_data")
+
         class StubValidationResult:
             @staticmethod
             def is_valid():
@@ -295,9 +301,7 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
         mock_api_handler.prepare_and_validate_for_upload.side_effect = [StubValidationResult]
         mock_api_handler.upload_sequencing_run.side_effect = [None]
 
-        directory = path.join(path_to_module, "fake_ngs_data")
-
-        cli_entry.validate_and_upload_single_entry(directory, False)
+        cli_entry.upload_run_single_entry(directory, False)
 
         # Check that run status was found
         mock_parsing_handler.get_run_status.assert_called_with(directory)
@@ -321,6 +325,9 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
         In this case, the run is new check should occur, and the run should not be uploaded, and not be parsed
         :return:
         """
+
+        directory = path.join(path_to_module, "fake_ngs_data")
+
         class StubValidationResult:
             @staticmethod
             def is_valid():
@@ -341,9 +348,7 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
         mock_api_handler.prepare_and_validate_for_upload.side_effect = [StubValidationResult]
         mock_api_handler.upload_sequencing_run.side_effect = [None]
 
-        directory = path.join(path_to_module, "fake_ngs_data")
-
-        cli_entry.validate_and_upload_single_entry(directory, False)
+        cli_entry.upload_run_single_entry(directory, False)
 
         # Check that run status was found
         mock_parsing_handler.get_run_status.assert_called_with(directory)

@@ -78,6 +78,9 @@ def write_directory_status(directory_status, run_id=None):
     if not os.access(directory_status.directory, os.W_OK):  # Cannot access upload directory
         raise exceptions.DirectoryError("Cannot access directory", directory_status.directory)
 
+    # if directory_status.is_invalid():
+    #     raise Exception("ERROR: Directory status 'invalid' cannot be written to file.")
+
     uploader_info_file = os.path.join(directory_status.directory, STATUS_FILE_NAME)
     if run_id:
         json_data = {STATUS_FIELD: directory_status.status,

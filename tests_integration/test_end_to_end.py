@@ -10,7 +10,7 @@ import api
 import model
 import progress
 
-from core.cli_entry import validate_and_upload_single_entry
+from core.cli_entry import upload_run_single_entry
 
 
 path_to_module = path.dirname(__file__)
@@ -113,7 +113,7 @@ class TestEndToEnd(unittest.TestCase):
         project_id = "1"
 
         # Do the upload
-        upload_result = validate_and_upload_single_entry(path.join(path_to_module, "fake_ngs_data"))
+        upload_result = upload_run_single_entry(path.join(path_to_module, "fake_ngs_data"))
 
         # Make sure the upload was a success
         self.assertEqual(upload_result, 0)
@@ -207,7 +207,7 @@ class TestEndToEnd(unittest.TestCase):
         project_id = "1"
 
         # Do the upload
-        upload_result = validate_and_upload_single_entry(path.join(path_to_module, "fake_dir_data"))
+        upload_result = upload_run_single_entry(path.join(path_to_module, "fake_dir_data"))
 
         # Make sure the upload was a success
         self.assertEqual(upload_result, 0)
@@ -374,7 +374,7 @@ class TestEndToEnd(unittest.TestCase):
         test_api.send_project(project)
 
         # Do the upload
-        upload_result = validate_and_upload_single_entry(path.join(path_to_module, "fake_ngs_data_nonexistent_project"))
+        upload_result = upload_run_single_entry(path.join(path_to_module, "fake_ngs_data_nonexistent_project"))
 
         # Make sure the upload was a failure
         self.assertEqual(upload_result, 1)
@@ -419,7 +419,7 @@ class TestEndToEnd(unittest.TestCase):
         test_api.send_project(project)
 
         # Do the upload
-        upload_result = validate_and_upload_single_entry(path.join(path_to_module, "fake_ngs_data_parse_fail"))
+        upload_result = upload_run_single_entry(path.join(path_to_module, "fake_ngs_data_parse_fail"))
 
         # Make sure the upload was a failure
         self.assertEqual(upload_result, 1)
@@ -467,7 +467,7 @@ class TestEndToEnd(unittest.TestCase):
         progress.write_directory_status(directory_status)
 
         # Do the upload, with force option
-        upload_result = validate_and_upload_single_entry(path.join(path_to_module, "fake_ngs_data_force"), True)
+        upload_result = upload_run_single_entry(path.join(path_to_module, "fake_ngs_data_force"), True)
 
         # Make sure the upload was a success
         self.assertEqual(upload_result, 0)
@@ -548,7 +548,7 @@ class TestEndToEnd(unittest.TestCase):
         progress.write_directory_status(directory_status)
 
         # Do the upload, without force option
-        upload_result = validate_and_upload_single_entry(path.join(path_to_module, "fake_ngs_data"), False)
+        upload_result = upload_run_single_entry(path.join(path_to_module, "fake_ngs_data"), False)
 
         # Make sure the upload was a failure
         self.assertEqual(upload_result, 1)
@@ -571,7 +571,7 @@ class TestEndToEnd(unittest.TestCase):
         )
 
         # Do the upload, without force option
-        upload_result = validate_and_upload_single_entry(path.join(path_to_module, "fake_ngs_data_no_completed_file"), False)
+        upload_result = upload_run_single_entry(path.join(path_to_module, "fake_ngs_data_no_completed_file"), False)
 
         # Make sure the upload was a failure
         self.assertEqual(upload_result, 1)

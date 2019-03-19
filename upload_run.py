@@ -91,7 +91,7 @@ def upload(run_directory, force_upload):
     :return:
     """
     config.setup()
-    return core.cli_entry.validate_and_upload_single_entry(run_directory, force_upload)
+    return core.cli_entry.upload_run_single_entry(run_directory, force_upload)
 
 
 def upload_batch(batch_directory, force_upload):
