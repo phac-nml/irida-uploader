@@ -1,9 +1,11 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, Mock
 from os import path
 import os
 
 from core import cli_entry, logger
+from model import DirectoryStatus
+from parsers.exceptions import DirectoryError
 
 path_to_module = path.abspath(path.dirname(__file__))
 if len(path_to_module) == 0:
@@ -46,13 +48,12 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
                 return True
 
         class StubDirectoryStatus:
-            @staticmethod
-            def is_invalid():
-                return False
+            directory = ""
+            status = DirectoryStatus.NEW
 
             @staticmethod
-            def is_new():
-                return True
+            def status_equals(status):
+                return status == DirectoryStatus.NEW
 
         # add mock data to the function calls that are essential
         mock_parsing_handler.get_run_status.side_effect = [StubDirectoryStatus]
@@ -123,13 +124,12 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
                 return []
 
         class StubDirectoryStatus:
-            @staticmethod
-            def is_invalid():
-                return False
+            directory = path.join(path_to_module, "fake_ngs_data")
+            status = DirectoryStatus.NEW
 
             @staticmethod
-            def is_new():
-                return True
+            def status_equals(status):
+                return status == DirectoryStatus.NEW
 
         # add mock data to the function calls that are essential
         mock_parsing_handler.get_run_status.side_effect = [StubDirectoryStatus]
@@ -150,24 +150,20 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
     @patch("core.cli_entry.progress")
     @patch("core.cli_entry.api_handler")
     @patch("core.cli_entry.parsing_handler")
-    def test_invalid_at_parsing_sequencing_run(self, mock_parsing_handler, mock_api_handler, mock_progress):
+    def test_invalid_before_parsing_sequencing_run(self, mock_parsing_handler, mock_api_handler, mock_progress):
         """
         Makes sure that all functions are called when a invalid directory in given
-        Invalidity comes from parsing module
+        Invalidity comes from checking if the run is valid, but before parsing
         :return:
         """
         class StubDirectoryStatus:
-            @staticmethod
-            def is_invalid():
-                return True
+            directory = path.join(path_to_module, "fake_ngs_data")
+            status = DirectoryStatus.INVALID
+            message = ""
 
             @staticmethod
-            def directory():
-                return None
-
-            @staticmethod
-            def message():
-                return None
+            def status_equals(status):
+                return status == DirectoryStatus.INVALID
 
         # add mock data to the function calls that are essential
         mock_parsing_handler.get_run_status.side_effect = [StubDirectoryStatus]
@@ -191,6 +187,44 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
     @patch("core.cli_entry.progress")
     @patch("core.cli_entry.api_handler")
     @patch("core.cli_entry.parsing_handler")
+    def test_invalid_at_parsing_sequencing_run(self, mock_parsing_handler, mock_api_handler, mock_progress):
+        """
+        Makes sure that all functions are called when a invalid directory in given
+        Invalidity comes from parsing module
+        :return:
+        """
+
+        class StubDirectoryStatus:
+            directory = path.join(path_to_module, "fake_ngs_data")
+            status = DirectoryStatus.NEW
+
+            @staticmethod
+            def status_equals(status):
+                return status == DirectoryStatus.NEW
+
+        # add mock data to the function calls that are essential
+        mock_parsing_handler.get_run_status.side_effect = [StubDirectoryStatus]
+        mock_parsing_handler.parse_and_validate.side_effect = [DirectoryError("", "")]
+        mock_api_handler.initialize_api_from_config.side_effect = [None]
+        mock_api_handler.prepare_and_validate_for_upload.side_effect = [None]
+        mock_api_handler.upload_sequencing_run.side_effect = [None]
+
+        directory = path.join(path_to_module, "fake_ngs_data")
+
+        cli_entry.validate_and_upload_single_entry(directory)
+
+        # Check that run status was found
+        mock_parsing_handler.get_run_status.assert_called_with(directory)
+        # Make sure the error throwing function is called
+        mock_parsing_handler.parse_and_validate.assert_called_with(directory)
+        # Make sure the later functions are not called
+        mock_api_handler.initialize_api_from_config.assert_not_called()
+        mock_api_handler.prepare_and_validate_for_upload.assert_not_called()
+        mock_api_handler.upload_sequencing_run.assert_not_called()
+
+    @patch("core.cli_entry.progress")
+    @patch("core.cli_entry.api_handler")
+    @patch("core.cli_entry.parsing_handler")
     def test_valid_force_upload(self, mock_parsing_handler, mock_api_handler, mock_progress):
         """
         Makes sure that all functions are called when a valid directory in given
@@ -203,16 +237,15 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
                 return True
 
         class StubDirectoryStatus:
-            @staticmethod
-            def is_invalid():
-                return False
+            directory = path.join(path_to_module, "fake_ngs_data")
+            status = DirectoryStatus.NEW
 
         # add mock data to the function calls that are essential
         mock_stub_directory_status = StubDirectoryStatus()
-        mock_stub_directory_status.is_new = MagicMock(return_value=True)
+        mock_stub_directory_status.status_equals = MagicMock(return_value=False)
         mock_parsing_handler.get_run_status.side_effect = [mock_stub_directory_status]
         mock_parsing_handler.parse_and_validate.side_effect = ["Fake Sequencing Run"]
-        mock_parsing_handler.run_is_new.side_effect = [None]
+        # mock_parsing_handler.run_is_new.side_effect = [None]
         mock_api_handler.initialize_api_from_config.side_effect = [None]
         mock_api_handler.prepare_and_validate_for_upload.side_effect = [StubValidationResult]
         mock_api_handler.upload_sequencing_run.side_effect = [None]
@@ -223,8 +256,8 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
 
         # Check that run status was found
         mock_parsing_handler.get_run_status.assert_called_with(directory)
-        # Make sure run is new check is not done
-        mock_stub_directory_status.is_new.assert_not_called()
+        # Make sure run is new check is not done (Only invalid check is done)
+        mock_stub_directory_status.status_equals.assert_called_once_with(DirectoryStatus.INVALID)
         # Make sure parsing and validation is done
         mock_parsing_handler.parse_and_validate.assert_called_with(directory)
         # api must be initialized
@@ -249,13 +282,13 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
                 return True
 
         class StubDirectoryStatus:
-            @staticmethod
-            def is_invalid():
-                return False
+            directory = path.join(path_to_module, "fake_ngs_data")
+            status = DirectoryStatus.NEW
 
         # add mock data to the function calls that are essential
         mock_stub_directory_status = StubDirectoryStatus()
-        mock_stub_directory_status.is_new = MagicMock(return_value=True)
+        mock_stub_directory_status.status_equals = Mock()
+        mock_stub_directory_status.status_equals.side_effect = [False, True]
         mock_parsing_handler.get_run_status.side_effect = [mock_stub_directory_status]
         mock_parsing_handler.parse_and_validate.side_effect = ["Fake Sequencing Run"]
         mock_api_handler.initialize_api_from_config.side_effect = [None]
@@ -268,8 +301,8 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
 
         # Check that run status was found
         mock_parsing_handler.get_run_status.assert_called_with(directory)
-        # Make sure run is new check is not done
-        mock_stub_directory_status.is_new.assert_called_with()
+        # Make sure run is new check is done
+        mock_stub_directory_status.status_equals.assert_called_with(DirectoryStatus.NEW)
         # Make sure parsing and validation is done
         mock_parsing_handler.parse_and_validate.assert_called_with(directory)
         # api must be initialized
@@ -295,13 +328,13 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
 
         # add mock data to the function calls that are essential
         class StubDirectoryStatus:
-            @staticmethod
-            def is_invalid():
-                return False
+            directory = path.join(path_to_module, "fake_ngs_data")
+            status = DirectoryStatus.COMPLETE
 
         # add mock data to the function calls that are essential
         mock_stub_directory_status = StubDirectoryStatus()
-        mock_stub_directory_status.is_new = MagicMock(return_value=False)
+        mock_stub_directory_status.status_equals = Mock()
+        mock_stub_directory_status.status_equals.side_effect = [False, False]
         mock_parsing_handler.get_run_status.side_effect = [mock_stub_directory_status]
         mock_parsing_handler.parse_and_validate.side_effect = ["Fake Sequencing Run"]
         mock_api_handler.initialize_api_from_config.side_effect = [None]
@@ -315,7 +348,7 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
         # Check that run status was found
         mock_parsing_handler.get_run_status.assert_called_with(directory)
         # Make sure run is new check is not done
-        mock_stub_directory_status.is_new.assert_called_with()
+        mock_stub_directory_status.status_equals.assert_called_with(DirectoryStatus.NEW)
         # Make sure parsing and validation is NOT done
         mock_parsing_handler.parse_and_validate.assert_not_called()
         # make sure the upload is NOT done, as validation is invalid

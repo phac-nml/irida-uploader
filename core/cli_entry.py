@@ -32,16 +32,15 @@ def validate_and_upload_single_entry(directory, force_upload=False):
     logging.debug("validate_and_upload_single_entry:Starting {}".format(directory))
 
     directory_status = parsing_handler.get_run_status(directory)
-    if directory_status.is_invalid():
+    # Check if a run is invalid, an invalid run cannot be uploaded.
+    if directory_status.status_equals(DirectoryStatus.INVALID):
         logging.error("ERROR! Run in directory {} is invalid. Returned with message: '{}'"
                       "".format(directory_status.directory, directory_status.message))
-        directory_status.status = DirectoryStatus.ERROR
-        progress.write_directory_status(directory_status)
         return exit_error()
 
     # Only upload if run is new, or force_upload is True
     if not force_upload:
-        if not directory_status.is_new():
+        if not directory_status.status_equals(DirectoryStatus.NEW):
             logging.error("ERROR! Run in directory {} is not new. It has either been uploaded, "
                           "or an upload was attempted with error. "
                           "Please check the status file 'irida_uploader_status.info' "
