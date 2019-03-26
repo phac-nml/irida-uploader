@@ -1,2 +1,2 @@
-from .upload_status import get_directory_status, write_directory_status, DIRECTORY_STATUS_NEW, DIRECTORY_STATUS_INVALID, DIRECTORY_STATUS_PARTIAL, DIRECTORY_STATUS_ERROR, DIRECTORY_STATUS_COMPLETE
+from .upload_status import get_directory_status, write_directory_status
 from . import exceptions
