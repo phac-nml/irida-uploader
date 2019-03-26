@@ -11,6 +11,7 @@ Added functionality:
 * Now uploader writes logs to run folder, for that specific upload
 * When uploading, a progress percentage will be printed to the command line (Linux + Windows)
 * Miseq uploader now requires `CompletedJobInfo.xml` file to upload
+* Added support for MiniSeq, use parser `miniseq` to use.
 
 Beta 0.1
 ---------
