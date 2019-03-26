@@ -28,15 +28,11 @@ def parse_metadata(sample_sheet_file):
     csv_reader = get_csv_reader(sample_sheet_file)
 
     metadata_key_translation_dict = {
-        'Assay': 'assay',
+        'Local Run Manager Analysis Id': 'localrunmanager',
         'Description': 'description',
         'Application': 'application',
         'Investigator Name': 'investigatorName',
-        'Adapter': 'adapter',
-        'AdapterRead2': 'adapterread2',
         'Workflow': 'workflow',
-        'ReverseComplement': 'reversecomplement',
-        'IEMFileVersion': 'iemfileversion',
         'Date': 'date',
         'Experiment Name': 'experimentName',
         'Chemistry': 'chemistry',
@@ -291,7 +287,6 @@ def _parse_samples(sample_sheet_file):
 
         new_sample_dict = deepcopy(sample_dict)
         new_sample_name = new_sample_dict['sampleName']
-        del new_sample_dict['sampleName']
 
         sample = model.Sample(
                             sample_name=new_sample_name,
