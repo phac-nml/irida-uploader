@@ -273,7 +273,8 @@ def _parse_samples(sample_sheet_file):
             this handles the case where the last trailing comma is trimmed
 
             Shaun said this issue may come up when a user edits the
-            SampleSheet from within the MiSeq software (kept this for miniseq for safety)
+            SampleSheet from within the MiSeq software
+            (kept this for miniseq for safety)
             """
             if len(sample_dict.keys()) - len(line) == 1:
                 line.append("")
