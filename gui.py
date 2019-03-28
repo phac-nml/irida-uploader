@@ -119,7 +119,9 @@ class MyDialog(QtWidgets.QDialog):
         self._config_button.setEnabled(False)
         self._dir_button.setEnabled(False)
         self._force_checkbox.setEnabled(False)
+        # init / re-init config with config file selected
         config.setup()
+        # start upload
         cli_entry.validate_and_upload_single_entry(self._run_dir, self._force_state)
         self.finished_upload()
 
@@ -138,12 +140,10 @@ class MyDialog(QtWidgets.QDialog):
         self._force_checkbox.setChecked(False)
 
 
-
 def main():
     app = QtWidgets.QApplication(sys.argv)
     dlg = MyDialog()
     dlg.show()
-    # dlg.raise_()
     sys.exit(app.exec_())
 
 
