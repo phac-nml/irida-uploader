@@ -46,11 +46,23 @@ class DirectoryStatus:
 
     @status.setter
     def status(self, status):
+        """
+        Status setter
+        Only accepts status's from the predefined VALID_STATUS_LIST
+        :param status: Status to set on object
+        :return:
+        """
         if status not in DirectoryStatus.VALID_STATUS_LIST:
             raise Exception("Invalid status written to DirectoryStatus object.")
         self._status = status
 
     def status_equals(self, status):
+        """
+        Checks if status on object is the same as status given.
+        Only accepts status's from the predefined VALID_STATUS_LIST
+        :param status: check given status against current status
+        :return:
+        """
         if status not in DirectoryStatus.VALID_STATUS_LIST:
             raise Exception("Invalid status '{}' used for comparison.".format(status))
         return self._status == status
