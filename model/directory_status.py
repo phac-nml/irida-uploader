@@ -42,6 +42,10 @@ class DirectoryStatus:
 
     @property
     def status(self):
+        """
+        status property, setter is overridden by @status.setter
+        :return: status
+        """
         return self._status
 
     @status.setter
