@@ -168,6 +168,8 @@ def upload_sequencing_run(sequencing_run):
         raise e
     # Todo: once threading is added, the upload canceled error will likely need to be caught/raised here
 
+    return run_id
+
 
 def send_project(project):
     """

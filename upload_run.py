@@ -41,25 +41,39 @@ class ConfigAction(argparse.Action):
 # Set up an argument parser. We are using defaults to stay consistent with other software.
 # description gets added to the usage statements
 argument_parser = argparse.ArgumentParser(description='This program parses sequencing runs and uploads them to IRIDA.')
+# Add the version argument
+argument_parser.add_argument('-v', '--version',
+                             action='version', version='IRIDA Uploader {}'.format(global_settings.UPLOADER_VERSION))
 # Our main argument. It is required or else an error will be thrown when the program is run
 argument_parser.add_argument('directory',
                              help='Location of sequencing run to upload')
 # Optional argument, for using an alternative config file.
 argument_parser.add_argument('-c', '--config',
                              action=ConfigAction,
-                             help='Path to an alternative configuration file.'
+                             help='Path to an alternative configuration file. '
                                   'This overrides the default config file in the config directory')
+# Optional argument, Force uploading a run even if a non new status file exists
+argument_parser.add_argument('-f', '--force',
+                             action='store_true',  # This line makes it not parse a variable
+                             help='Uploader will ignore the status file, '
+                                  'and try to upload even when a run is in non new status.')
 
 
 def main():
     # Parse the arguments passed from the command line and start the upload
     args = argument_parser.parse_args()
-    upload(args.directory)
+    upload(args.directory, args.force)
 
 
-def upload(run_directory):
+def upload(run_directory, force_upload):
+    """
+    start upload on a single run directory
+    :param run_directory:
+    :param force_upload:
+    :return:
+    """
     config.setup()
-    core.cli_entry.validate_and_upload_single_entry(run_directory)
+    core.cli_entry.validate_and_upload_single_entry(run_directory, force_upload)
 
 
 # This is called when the program is run for the first time

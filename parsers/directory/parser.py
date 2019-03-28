@@ -9,6 +9,16 @@ from . import sample_parser, validation
 
 class Parser:
 
+    SAMPLE_SHEET_FILE_NAME = 'SampleList.csv'
+
+    @staticmethod
+    def get_required_file_list():
+        """
+        Returns a list of files that are required for a run directory to be considered valid
+        :return: [files_names]
+        """
+        return [Parser.SAMPLE_SHEET_FILE_NAME]
+
     @staticmethod
     def _find_directory_list(directory):
         """Find and return all directories in the specified directory.
@@ -44,7 +54,7 @@ class Parser:
         runs = []
         directory_list = Parser._find_directory_list(directory)
         for d in directory_list:
-            runs.append(progress.get_directory_status(d, 'SampleList.csv'))
+            runs.append(progress.get_directory_status(d, Parser.get_required_file_list()))
 
         return runs
 
@@ -58,7 +68,7 @@ class Parser:
         """
         logging.info("looking for run in {}".format(directory))
 
-        return progress.get_directory_status(directory, 'SampleList.csv')
+        return progress.get_directory_status(directory, Parser.get_required_file_list())
 
     @staticmethod
     def get_sample_sheet(directory):
@@ -78,7 +88,7 @@ class Parser:
                                             "can not parse samples from this directory {}".format(directory),
                                             directory)
 
-        sample_sheet_file_name = 'SampleList.csv'
+        sample_sheet_file_name = Parser.SAMPLE_SHEET_FILE_NAME
         file_list = next(os.walk(directory))[2]  # Gets the list of files in the directory
         if sample_sheet_file_name not in file_list:
             logging.error("No sample sheet file in the Directory Upload format found")

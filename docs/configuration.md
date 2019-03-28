@@ -23,7 +23,7 @@ The config file has the following fields:
 * `username` : The user that will be accessing projects/samples, this user needs the `Sequencer` or `Administrator` role. 
 * `password` : Corresponding password for above user.
 * `base_url` : The server URL is the location that the uploader should upload data to. If you navigate to your instance of IRIDA in your web browser, the URL (after you’ve logged in) will often look like: `https://irida.corefacility.ca/irida/`. The URL you should enter into the Server URL field is that URL, with `api/` at the end. So in the case of `https://irida.corefacility.ca/irida/`, you should enter the URL `https://irida.corefacility.ca/irida/api/`
-* `parser` : Pick the parser that matches the file structure of your sequence files. We currently support [miseq](parsers/miseq.md) and [directory](parsers/directory.md).
+* `parser` : Pick the parser that matches the file structure of your sequence files. We currently support [miseq](parsers/miseq.md), [directory](parsers/directory.md) and [miniseq](parsers/miniseq.md).
 
 
 ###Example
@@ -56,4 +56,4 @@ Example:
 
 ### Linux:
 
-Use the the `irida-uploader.sh` script included with the source code to upload.
+Use the `irida-uploader.sh` script included with the source code to upload.

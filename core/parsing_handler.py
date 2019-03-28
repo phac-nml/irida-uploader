@@ -5,7 +5,6 @@ import logging
 
 import config
 import parsers
-
 from . import model_validator
 
 
@@ -50,3 +49,14 @@ def parse_and_validate(directory):
     logging.info("*** Parsing Done ***")
 
     return sequencing_run
+
+
+def get_run_status(directory):
+    """
+    Given a run directory, returns a DirectoryStatus object created by the parser
+    :param directory:
+    :return: DirectoryStatus
+    """
+    parser_instance = get_parser_from_config()
+    status = parser_instance.find_single_run(directory)
+    return status

@@ -35,13 +35,13 @@ You will need to configure your uploader before running. See [Configuration](con
 
 #### Linux
 
-Make sure Python 3.6 is installed
+Make sure Python 3.5 or newer is installed
 
-    $ python3.6 --version
+    $ python3 --version
 
 If python3 is not installed, install with
 
-    $ sudo apt-get install python3.6
+    $ sudo apt-get install python3
 
 Install pip:
 
@@ -61,8 +61,8 @@ If you already have these packages installed, ensure they are up to date
 
 Download the source code
 
-    $ git clone https://github.com/phac-nml/irida-miseq-uploader
-    $ cd irida-miseq-uploader
+    $ git clone https://github.com/phac-nml/irida-uploader
+    $ cd irida-uploader
 
 Build a virtualenv and install the dependencies automatically with `make`:
 
@@ -90,6 +90,8 @@ We currently support the following:
 
 `miseq` : [Miseq](parsers/miseq.md)
 
+`miniseq` : [MiniSeq](parsers/miniseq.md)
+
 ## Starting an upload
 
 You can upload with the following commands
@@ -102,10 +104,29 @@ Open a Command Prompt terminal and use the `iridauploader` command to upload
 
 ### Linux:
 
-Use the the `irida-uploader.sh` script included with the source code to upload.
+Use the `irida-uploader.sh` script included with the source code to upload.
 
 `./irida-uploader.sh /path/to/the/sequencing/run/`
 
+
+#### Note:
+After uploading, an `irida_uploader_status.info` file will be created which indicates if a run is complete, or has failed
+
+You can delete this file to make it ready for reupload, or use the `--force` option when running the uploader to ignore the status of a run directory.
+
+## Logging
+
+Logs about individual runs are written to the sequencing run directory that they are uploaded from.
+
+Full debug logs are written to your system default logging directory
+
+#### Linux
+
+`/home/<user>/.cache/irida_uploader/log/`
+
+#### Windows
+
+`C:\Users\<username>\AppData\Local\irida_uploader\irida_uploader\Logs`
 
 # Problems?
 

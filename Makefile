@@ -12,10 +12,10 @@ clean:
 	rm -rf tests_integration/tmp
 
 requirements:
-	python3.6 -m venv .virtualenv
+	python3 -m venv .virtualenv
 	source .virtualenv/bin/activate
-	pip install --upgrade pip wheel
-	pip install -r requirements.txt
+	pip3 install --upgrade wheel
+	pip3 install -r requirements.txt
 
 windows: clean requirements
 	source .virtualenv/bin/activate
@@ -27,6 +27,7 @@ windowsgui: clean requirements
 
 unittests: clean requirements
 	source .virtualenv/bin/activate
+	export IRIDA_UPLOADER_TEST='True'
 	python3 -m unittest discover -s tests -t .
 
 preintegration:
@@ -37,10 +38,12 @@ preintegration:
 
 integrationtests: clean requirements preintegration
 	source .virtualenv/bin/activate
+	export IRIDA_UPLOADER_TEST='True'
 	xvfb-run --auto-servernum --server-num=1 python3 start_integration_tests.py master
 
 integrationtestsdev: clean requirements preintegration
 	source .virtualenv/bin/activate
+	export IRIDA_UPLOADER_TEST='True'
 	xvfb-run --auto-servernum --server-num=1 python3 start_integration_tests.py development
 
 docs: requirements
