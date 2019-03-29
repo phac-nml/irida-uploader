@@ -7,19 +7,25 @@ from config import config
 import global_settings
 
 
-class QPlainTextEditLogger(logging.Handler):
-    def __init__(self, parent):
-        super().__init__()
-        self.widget = QtWidgets.QPlainTextEdit(parent)
-        self.widget.setReadOnly(True)
+class QtHandler(logging.Handler):
+    def __init__(self, message_writer):
+        logging.Handler.__init__(self)
+        self._message_writer = message_writer
 
     def emit(self, record):
-        msg = self.format(record)
-        self.widget.appendPlainText(msg)
-        self.widget.repaint()
+        record = self.format(record)
+        if record:
+            self._message_writer.write(record)
 
-    def write(self, m):
+
+class MessageWriter(QtCore.QObject):
+    messageWritten = QtCore.pyqtSignal(str)
+
+    def flush(self):
         pass
+
+    def write(self, msg):
+        self.messageWritten.emit(msg)
 
 
 class MyDialog(QtWidgets.QDialog):
@@ -53,11 +59,15 @@ class MyDialog(QtWidgets.QDialog):
         self._upload_button = QtWidgets.QPushButton(self)
         self._upload_button.setText('Start Upload')
 
-        log_text_box = QPlainTextEditLogger(self)
-        log_format = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s', datefmt='%H:%M:%S')
-        log_text_box.setFormatter(log_format)
-        log_text_box.setLevel(logging.INFO)
-        logger.root_logger.addHandler(log_text_box)
+        # Setup logger
+        message_writer = MessageWriter()
+        handler = QtHandler(message_writer)
+        handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)-8s %(message)s', datefmt='%H:%M:%S'))
+        handler.setLevel(logging.INFO)
+        logger.root_logger.addHandler(handler)
+        self._console = QtWidgets.QPlainTextEdit(self)
+        message_writer.messageWritten.connect(self.write_log_and_redraw)
+        self._my_thread = ExecuteThread()
 
         # Layout
         layout = QtWidgets.QVBoxLayout()
@@ -78,7 +88,7 @@ class MyDialog(QtWidgets.QDialog):
         # Upload
         layout.addWidget(self._upload_button)
         # Text box logger
-        layout.addWidget(log_text_box.widget)
+        layout.addWidget(self._console)
         # set layout
         self.setLayout(layout)
         self.setGeometry(300, 300, 1200, 1200)
@@ -88,6 +98,12 @@ class MyDialog(QtWidgets.QDialog):
         self._config_button.clicked.connect(self.select_config)
         self._force_checkbox.stateChanged.connect(self.click_force_upload)
         self._upload_button.clicked.connect(self.start_upload)
+        # connect running upload thread finishing to finish function
+        self._my_thread.finished.connect(self.finished_upload)
+
+    def write_log_and_redraw(self, text):
+        self._console.appendPlainText(text)
+        self._console.repaint()
 
     def open_dir(self):
         logging.debug("GUI: open_dir clicked")
@@ -122,8 +138,8 @@ class MyDialog(QtWidgets.QDialog):
         # init / re-init config with config file selected
         config.setup()
         # start upload
-        cli_entry.validate_and_upload_single_entry(self._run_dir, self._force_state)
-        self.finished_upload()
+        self._my_thread.set_vars(self._run_dir, self._force_state)
+        self._my_thread.start()
 
     def finished_upload(self):
         logging.debug("GUI: finished_upload called")
@@ -140,8 +156,21 @@ class MyDialog(QtWidgets.QDialog):
         self._force_checkbox.setChecked(False)
 
 
+class ExecuteThread(QtCore.QThread):
+    def __init__(self):
+        super().__init__()
+
+    def set_vars(self, run_dir, force_state):
+        self._run_dir = run_dir
+        self._force_state = force_state
+
+    def run(self):
+        cli_entry.validate_and_upload_single_entry(self._run_dir, self._force_state)
+        pass
+
+
 def main():
-    app = QtWidgets.QApplication(sys.argv)
+    app = QtWidgets.QApplication(["IRIDA Uploader"])
     dlg = MyDialog()
     dlg.show()
     sys.exit(app.exec_())
