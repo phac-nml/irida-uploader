@@ -103,7 +103,7 @@ def build_sequencing_run_from_samples(sample_sheet_file, metadata):
     for sample in sample_list:
         project = None
         for p in project_list:
-            if sample.get('sample_project') is p.id:
+            if sample.get('sample_project') == p.id:
                 project = p
         if project is None:
             project = model.Project(id=sample.get('sample_project'))
