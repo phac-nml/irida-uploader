@@ -61,7 +61,7 @@ The `status` field can hold the following options, defined in the file. (e.g. Di
     * New runs, ready to upload
 * INVALID
     * Used when a run directory does not have the base requirements to act as a run
-    * Never written to a status file
+    * This is never written to a status file, as reading a status file as invalid will not allow a run to be uploaded using the `--force` option. When a run cannot be uploaded, `ERROR` is instead written to file.
 * PARTIAL
     * Parsing/Upload has started/partially completed for this run
 * ERROR
