@@ -55,7 +55,19 @@ These are used when deciding if a run has been uploaded, partially uploaded, is 
 
 The `directory` field holds the path to the directory of some potential sequencing run.
 
-`"new"`, `"partial"`, `"complete"`, and `"invalid"` are valid in the `status` field.
+The `status` field can hold the following options, defined in the file. (e.g. DirectoryStatus.NEW)
+
+* NEW
+    * New runs, ready to upload
+* INVALID
+    * Used when a run directory does not have the base requirements to act as a run
+    * This is never written to a status file, as reading a status file as invalid will not allow a run to be uploaded using the `--force` option. When a run cannot be uploaded, `ERROR` is instead written to file.
+* PARTIAL
+    * Parsing/Upload has started/partially completed for this run
+* ERROR
+    * Parsing/Upload has stopped because of some error.
+* COMPLETE
+    * Parsing/Upload has completed successfully
 
 The `message` field is only filled if a run is `"invalid"`, and contains information on why a run is invalid.
 
