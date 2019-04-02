@@ -13,11 +13,9 @@ class QSignalWorker(QtCore.QObject):
         self.file_progress_signal.emit(percent)
 
     def send_sample_percent(self, percent):
-        print("sample percent : " + str(percent))
         self.sample_progress_signal.emit(percent)
 
     def send_project_percent(self, percent):
-        print("project percent : " + str(percent))
         self.project_progress_signal.emit(percent)
 
     def send_current_file(self, text):

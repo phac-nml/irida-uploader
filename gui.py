@@ -2,10 +2,9 @@ from PyQt5 import QtWidgets, QtCore
 import logging
 import sys
 
-from core import logger, cli_entry
+from core import logger, cli_entry, api_handler
 from config import config
 from progress import signal_worker
-import global_settings
 
 
 class QtHandler(logging.Handler):
@@ -44,8 +43,10 @@ class MyDialog(QtWidgets.QDialog):
         super().__init__()
         logging.debug("GUI: Setting up MyDialog")
 
+        self.config_dlg = ConfigDialog(self)
+
         # Initialize thread to execute uploader
-        self._my_thread = ExecuteThread()
+        self._upload_thread = UploadThread()
 
         # internal variables
         self._run_dir = ""
@@ -63,12 +64,8 @@ class MyDialog(QtWidgets.QDialog):
         self._dir_button = QtWidgets.QPushButton(self)
         self._dir_button.setText("Open Directory")
         # config
-        self._config_label = QtWidgets.QLabel(self)
-        self._config_label.setText("Config File")
-        self._config_line = QtWidgets.QLineEdit(self)
-        self._config_line.setReadOnly(True)
         self._config_button = QtWidgets.QPushButton(self)
-        self._config_button.setText("Select Config File")
+        self._config_button.setText("Configure Settings")
         # force upload
         self._force_checkbox = QtWidgets.QCheckBox(self)
         self._force_checkbox.setText("Force Upload")
@@ -117,17 +114,13 @@ class MyDialog(QtWidgets.QDialog):
         dir_layout.addWidget(self._dir_button)
         layout.addLayout(dir_layout)
 
-        # Config selection
-        layout.addWidget(self._config_label)
+        # Config selection & force checkbox & upload button
         config_layout = QtWidgets.QHBoxLayout()
-        config_layout.addWidget(self._config_line)
         config_layout.addWidget(self._config_button)
+        config_layout.addWidget(self._force_checkbox)
+        config_layout.addWidget(self._upload_button)
         layout.addLayout(config_layout)
 
-        # Force Upload checkbox
-        layout.addWidget(self._force_checkbox)
-        # Upload button
-        layout.addWidget(self._upload_button)
         # logging text box
         layout.addWidget(self._console)
 
@@ -169,11 +162,11 @@ class MyDialog(QtWidgets.QDialog):
 
         # buttons
         self._dir_button.clicked.connect(self.open_dir)
-        self._config_button.clicked.connect(self.select_config)
+        self._config_button.clicked.connect(self.show_config)
         self._force_checkbox.stateChanged.connect(self.click_force_upload)
         self._upload_button.clicked.connect(self.start_upload)
         # connect running upload thread finishing to finish function
-        self._my_thread.finished.connect(self.finished_upload)
+        self._upload_thread.finished.connect(self.finished_upload)
         # connect progress bars
         signal_worker.project_progress_signal.connect(self._project_progress.setValue)
         signal_worker.sample_progress_signal.connect(self._sample_progress.setValue)
@@ -234,13 +227,12 @@ class MyDialog(QtWidgets.QDialog):
         self._dir_line.setText(self._run_dir)
         logging.debug("GUI: result: " + self._run_dir)
 
-    def select_config(self):
-        logging.debug("GUI: select_config clicked")
-        self._config_file, _ = QtWidgets.QFileDialog.getOpenFileName(
-            self, "Select Config File", "", "Config Files (*.conf)")
-        self._config_line.setText(self._config_file)
-        global_settings.config_file = self._config_file
-        logging.debug("GUI: result: " + self._config_file)
+    def show_config(self):
+        """
+        Open the config dialog window
+        :return:
+        """
+        self.config_dlg.show()
 
     def click_force_upload(self, state):
         """
@@ -270,8 +262,8 @@ class MyDialog(QtWidgets.QDialog):
         # init / re-init config with config file selected
         config.setup()
         # start upload
-        self._my_thread.set_vars(self._run_dir, self._force_state)
-        self._my_thread.start()
+        self._upload_thread.set_vars(self._run_dir, self._force_state)
+        self._upload_thread.start()
 
     def finished_upload(self):
         """
@@ -293,7 +285,128 @@ class MyDialog(QtWidgets.QDialog):
         self._force_checkbox.setChecked(False)
 
 
-class ExecuteThread(QtCore.QThread):
+class ConfigDialog(QtWidgets.QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        logging.debug("GUI: Setting up ConfigDialog")
+
+        self._client_id_label = QtWidgets.QLabel("Client ID")
+        self._client_id = QtWidgets.QLineEdit()
+        self._client_secret_label = QtWidgets.QLabel("Client Secret")
+        self._client_secret = QtWidgets.QLineEdit()
+        self._username_label = QtWidgets.QLabel("Username")
+        self._username = QtWidgets.QLineEdit()
+        self._password_label = QtWidgets.QLabel("Password")
+        self._password = QtWidgets.QLineEdit()
+        self._base_url_label = QtWidgets.QLabel("Base URL")
+        self._base_url = QtWidgets.QLineEdit()
+        self._parser_label = QtWidgets.QLabel("Parser")
+        # self._parser = QtWidgets.QLineEdit()
+        self._parser = QtWidgets.QComboBox()
+        self._parser.addItems(['miseq', 'miniseq', 'directory'])
+
+        self._btn_check_settings = QtWidgets.QPushButton("Save and Test Settings")
+        self._settings_status = QtWidgets.QLineEdit()
+        self._settings_status.setReadOnly(True)
+        self._btn_accept = QtWidgets.QPushButton("Accept")
+        self._btn_cancel = QtWidgets.QPushButton("Cancel")
+
+        # base layout
+        layout = QtWidgets.QVBoxLayout()
+        # Client ID
+        client_id_layout = QtWidgets.QHBoxLayout()
+        client_id_layout.addWidget(self._client_id_label)
+        client_id_layout.addWidget(self._client_id)
+        layout.addLayout(client_id_layout)
+        # Client Secret
+        client_secret_layout = QtWidgets.QHBoxLayout()
+        client_secret_layout.addWidget(self._client_secret_label)
+        client_secret_layout.addWidget(self._client_secret)
+        layout.addLayout(client_secret_layout)
+        # Username
+        username_layout = QtWidgets.QHBoxLayout()
+        username_layout.addWidget(self._username_label)
+        username_layout.addWidget(self._username)
+        layout.addLayout(username_layout)
+        # Password
+        password_layout = QtWidgets.QHBoxLayout()
+        password_layout.addWidget(self._password_label)
+        password_layout.addWidget(self._password)
+        layout.addLayout(password_layout)
+        # Base URL
+        base_url_layout = QtWidgets.QHBoxLayout()
+        base_url_layout.addWidget(self._base_url_label)
+        base_url_layout.addWidget(self._base_url)
+        layout.addLayout(base_url_layout)
+        # Parser
+        parser_layout = QtWidgets.QHBoxLayout()
+        parser_layout.addWidget(self._parser_label)
+        parser_layout.addWidget(self._parser)
+        layout.addLayout(parser_layout)
+        # Buttons
+        status_layout = QtWidgets.QHBoxLayout()
+        status_layout.addWidget(self._btn_check_settings)
+        status_layout.addWidget(self._settings_status)
+        layout.addLayout(status_layout)
+        button_layout = QtWidgets.QHBoxLayout()
+        button_layout.addWidget(self._btn_accept)
+        button_layout.addWidget(self._btn_cancel)
+        layout.addLayout(button_layout)
+
+        # connections
+        self._btn_check_settings.clicked.connect(self.check_connection_to_irida)
+        self._btn_accept.clicked.connect(self.accept_and_exit)
+        self._btn_cancel.clicked.connect(self.cancel_and_exit)
+
+        # Set Layout and Geometry
+        self.setLayout(layout)
+        self.setGeometry(300, 300, 600, 300)
+        # Init settings
+        self.get_settings_from_file()
+        self.contact_irida()
+
+    def accept_and_exit(self):
+        self.write_settings_to_file()
+        self.close()
+
+    def cancel_and_exit(self):
+        self.close()
+
+    def get_settings_from_file(self):
+        config.setup()
+        self._client_id.setText(config.read_config_option('client_id'))
+        self._client_secret.setText(config.read_config_option('client_secret'))
+        self._username.setText(config.read_config_option('username'))
+        self._password.setText(config.read_config_option('password'))
+        self._base_url.setText(config.read_config_option('base_url'))
+        index = self._parser.findText(config.read_config_option('parser'))
+        self._parser.setCurrentIndex(index)
+
+    def write_settings_to_file(self):
+        config.write_config_option('client_id', self._client_id.text())
+        config.write_config_option('client_secret', self._client_secret.text())
+        config.write_config_option('username', self._username.text())
+        config.write_config_option('password', self._password.text())
+        config.write_config_option('base_url', self._base_url.text())
+        config.write_config_option('parser', self._parser.currentText())
+
+    def contact_irida(self):
+        try:
+            api_handler.initialize_api_from_config()
+            self._settings_status.setText("Connection OK")
+            self._settings_status.setStyleSheet("background-color: green; color: white;")
+            logging.info("Successfully connected to IRIDA")
+        except Exception:
+            self._settings_status.setText("ERROR!")
+            self._settings_status.setStyleSheet("background-color: red; color: white;")
+            logging.info("Error occurred while trying to connect to IRIDA")
+
+    def check_connection_to_irida(self):
+        self.write_settings_to_file()
+        self.contact_irida()
+
+
+class UploadThread(QtCore.QThread):
     def __init__(self):
         super().__init__()
         self._run_dir = ""
