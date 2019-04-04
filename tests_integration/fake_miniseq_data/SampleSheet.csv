@@ -1,0 +1,20 @@
+[Header],,,,,,
+Local Run Manager Analysis Id,4004,,,,,
+Experiment Name,1,,,,,
+Date,10/15/2013,,,,,
+Workflow,GenerateFastQWorkflow,,,,,
+Description,Superbug,,,,,
+Chemistry,Amplicon,,,,,
+,,,,,,
+[Reads],,,,,,
+151,,,,,,
+151,,,,,,
+,,,,,,
+[Settings],,,,,,
+Adapter,AAAAGGGGAAAAGGGGAAA,,,,,
+,,,,,,
+[Data],,,,,,
+Sample_ID,Sample_Name,index,I7_Index_ID,index2,I5_Index_ID,Sample_Project
+01-1111m-4004,01-1111m,AAAAAAAA,N01,TTTTTTTT,S01,1
+02-2222m-4004,02-2222m,GGGGGGGG,N02,CCCCCCCC,S02,1
+03-3333m-4004,03-3333m,CCCCCCCC,N03,GGGGGGGG,S03,1

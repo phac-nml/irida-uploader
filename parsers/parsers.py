@@ -1,6 +1,6 @@
 import logging
 
-from . import directory, miseq
+from . import directory, miseq, miniseq
 
 
 class Parser:
@@ -35,4 +35,7 @@ class Parser:
         if parser_type == "miseq":
             logging.debug("Creating miseq parser")
             return miseq.Parser()
+        if parser_type == "miniseq":
+            logging.debug("Creating miniseq parser")
+            return miniseq.Parser()
         raise AssertionError("Bad parser creation, invalid parser_type given: {}".format(parser_type))

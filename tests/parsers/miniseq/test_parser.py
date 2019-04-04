@@ -1,7 +1,7 @@
 import unittest
 from os import path
 
-from parsers.miseq.parser import Parser
+from parsers.miniseq.parser import Parser
 from parsers.exceptions import DirectoryError, ValidationError, SampleSheetError
 import model
 
