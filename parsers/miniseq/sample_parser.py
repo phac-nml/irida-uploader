@@ -157,7 +157,7 @@ def _parse_sample_list(sample_sheet_file):
                 raise exceptions.SequenceFileError(
                     ("The uploader was unable to find an files with a file name that ends with "
                      ".fastq.gz for the sample in your sample sheet with name {} in the directory {}. "
-                     "This usually happens when the Illumina MiSeq Reporter tool "
+                     "This usually happens when the Illumina MiniSeq Reporter tool "
                      "does not generate any FastQ data.").format(
                         sample.sample_name, data_dir))
 
@@ -269,7 +269,7 @@ def _parse_samples(sample_sheet_file):
             this handles the case where the last trailing comma is trimmed
 
             Shaun said this issue may come up when a user edits the
-            SampleSheet from within the MiSeq software
+            SampleSheet from within the MiniSeq software
             (kept this for miniseq for safety)
             """
             if len(sample_dict.keys()) - len(line) == 1:
