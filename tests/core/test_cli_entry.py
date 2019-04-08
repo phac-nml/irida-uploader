@@ -42,7 +42,7 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
         Makes sure that all functions are called when a valid directory in given
         :return:
         """
-        directory = path.join(path_to_module, "fake_ngs_data")
+        my_directory = path.join(path_to_module, "fake_ngs_data")
 
         class StubValidationResult:
             @staticmethod
@@ -50,7 +50,7 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
                 return True
 
         class StubDirectoryStatus:
-            directory = ""
+            directory = my_directory
             status = DirectoryStatus.NEW
 
             @staticmethod
@@ -66,12 +66,12 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
         mock_api_handler.upload_sequencing_run.side_effect = [None]
         mock_progress.write_directory_status.side_effect = [None, None]
 
-        cli_entry.upload_run_single_entry(directory, force_upload=False)
+        cli_entry.upload_run_single_entry(my_directory, force_upload=False)
 
         # Make sure directory status is init
         mock_progress.write_directory_status.assert_called_with(stub_directory_status, run_id=None)
         # Make sure parsing and validation is done
-        mock_parsing_handler.parse_and_validate.assert_called_with(directory)
+        mock_parsing_handler.parse_and_validate.assert_called_with(my_directory)
         # api must be initialized
         mock_api_handler.initialize_api_from_config.assert_called_with()
         # api must prep for upload
@@ -196,6 +196,7 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
         Invalidity comes from parsing module
         :return:
         """
+        directory = path.join(path_to_module, "fake_ngs_data")
 
         class StubDirectoryStatus:
             directory = path.join(path_to_module, "fake_ngs_data")
@@ -212,9 +213,8 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
         mock_api_handler.prepare_and_validate_for_upload.side_effect = [None]
         mock_api_handler.upload_sequencing_run.side_effect = [None]
 
-        directory = path.join(path_to_module, "fake_ngs_data")
 
-        cli_entry.validate_and_upload_single_entry(directory)
+        cli_entry.upload_run_single_entry(directory)
 
         # Check that run status was found
         mock_parsing_handler.get_run_status.assert_called_with(directory)

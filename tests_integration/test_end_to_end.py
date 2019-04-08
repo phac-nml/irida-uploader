@@ -280,7 +280,7 @@ class TestEndToEnd(unittest.TestCase):
         project_id = "1"
 
         # Do the upload
-        upload_result = validate_and_upload_single_entry(path.join(path_to_module, "fake_miniseq_data"))
+        upload_result = upload_run_single_entry(path.join(path_to_module, "fake_miniseq_data"))
 
         # Make sure the upload was a success
         self.assertEqual(upload_result, 0)

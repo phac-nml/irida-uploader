@@ -172,7 +172,7 @@ def batch_upload_single_entry(batch_directory, force_upload=False):
 
     logging.info("Found {} potential run directories".format(len(directory_status_list)))
     for directory_status in directory_status_list:
-        if directory_status.is_invalid():
+        if directory_status.status_equals(DirectoryStatus.INVALID):
             logging.info("DIRECTORY: %s\n"
                          "%30sSTATUS:  %s\n"
                          "%30sDETAILS: %s"
@@ -183,11 +183,11 @@ def batch_upload_single_entry(batch_directory, force_upload=False):
                          % (directory_status.directory, "", directory_status.status))
 
     if force_upload:
-        upload_list = [x for x in directory_status_list if not x.is_invalid()]
+        upload_list = [x for x in directory_status_list if not x.status_equals(DirectoryStatus.INVALID)]
         logging.info("Starting upload for all non invalid runs. {} runs found. "
                      "(Running with --force)".format(len(upload_list)))
     else:
-        upload_list = [x for x in directory_status_list if x.is_new()]
+        upload_list = [x for x in directory_status_list if x.status_equals(DirectoryStatus.NEW)]
         logging.info("Starting upload for all new runs. {} runs found.".format(len(upload_list)))
 
     for directory_status in upload_list:
@@ -199,7 +199,7 @@ def batch_upload_single_entry(batch_directory, force_upload=False):
     return exit_success()
 
 
-def exit_error(run_directory=None):
+def exit_error():
     """
     Returns an failed run exit code which ends the process when returned
     :return: 1

@@ -19,6 +19,7 @@ STATUS_FIELD = "Upload Status"
 DATE_TIME_FIELD = "Date Time"
 RUN_ID_FIELD = "Run ID"
 IRIDA_INSTANCE_FIELD = "IRIDA Instance"
+MESSAGE_FIELD = "Message"
 
 
 def get_directory_status(directory, required_file_list):
@@ -84,11 +85,13 @@ def write_directory_status(directory_status, run_id=None):
     uploader_info_file = os.path.join(directory_status.directory, STATUS_FILE_NAME)
     if run_id:
         json_data = {STATUS_FIELD: directory_status.status,
+                     MESSAGE_FIELD: directory_status.message,
                      DATE_TIME_FIELD: _get_date_time_field(),
                      RUN_ID_FIELD: run_id,
                      IRIDA_INSTANCE_FIELD: config.read_config_option('base_url')}
     else:
         json_data = {STATUS_FIELD: directory_status.status,
+                     MESSAGE_FIELD: directory_status.message,
                      DATE_TIME_FIELD: _get_date_time_field()}
 
     with open(uploader_info_file, "w") as json_file:
