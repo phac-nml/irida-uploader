@@ -57,9 +57,9 @@ def batch_upload_single_entry(batch_directory, force_upload=False):
     :return:
     """
     logging.debug("batch_upload_single_entry:Starting {} with force={}".format(batch_directory, force_upload))
-
+    # get all potential directories to upload
     directory_status_list = parsing_handler.get_run_status_list(batch_directory)
-
+    # list info about directories found
     logging.info("Found {} potential run directories".format(len(directory_status_list)))
     for directory_status in directory_status_list:
         if directory_status.status_equals(DirectoryStatus.INVALID):
@@ -72,16 +72,18 @@ def batch_upload_single_entry(batch_directory, force_upload=False):
                          "%30sSTATUS:  %s"
                          % (directory_status.directory, "", directory_status.status))
 
+    # if `force` is on, only don't upload invalid runs
     if force_upload:
         upload_list = [x for x in directory_status_list if not x.status_equals(DirectoryStatus.INVALID)]
         logging.info("Starting upload for all non invalid runs. {} run(s) found. "
                      "(Running with --force)".format(len(upload_list)))
+    # without `force` only upload new runs
     else:
         upload_list = [x for x in directory_status_list if x.status_equals(DirectoryStatus.NEW)]
         logging.info("Starting upload for all new runs. {} run(s) found.".format(len(upload_list)))
 
+    # run upload, keep track of which directories did not upload
     error_list = []
-
     for directory_status in upload_list:
         logging.info("Starting upload for {}".format(directory_status.directory))
         result = _validate_and_upload(directory_status)
@@ -89,7 +91,6 @@ def batch_upload_single_entry(batch_directory, force_upload=False):
             error_list.append(directory_status.directory)
 
     logging.info("Uploads completed with {} error(s)".format(len(error_list)))
-
     for directory in error_list:
         logging.warning("Directory '{}' upload exited with ERROR, check log and status file for details"
                         "".format(directory))
