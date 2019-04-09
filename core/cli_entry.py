@@ -17,12 +17,11 @@ EXIT_CODE_SUCCESS = 0
 def upload_run_single_entry(directory, force_upload=False):
     """
     This function acts as a single point of entry for uploading a directory
-    todo: rewrite
 
     Handles getting a directories run status, and running if conditions are met (valid run, new run or forced upload).
 
-    :param directory:
-    :param force_upload:
+    :param directory: Directory of the sequencing run to upload
+    :param force_upload: When set to true, the upload status file will be ignored and file will attempt to be uploaded
     :return:
     """
     directory_status = parsing_handler.get_run_status(directory)
@@ -49,15 +48,13 @@ def _validate_and_upload(directory_status):
     """
     This function attempts to upload a single run directory
 
-    todo: rewrite
     Handles parsing and validating the directory for samples
     Sets up the api layer based on config file
     Verifies samples is able to be uploaded (verifies projects exist)
     Initializes objects/routes on IRIDA to accept Samples (creates samples if they don't exist)
     Starts the upload
 
-    :param directory: Directory of the sequencing run to upload
-    :param force_upload: When set to true, the upload status file will be ignored and file will attempt to be uploaded
+    :param directory_status: DirectoryStatus object that has directory to try upload
     :return:
     """
     logging_start_block(directory_status.directory)
@@ -78,17 +75,22 @@ def _validate_and_upload(directory_status):
         sequencing_run = parsing_handler.parse_and_validate(directory_status.directory)
     except parsers.exceptions.DirectoryError as e:
         # Directory was not valid for some reason
-        logging.error("ERROR! An error occurred with directory '{}', with message: {}".format(e.directory, e.message))
+        full_error = "ERROR! An error occurred with directory '{}', with message: {}".format(e.directory, e.message)
+        logging.error(full_error)
         logging.info("Samples not uploaded!")
         directory_status.status = DirectoryStatus.ERROR
+        directory_status.message = full_error
         progress.write_directory_status(directory_status)
         return exit_error()
     except parsers.exceptions.ValidationError as e:
         # Sequencing Run / SampleSheet was not valid for some reason
-        logging.error("ERROR! Errors occurred during validation with message: {}".format(e.message))
+        full_error = "ERROR! Errors occurred during validation with message: {}".format(e.message)
+        logging.error(full_error)
         logging.error("Error list: " + pformat(e.validation_result.error_list))
+        full_error = full_error + ", Error list: " + pformat(e.validation_result.error_list)
         logging.info("Samples not uploaded!")
         directory_status.status = DirectoryStatus.ERROR
+        directory_status.message = full_error
         progress.write_directory_status(directory_status)
         return exit_error()
 
@@ -101,6 +103,8 @@ def _validate_and_upload(directory_status):
         logging.error("Errors: " + pformat(e.args))
         logging.info("Samples not uploaded!")
         directory_status.status = DirectoryStatus.ERROR
+        full_error = "ERROR! Could not initialize irida api. Errors: " + pformat(e.args)
+        directory_status.message = full_error
         progress.write_directory_status(directory_status)
         return exit_error()
     logging.info("*** Connected ***")
@@ -112,6 +116,8 @@ def _validate_and_upload(directory_status):
         logging.error("Lost connection to Irida")
         logging.error("Errors: " + pformat(e.args))
         directory_status.status = DirectoryStatus.ERROR
+        full_error = "Lost connection to Irida. Errors: " + pformat(e.args)
+        directory_status.message = full_error
         progress.write_directory_status(directory_status)
         return exit_error()
 
@@ -121,6 +127,8 @@ def _validate_and_upload(directory_status):
                       "".format(validation_result.error_count()))
         logging.error("Errors: " + pformat(validation_result.error_list))
         directory_status.status = DirectoryStatus.ERROR
+        full_error = "Sequencing run can not be uploaded Errors: " + pformat(validation_result.error_list)
+        directory_status.message = full_error
         progress.write_directory_status(directory_status)
         return exit_error()
     logging.info("*** Run Verified ***")
@@ -133,6 +141,8 @@ def _validate_and_upload(directory_status):
         logging.error("Lost connection to Irida")
         logging.error("Errors: " + pformat(e.args))
         directory_status.status = DirectoryStatus.ERROR
+        full_error = "Lost connection to Irida. Errors: " + pformat(e.args)
+        directory_status.message = full_error
         progress.write_directory_status(directory_status)
         return exit_error()
     logging.info("*** Upload Complete ***")
@@ -158,7 +168,7 @@ def batch_upload_single_entry(batch_directory, force_upload=False):
     """
     This function acts as a single point of entry for batch uploading run directories
 
-    It uses upload_run_single_entry as it function for uploading the individual runs
+    It uses _validate_and_upload as it function for uploading the individual runs
 
     A list of runs to be uploaded is generated at start up, and all found runs will be attempted to be uploaded.
 
@@ -184,18 +194,27 @@ def batch_upload_single_entry(batch_directory, force_upload=False):
 
     if force_upload:
         upload_list = [x for x in directory_status_list if not x.status_equals(DirectoryStatus.INVALID)]
-        logging.info("Starting upload for all non invalid runs. {} runs found. "
+        logging.info("Starting upload for all non invalid runs. {} run(s) found. "
                      "(Running with --force)".format(len(upload_list)))
     else:
         upload_list = [x for x in directory_status_list if x.status_equals(DirectoryStatus.NEW)]
-        logging.info("Starting upload for all new runs. {} runs found.".format(len(upload_list)))
+        logging.info("Starting upload for all new runs. {} run(s) found.".format(len(upload_list)))
+
+    error_list = []
 
     for directory_status in upload_list:
         logging.info("Starting upload for {}".format(directory_status.directory))
         result = _validate_and_upload(directory_status)
-        print("THING ASDF: {}".format(result))#todo
+        if result == EXIT_CODE_ERROR:
+            error_list.append(directory_status.directory)
 
-    logging.info("Finished, Exiting!")
+    logging.info("Uploads completed with {} error(s)".format(len(error_list)))
+
+    for directory in error_list:
+        logging.warning("Directory '{}' upload exited with ERROR, check log and status file for details"
+                        "".format(directory))
+
+    logging.info("Batch upload complete, Exiting!")
     return exit_success()
 
 
@@ -239,4 +258,3 @@ def logging_end_block():
     logging.info("----------------ENDING UPLOAD RUN-----------------")
     logging.info("==================================================")
     logger.remove_directory_logger()
-
