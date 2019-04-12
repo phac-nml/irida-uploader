@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch, MagicMock, Mock
+from unittest.mock import patch, MagicMock, Mock, call
 from os import path
 import os
 
@@ -12,9 +12,10 @@ if len(path_to_module) == 0:
     path_to_module = '.'
 
 
-class TestValidateAndUploadSingleEntry(unittest.TestCase):
+class TestUploadRunSingleEntry(unittest.TestCase):
     """
     Tests the core.cli_entry.upload_run_single_entry function
+    Indirectly does testing on core.cli_entry._validate_and_upload function too
     """
 
     def setUp(self):
@@ -69,7 +70,7 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
         cli_entry.upload_run_single_entry(my_directory, force_upload=False)
 
         # Make sure directory status is init
-        mock_progress.write_directory_status.assert_called_with(stub_directory_status, run_id=None)
+        mock_progress.write_directory_status.assert_called_with(stub_directory_status)
         # Make sure parsing and validation is done
         mock_parsing_handler.parse_and_validate.assert_called_with(my_directory)
         # api must be initialized
@@ -358,3 +359,91 @@ class TestValidateAndUploadSingleEntry(unittest.TestCase):
         mock_parsing_handler.parse_and_validate.assert_not_called()
         # make sure the upload is NOT done, as validation is invalid
         mock_api_handler.upload_sequencing_run.assert_not_called()
+
+
+class TestBatchUploadSingleEntry(unittest.TestCase):
+    """
+    Tests the core.cli_entry.batch_upload_single_entry function
+    """
+
+    def setUp(self):
+        print("\nStarting " + self.__module__ + ": " + self._testMethodName)
+
+    @patch("core.cli_entry._validate_and_upload")
+    @patch("core.cli_entry.parsing_handler")
+    def test_valid(self, mock_parsing_handler, mock_validate_and_upload):
+        """
+        Makes sure that _validate_and_upload is only called on a new run
+        :return:
+        """
+        class StubDirectoryStatus:
+            def __init__(self, directory, status):
+                self.directory = directory
+                self.status = status
+                self.message = None
+
+            def status_equals(self, other_status):
+                return self.status == other_status
+
+        # add mock data to the function calls that are essential
+        stub_directory_status_valid = StubDirectoryStatus("valid", DirectoryStatus.NEW)
+        stub_directory_status_invalid = StubDirectoryStatus("invalid", DirectoryStatus.INVALID)
+        stub_directory_status_complete = StubDirectoryStatus("complete", DirectoryStatus.COMPLETE)
+        stub_directory_status_partial = StubDirectoryStatus("partial", DirectoryStatus.PARTIAL)
+
+        mock_parsing_handler.get_run_status_list.side_effect = [
+            [stub_directory_status_valid,
+             stub_directory_status_invalid,
+             stub_directory_status_complete,
+             stub_directory_status_partial]
+        ]
+        mock_parsing_handler.parse_and_validate.side_effect = ["Fake Sequencing Run"]
+
+        # start
+        cli_entry.batch_upload_single_entry("fake_directory", force_upload=False)
+
+        # validate calls only happen once
+        mock_validate_and_upload.assert_called_once_with(stub_directory_status_valid)
+
+
+    @patch("core.cli_entry._validate_and_upload")
+    @patch("core.cli_entry.parsing_handler")
+    def test_valid_force(self, mock_parsing_handler, mock_validate_and_upload):
+        """
+        Makes sure that _validate_and_upload is called on all runs except invalid
+        :return:
+        """
+        class StubDirectoryStatus:
+            def __init__(self, directory, status):
+                self.directory = directory
+                self.status = status
+                self.message = None
+
+            def status_equals(self, other_status):
+                return self.status == other_status
+
+        # add mock data to the function calls that are essential
+        stub_directory_status_valid = StubDirectoryStatus("valid", DirectoryStatus.NEW)
+        stub_directory_status_invalid = StubDirectoryStatus("invalid", DirectoryStatus.INVALID)
+        stub_directory_status_complete = StubDirectoryStatus("complete", DirectoryStatus.COMPLETE)
+        stub_directory_status_partial = StubDirectoryStatus("partial", DirectoryStatus.PARTIAL)
+
+        mock_parsing_handler.get_run_status_list.side_effect = [
+            [stub_directory_status_valid,
+             stub_directory_status_invalid,
+             stub_directory_status_complete,
+             stub_directory_status_partial]
+        ]
+        mock_parsing_handler.parse_and_validate.side_effect = ["Fake Sequencing Run"]
+
+        # start
+        cli_entry.batch_upload_single_entry("fake_directory", force_upload=True)
+
+        # assert calls are what we expect
+        self.assertEqual(mock_validate_and_upload.call_count, 3, "Expected 3 calls to mock_validate_and_upload")
+        expected_call_args = [
+            call(stub_directory_status_valid,),
+            call(stub_directory_status_complete,),
+            call(stub_directory_status_partial,)
+        ]
+        self.assertEqual(mock_validate_and_upload.call_args_list, expected_call_args, "Call args do not match expected")
