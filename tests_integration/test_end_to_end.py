@@ -10,7 +10,7 @@ import api
 import model
 import progress
 
-from core.cli_entry import upload_run_single_entry
+from core.cli_entry import upload_run_single_entry, batch_upload_single_entry
 
 
 path_to_module = path.dirname(__file__)
@@ -24,7 +24,10 @@ CLEANUP_DIRECTORY_LIST = [
     path.join(path_to_module, "fake_ngs_data_force"),
     path.join(path_to_module, "fake_ngs_data_nonexistent_project"),
     path.join(path_to_module, "fake_ngs_data_parse_fail"),
-    path.join(path_to_module, "fake_ngs_data_no_completed_file")
+    path.join(path_to_module, "fake_ngs_data_no_completed_file"),
+    path.join(path_to_module, "fake_batch_data", "run_1"),
+    path.join(path_to_module, "fake_batch_data", "run_2"),
+    path.join(path_to_module, "fake_batch_data", "run_3")
 ]
 
 
@@ -169,6 +172,95 @@ class TestEndToEnd(unittest.TestCase):
 
         self.assertEqual(sample_1_found, True)
         self.assertEqual(sample_2_found, True)
+        self.assertEqual(sample_3_found, True)
+
+    def test_batch_miseq_upload(self):
+        """
+        Test a valid miseq directory for upload from end to end
+        We have 3 run directories
+            run_1 has batch01-1111
+            run_2 is invalid
+            run_3 has batch03-3333
+        we expect to see batch01-1111 and batch03-3333 uploaded
+        :return:
+        """
+        # Set our sample config file to use miseq parser and the correct irida credentials
+        self.write_to_config_file(
+            client_id=tests_integration.client_id,
+            client_secret=tests_integration.client_secret,
+            username=tests_integration.username,
+            password=tests_integration.password,
+            base_url=tests_integration.base_url,
+            parser="miseq"
+        )
+
+        # instance an api
+        test_api = api.ApiCalls(
+            client_id=tests_integration.client_id,
+            client_secret=tests_integration.client_secret,
+            base_url=tests_integration.base_url,
+            username=tests_integration.username,
+            password=tests_integration.password
+        )
+
+        # Create a test project, the uploader does not make new projects on its own
+        # so one must exist to upload samples into
+        # This may not be the project that the files get uploaded to,
+        # but one will be made in the case this is the only test being run
+        project_name = "test_batch_project"
+        project_description = "test_batch_project_description"
+        project = model.Project(name=project_name, description=project_description)
+        test_api.send_project(project)
+        # We always upload to project "1" so that tests will be consistent no matter how many / which tests are run
+        project_id = "1"
+
+        # Do the upload
+        upload_result = batch_upload_single_entry(path.join(path_to_module, "fake_batch_data"))
+
+        # Make sure the upload was a success
+        self.assertEqual(upload_result, 0)
+
+        # Verify the files were uploaded
+        sample_list = test_api.get_samples(project_id)
+
+        sample_1_found = False
+        sample_2_found = False
+        sample_3_found = False
+
+        for sample in sample_list:
+            if sample.sample_name in ["batch01-1111", "batch02-2222", "batch03-3333"]:
+                if sample.sample_name == "batch01-1111":
+                    sample_1_found = True
+                    sequence_files = test_api.get_sequence_files(project_id, sample.sample_name)
+                    self.assertEqual(len(sequence_files), 2)
+                    res_sequence_file_names = [
+                        sequence_files[0]['fileName'],
+                        sequence_files[1]['fileName']
+                    ]
+                    expected_sequence_file_names = [
+                        'batch01-1111_S1_L001_R1_001.fastq.gz',
+                        'batch01-1111_S1_L001_R2_001.fastq.gz'
+                    ]
+                    self.assertEqual(res_sequence_file_names.sort(), expected_sequence_file_names.sort())
+                elif sample.sample_name == "batch02-2222":
+                    # this one should not be found
+                    sample_2_found = True
+                elif sample.sample_name == "batch03-3333":
+                    sample_3_found = True
+                    sequence_files = test_api.get_sequence_files(project_id, sample.sample_name)
+                    self.assertEqual(len(sequence_files), 2)
+                    res_sequence_file_names = [
+                        sequence_files[0]['fileName'],
+                        sequence_files[1]['fileName']
+                    ]
+                    expected_sequence_file_names = [
+                        'batch03-3333_S1_L001_R1_001.fastq.gz',
+                        'batch03-3333_S1_L001_R2_001.fastq.gz'
+                    ]
+                    self.assertEqual(res_sequence_file_names.sort(), expected_sequence_file_names.sort())
+
+        self.assertEqual(sample_1_found, True)
+        self.assertEqual(sample_2_found, False)
         self.assertEqual(sample_3_found, True)
 
     def test_valid_directory_upload(self):
