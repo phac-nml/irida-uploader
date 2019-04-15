@@ -75,7 +75,7 @@ def main():
     args = argument_parser.parse_args()
     directory = args.directory
     if not os.access(directory, os.W_OK):  # Cannot access upload directory
-        print("ERROR! Specified directory given is not writable: {}".format(directory))
+        print("ERROR! Specified directory is not writable: {}".format(directory))
         return 1
     if args.batch:
         return upload_batch(args.directory, args.force)
