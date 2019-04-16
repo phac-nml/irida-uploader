@@ -39,6 +39,16 @@ def get_directory_status(directory, required_file_list):
         return result
 
     file_list = next(os.walk(directory))[2]  # Gets the list of files in the directory
+
+    # Legacy upload catch
+    # When the irida-miseq-uploader (old uploader) ran it generated a .miseqUploaderComplete file
+    # To prevent uploading runs that used this old system, we assume runs with this file are COMPLETE
+    # They can still be uploaded using the --force option, but will not be picked up automatically with --batch
+    if '.miseqUploaderComplete' in file_list:
+        result.status = DirectoryStatus.COMPLETE
+        result.message = "Legacy uploader run. Set to complete to avoid uploading duplicate data."
+        return result
+
     for file_name in required_file_list:
         if file_name not in file_list:
             result.status = DirectoryStatus.INVALID
@@ -57,6 +67,10 @@ def get_directory_status(directory, required_file_list):
     status = info_file[STATUS_FIELD]
     if status in DirectoryStatus.VALID_STATUS_LIST:
         result.status = status
+        if MESSAGE_FIELD in info_file:
+            result.message = info_file[MESSAGE_FIELD]
+        else:
+            result.message = None
     else:  # the status found in the file is not in the defined list
         raise exceptions.DirectoryError("Invalid Status in status file", directory)
 

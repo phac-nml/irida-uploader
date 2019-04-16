@@ -62,15 +62,10 @@ def batch_upload_single_entry(batch_directory, force_upload=False):
     # list info about directories found
     logging.info("Found {} potential run directories".format(len(directory_status_list)))
     for directory_status in directory_status_list:
-        if directory_status.status_equals(DirectoryStatus.INVALID):
-            logging.info("DIRECTORY: %s\n"
-                         "%30sSTATUS:  %s\n"
-                         "%30sDETAILS: %s"
-                         % (directory_status.directory, "", directory_status.status, "", directory_status.message))
-        else:
-            logging.info("DIRECTORY: %s\n"
-                         "%30sSTATUS:  %s"
-                         % (directory_status.directory, "", directory_status.status))
+        logging.info("DIRECTORY: %s\n"
+                     "%30sSTATUS:  %s\n"
+                     "%30sDETAILS: %s"
+                     % (directory_status.directory, "", directory_status.status, "", directory_status.message))
 
     # if `force` is on, only don't upload invalid runs
     if force_upload:
