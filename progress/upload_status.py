@@ -43,7 +43,8 @@ def get_directory_status(directory, required_file_list):
     # Legacy upload catch
     # When the irida-miseq-uploader (old uploader) ran it generated a .miseqUploaderComplete file
     # To prevent uploading runs that used this old system, we assume runs with this file are COMPLETE
-    # They can still be uploaded using the --force option, but will not be picked up automatically with --batch
+    # By default they will not be picked up automatically with --batch because they are set to COMPLETE,
+    # but they can still be uploaded using the --force option
     if '.miseqUploaderComplete' in file_list:
         result.status = DirectoryStatus.COMPLETE
         result.message = "Legacy uploader run. Set to complete to avoid uploading duplicate data."
@@ -92,9 +93,6 @@ def write_directory_status(directory_status, run_id=None):
 
     if not os.access(directory_status.directory, os.W_OK):  # Cannot access upload directory
         raise exceptions.DirectoryError("Cannot access directory", directory_status.directory)
-
-    # if directory_status.is_invalid():
-    #     raise Exception("ERROR: Directory status 'invalid' cannot be written to file.")
 
     uploader_info_file = os.path.join(directory_status.directory, STATUS_FILE_NAME)
     if run_id:

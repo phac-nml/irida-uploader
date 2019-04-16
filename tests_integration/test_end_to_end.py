@@ -224,7 +224,7 @@ class TestEndToEnd(unittest.TestCase):
         sample_list = test_api.get_samples(project_id)
 
         sample_1_found = False
-        sample_2_found = False
+        sample_2_not_found = True
         sample_3_found = False
 
         for sample in sample_list:
@@ -244,7 +244,7 @@ class TestEndToEnd(unittest.TestCase):
                     self.assertEqual(res_sequence_file_names.sort(), expected_sequence_file_names.sort())
                 elif sample.sample_name == "batch02-2222":
                     # this one should not be found
-                    sample_2_found = True
+                    sample_2_not_found = False
                 elif sample.sample_name == "batch03-3333":
                     sample_3_found = True
                     sequence_files = test_api.get_sequence_files(project_id, sample.sample_name)
@@ -260,7 +260,7 @@ class TestEndToEnd(unittest.TestCase):
                     self.assertEqual(res_sequence_file_names.sort(), expected_sequence_file_names.sort())
 
         self.assertEqual(sample_1_found, True)
-        self.assertEqual(sample_2_found, False)
+        self.assertEqual(sample_2_not_found, True)
         self.assertEqual(sample_3_found, True)
 
     def test_valid_directory_upload(self):
