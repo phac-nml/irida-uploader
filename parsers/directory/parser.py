@@ -49,7 +49,7 @@ class Parser:
         :param directory:
         :return: list of DirectoryStatus objects
         """
-        logging.info("looking for runs in {}".format(directory))
+        logging.info("Looking for runs in {}".format(directory))
 
         runs = []
         directory_list = Parser._find_directory_list(directory)

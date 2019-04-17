@@ -114,6 +114,31 @@ After uploading, an `irida_uploader_status.info` file will be created which indi
 
 You can delete this file to make it ready for reupload, or use the `--force` option when running the uploader to ignore the status of a run directory.
 
+
+## Batch Uploading
+
+You can upload a directory containing run directories by using the `--batch` option when running the uploader.
+
+Example batch upload directory:
+
+`./irida-uploader.sh --batch /path/to/BatchDirectoryToUpload/`
+
+```
+.
+└── BatchDirectoryToUpload
+    ├── Run_1
+    │   ├── SampleSheet.csv
+    │   └── <other run files>
+    ├── Run_2
+    │   ├── SampleSheet.csv
+    │   └── <other run files>
+    └── Run_3
+        ├── SampleSheet.csv
+        └── <other run files>
+```
+
+The `--force` option can be used with the `--batch` option
+
 ## Logging
 
 Logs about individual runs are written to the sequencing run directory that they are uploaded from.

@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
 import argparse
-import global_settings
+import os
+
 import config
 import core
+import global_settings
 
 
 class ConfigAction(argparse.Action):
@@ -48,7 +50,7 @@ argument_parser.add_argument('-v', '--version',
                              action='version', version='IRIDA Uploader {}'.format(global_settings.UPLOADER_VERSION))
 # Our main argument. It is required or else an error will be thrown when the program is run
 argument_parser.add_argument('directory',
-                             help='Location of sequencing run to upload')
+                             help='Location of sequencing run to upload. Directory must be writable.')
 # Optional argument, for using an alternative config file.
 argument_parser.add_argument('-c', '--config',
                              action=ConfigAction,
@@ -59,12 +61,26 @@ argument_parser.add_argument('-f', '--force',
                              action='store_true',  # This line makes it not parse a variable
                              help='Uploader will ignore the status file, '
                                   'and try to upload even when a run is in non new status.')
+# Optional argument, Upload all sequencing runs in a directory of runs
+argument_parser.add_argument('-b', '--batch',
+                             action='store_true',  # This line makes it not parse a variable
+                             help='Uploader will expect a directory containing a sequencing run directories, '
+                                  'and upload in batch. '
+                                  'The list of runs is generated at start time '
+                                  '(Runs added to directory mid upload will not be uploaded).')
 
 
 def main():
     # Parse the arguments passed from the command line and start the upload
     args = argument_parser.parse_args()
-    upload(args.directory, args.force)
+    directory = args.directory
+    if not os.access(directory, os.W_OK):  # Cannot access upload directory
+        print("ERROR! Specified directory is not writable: {}".format(directory))
+        return 1
+    if args.batch:
+        return upload_batch(args.directory, args.force)
+    else:
+        return upload(args.directory, args.force)
 
 
 def upload(run_directory, force_upload):
@@ -75,7 +91,18 @@ def upload(run_directory, force_upload):
     :return:
     """
     config.setup()
-    core.cli_entry.validate_and_upload_single_entry(run_directory, force_upload)
+    return core.cli_entry.upload_run_single_entry(run_directory, force_upload)
+
+
+def upload_batch(batch_directory, force_upload):
+    """
+    Start uploading runs in the batch directory
+    :param batch_directory:
+    :param force_upload:
+    :return:
+    """
+    config.setup()
+    return core.cli_entry.batch_upload_single_entry(batch_directory, force_upload)
 
 
 # This is called when the program is run for the first time
