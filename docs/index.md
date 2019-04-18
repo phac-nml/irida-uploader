@@ -4,10 +4,12 @@
 ##Features
 * Command Line interface for Linux and Windows
 * Single Directory Upload
-* Miseq sequencing run parser
+* MiSeq/MiniSeq/NextSeq Sequencing Run Parser
+* Directory Parsing
+* Batch Uploads
+* Can be used with cron/windows task scheduler for automated uploads
 
 ## Upcoming Features
-* Automated uploads
 * File upload checksum validation
 * Post-processing tasks
 * GUI
@@ -19,7 +21,7 @@
 
 ### Download
 
-The IRIDA MiSeq Uploader can be run on any operating system that supports Python.
+The IRIDA Uploader can be run on any operating system that supports Python.
 
 You can download the source code on [GitHub](https://github.com/phac-nml/irida-uploader).
 
@@ -91,6 +93,8 @@ We currently support the following:
 `miseq` : [Miseq](parsers/miseq.md)
 
 `miniseq` : [MiniSeq](parsers/miniseq.md)
+
+`nextseq` : [NextSeq](parsers/nextseq.md)
 
 ## Starting an upload
 
