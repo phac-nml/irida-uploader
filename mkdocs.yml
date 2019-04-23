@@ -1,5 +1,5 @@
 site_name: IRIDA Uploader
-#repo_url: todo
+repo_url: https://github.com/phac-nml/irida-uploader
 site_description: Documentation for the IRIDA Uploader
 theme: readthedocs
 #forces use of .html on docs pages so they can be browsed locally
