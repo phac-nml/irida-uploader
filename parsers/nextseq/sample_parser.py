@@ -129,48 +129,47 @@ def _parse_sample_list(sample_sheet_file):
     """
     sample_list = _parse_samples(sample_sheet_file)
     sample_sheet_dir = path.dirname(sample_sheet_file)
-    data_dir = path.join(sample_sheet_dir, "Data", "Intensities", "BaseCalls")
-    data_dir_file_list = next(walk(data_dir))[2]  # Create a file list of the data directory, only hit the os once
+    base_data_dir = path.join(sample_sheet_dir, "Data", "Intensities", "BaseCalls")
+    project_dir_list = next(walk(base_data_dir))[1]  # Get the list of project directories that contain sample files
 
     for sample in sample_list:
+
+        project_directory = sample.get('sample_project')
+        if project_directory not in project_dir_list:
+            # The project number in the sample sheet does not match a project folder in the run directory
+            raise exceptions.SequenceFileError(
+                "The uploader was unable to find the directory '{}' in '{}'. "
+                "Please verify your SampleSheet Sample_Project matches the directory structure".format(
+                    project_directory, base_data_dir
+                )
+            )
+        project_data_dir = path.join(base_data_dir, project_directory)
+        data_dir_file_list = next(walk(project_data_dir))[2]  # Create a file list of the data directory, only hit the os once
+
         properties_dict = _parse_out_sequence_file(sample)
-        # this is the Illumina-defined pattern for naming fastq files, from:
-        # http://blog.basespace.illumina.com/2014/08/18/fastq-upload-in-now-available-in-basespace/
-        file_pattern = "{sample_name}_S{sample_number}_L\\d{{3}}_R(\\d+)_\\S+\\.fastq.*$".format(
-            sample_name=re.escape(sample.sample_name), sample_number=sample.sample_number)
+        file_pattern = "{sample_name}_S(\\S+)_R(\\d+)_(\\S*)\\.fastq.*$".format(
+            sample_name=re.escape(sample.sample_name))
         logging.info("Looking for files with pattern {}".format(file_pattern))
         regex = re.compile(file_pattern)
         pf_list = list(filter(regex.search, data_dir_file_list))
+
         if not pf_list:
-            # OK. So we didn't find any files using the **correct** file name
-            # definition according to Illumina. Let's try again with our deprecated
-            # behaviour, where we didn't actually care about the sample number:
-            file_pattern = "{sample_name}_S\\d+_L\\d{{3}}_R(\\d+)_\\S+\\.fastq.*$".format(
-                sample_name=re.escape(sample.sample_name))
-            logging.info("Looking for files with pattern {}".format(file_pattern))
-
-            regex = re.compile(file_pattern)
-            pf_list = list(filter(regex.search, data_dir_file_list))
-
-            if not pf_list:
-                # we **still** didn't find anything. It's pretty likely, then that
-                # there aren't any fastq files in the directory that match what
-                # the sample sheet says...
-                raise exceptions.SequenceFileError(
-                    ("The uploader was unable to find an files with a file name that ends with "
-                     ".fastq.gz for the sample in your sample sheet with name {} in the directory {}. ").format(
-                        sample.sample_name, data_dir))
+            # we didn't find anything
+            raise exceptions.SequenceFileError(
+                ("The uploader was unable to find an files with a file name that ends with "
+                 ".fastq.gz for the sample in your sample sheet with name {} in the directory {}. ").format(
+                    sample.sample_name, project_data_dir))
 
         # List of files may be invalid if directory searching in has been modified by user
         if not _validate_pf_list(pf_list):
             raise exceptions.SequenceFileError(
                 ("The following file list {} found in the directory {} is invalid. "
                  "Please verify the folder containing the sequence files matches the SampleSheet file").format(
-                    pf_list, data_dir))
+                    pf_list, project_data_dir))
 
         # Add the dir to each file to create the full path
         for i in range(len(pf_list)):
-            pf_list[i] = path.join(data_dir, pf_list[i])
+            pf_list[i] = path.join(project_data_dir, pf_list[i])
 
         sq = model.SequenceFile(file_list=pf_list, properties_dict=properties_dict)
         sample.sequence_file = deepcopy(sq)
@@ -199,7 +198,7 @@ def _validate_pf_list(file_list):
     else:
         try:
             # check if one file is R1 and other is R2
-            regex_filter = ".*_S\\d+_L\\d{3}_R(\\d+)_\\S+\\.fastq.*$"
+            regex_filter = ".*_S\\d+_R(\\d+)_\\S+\\.fastq.*$"
             n1 = int(re.search(regex_filter, file_list[0]).group(1))
             n2 = int(re.search(regex_filter, file_list[1]).group(1))
             return (n1 != n2) and (n1 == 1 or n1 == 2) and (n2 == 1 or n2 == 2)
