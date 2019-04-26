@@ -25,7 +25,7 @@ addons:
     packages:
       - chromium-chromedriver
       - xvfb
-  mariadb: '10.0'
+  mariadb: '10.1'
 
 before_script:
   - java -version
