@@ -14,6 +14,7 @@ Added functionality:
 * Added support for MiniSeq, use parser `miniseq` to use.
 * Added support for NextSeq, use parser `nextseq` to use.
 * Added shebang to top of upload_run.py to support conda environments
+* Added batch uploading, use `--batch` or `-b` with a directory containing multiple runs to upload.
 
 Beta 0.1
 ---------
