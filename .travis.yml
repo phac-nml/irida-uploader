@@ -20,12 +20,14 @@ dist: xenial
 
 sudo: required
 
+services:
+  - mysql
+
 addons:
   apt:
     packages:
       - chromium-chromedriver
       - xvfb
-  mariadb: '10.0'
 
 before_script:
   - java -version
