@@ -24,7 +24,7 @@ MESSAGE_FIELD = "Message"
 
 def get_directory_status(directory, required_file_list):
     """
-    Gets the directory status based off using '.miseqUploaderInfo' files to track progress
+    Gets the directory status based off using 'irida_uploader_status.info' files to track progress
 
     :param directory: the directory to search for a run
     :param required_file_list: optional param: a list of required files that
@@ -41,11 +41,11 @@ def get_directory_status(directory, required_file_list):
     file_list = next(os.walk(directory))[2]  # Gets the list of files in the directory
 
     # Legacy upload catch
-    # When the irida-miseq-uploader (old uploader) ran it generated a .miseqUploaderComplete file
+    # When the irida-miseq-uploader (old uploader) ran it generated a .miseqUploaderInfo file
     # To prevent uploading runs that used this old system, we assume runs with this file are COMPLETE
     # By default they will not be picked up automatically with --batch because they are set to COMPLETE,
     # but they can still be uploaded using the --force option
-    if '.miseqUploaderComplete' in file_list:
+    if '.miseqUploaderInfo' in file_list:
         result.status = DirectoryStatus.COMPLETE
         result.message = "Legacy uploader run. Set to complete to avoid uploading duplicate data."
         return result
