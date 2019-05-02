@@ -3,6 +3,8 @@
 The file structure for a NextSeq run will need `bcl2fastq` run first to produce usable fastq files.
 The generated structure should automatically work with the parser.
 
+##### WARNING! If using `--batch` upload with an auto-upload script, incomplete fastq files could be uploaded if `bcl2fastq` has not finished when the upload begins.
+
 If you are having problems uploading, please verify your file structure is correct.
 
 ```

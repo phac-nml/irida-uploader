@@ -19,6 +19,8 @@ class Parser:
         Returns a list of files that are required for a run directory to be considered valid
         :return: [files_names]
         """
+        logging.warning("NOTE: If bcl2fastq has not finished, run may return as invalid, "
+                        "or incomplete files could be uploaded!")
         return [
             Parser.SAMPLE_SHEET_FILE_NAME,
             Parser.UPLOAD_COMPLETE_FILE_NAME
