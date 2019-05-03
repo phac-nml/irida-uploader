@@ -12,7 +12,9 @@ Added functionality:
 * When uploading, a progress percentage will be printed to the command line (Linux + Windows)
 * Miseq uploader now requires `CompletedJobInfo.xml` file to upload
 * Added support for MiniSeq, use parser `miniseq` to use.
+* Added support for NextSeq, use parser `nextseq` to use.
 * Added shebang to top of upload_run.py to support conda environments
+* Added batch uploading, use `--batch` or `-b` with a directory containing multiple runs to upload.
 
 Beta 0.1
 ---------

@@ -1,6 +1,6 @@
 import logging
 
-from . import directory, miseq, miniseq
+from . import directory, miseq, miniseq, nextseq
 
 
 class Parser:
@@ -12,6 +12,7 @@ class Parser:
     Like the miseq and directory parser, a new parser class needs the following static methods
         find_single_run(directory)
         find_runs(directory)
+        get_required_file_list()
         get_sample_sheet(directory)
         get_sequencing_run(sample_sheet)
 
@@ -38,4 +39,7 @@ class Parser:
         if parser_type == "miniseq":
             logging.debug("Creating miniseq parser")
             return miniseq.Parser()
+        if parser_type == "nextseq":
+            logging.debug("Creating nextseq parser")
+            return nextseq.Parser()
         raise AssertionError("Bad parser creation, invalid parser_type given: {}".format(parser_type))
