@@ -1,5 +1,5 @@
 site_name: IRIDA Uploader
-#repo_url: todo
+repo_url: https://github.com/phac-nml/irida-uploader
 site_description: Documentation for the IRIDA Uploader
 theme: readthedocs
 #forces use of .html on docs pages so they can be browsed locally
@@ -12,6 +12,8 @@ pages:
   - Parsers:
       - parsers/directory.md
       - parsers/miseq.md
+      - parsers/miniseq.md
+      - parsers/nextseq.md
   - Developers:
       - developers/api.md
       - developers/parsers.md
