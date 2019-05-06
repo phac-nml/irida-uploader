@@ -1,6 +1,9 @@
 Changes
 =======
 
+Beta 0.3
+--------
+
 Beta 0.2
 --------
 Added functionality:
