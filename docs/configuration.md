@@ -54,6 +54,29 @@ Example:
   C:\Users\username> iridauploader --config \path\to\config.conf \path\to\my\samples\
 ```
 
-### Linux:
+## Override config options in file
 
-Use the `irida-uploader.sh` script included with the source code to upload.
+You can override one or more config options with their respective command line arguments
+
+This can be done as given parameters `--option parameter` or via user prompt `--option`
+
+```bash
+  -ci [CONFIG_CLIENT_ID], --config_client_id [CONFIG_CLIENT_ID]
+                        Override "client_id" in config file. Can be used
+                        without a parameter to prompt for input.
+  -cs [CONFIG_CLIENT_SECRET], --config_client_secret [CONFIG_CLIENT_SECRET]
+                        Override "client_secret" in config file. Can be used
+                        without a parameter to prompt for input.
+  -cu [CONFIG_USERNAME], --config_username [CONFIG_USERNAME]
+                        Override "username" in config file. Can be used
+                        without a parameter to prompt for input.
+  -cp [CONFIG_PASSWORD], --config_password [CONFIG_PASSWORD]
+                        Override "password" in config file. Can be used
+                        without a parameter to prompt for input.
+  -cb [CONFIG_BASE_URL], --config_base_url [CONFIG_BASE_URL]
+                        Override "base_url" in config file. Can be used
+                        without a parameter to prompt for input.
+  -cr [CONFIG_PARSER], --config_parser [CONFIG_PARSER]
+                        Override "parser" in config file. Can be used without
+                        a parameter to prompt for input.
+```
