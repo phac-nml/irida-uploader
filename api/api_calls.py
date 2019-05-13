@@ -137,7 +137,13 @@ class ApiCalls(object):
             returns evaluated dictionary
             """
             # It is supposedly safer to decode bytes to string and then use ast.literal_eval than just use eval()
-            irida_dict = ast.literal_eval(return_dict.decode("utf-8"))
+            try:
+                irida_dict = ast.literal_eval(return_dict.decode("utf-8"))
+            except (SyntaxError, ValueError):
+                # SyntaxError happens when something that looks nothing like a token is returned (ex: 404 page)
+                # ValueError happens with the path returns something that looks like a token, but is invalid
+                #   (ex: forgetting the /api/ part of the url)
+                raise ConnectionError("Unexpected response from server, URL may be incorrect")
             return irida_dict
 
         params = {
