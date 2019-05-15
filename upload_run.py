@@ -7,13 +7,14 @@ import os
 import config
 import core
 import global_settings
-
+from parsers import supported_parsers
 
 # Set up an argument parser. We are using defaults to stay consistent with other software.
 # description gets added to the usage statements
-argument_parser = argparse.ArgumentParser(description='This program parses sequencing runs and uploads them to IRIDA.')
+argument_parser = argparse.ArgumentParser(description='This program parses sequencing runs and uploads them to IRIDA.',
+                                          epilog='-c* options can be used without a parameter to prompt for input.')
 # Add the version argument
-argument_parser.add_argument('-v', '--version',
+argument_parser.add_argument('--version',
                              action='version', version='IRIDA Uploader {}'.format(global_settings.UPLOADER_VERSION))
 # Our main argument. It is required or else an error will be thrown when the program is run
 argument_parser.add_argument('directory',
@@ -44,23 +45,22 @@ argument_parser.add_argument('-b', '--batch',
 #       If the argument is given, and no parameter given:  the value will be True            (prompt user for input)
 #       If the argument is given, and parameter is given:  the value will be the parameter   (used to override config)
 argument_parser.add_argument('-ci', '--config_client_id', action='store', nargs='?', const=True, default=False,
-                             help='Override "client_id" in config file. '
-                                  'Can be used without a parameter to prompt for input.')
+                             help='Override the "client_id" field in config file. '
+                                  'This is for the uploader client created in IRIDA, used to handle the data upload')
 argument_parser.add_argument('-cs', '--config_client_secret', action='store', nargs='?', const=True, default=False,
                              help='Override "client_secret" in config file. '
-                                  'Can be used without a parameter to prompt for input.')
+                                  'This is for the uploader client created in IRIDA, used to handle the data upload')
 argument_parser.add_argument('-cu', '--config_username', action='store', nargs='?', const=True, default=False,
-                             help='Override "username" in config file. '
-                                  'Can be used without a parameter to prompt for input.')
+                             help='Override "username" in config file. This is your IRIDA account username.')
 argument_parser.add_argument('-cp', '--config_password', action='store', nargs='?', const=True, default=False,
-                             help='Override "password" in config file. '
-                                  'Can be used without a parameter to prompt for input.')
+                             help='Override "password" in config file. This corresponds to your IRIDA account.')
 argument_parser.add_argument('-cb', '--config_base_url', action='store', nargs='?', const=True, default=False,
-                             help='Override "base_url" in config file. '
-                                  'Can be used without a parameter to prompt for input.')
+                             help='Override "base_url" in config file. The api url for your irida instance '
+                                  '(example: https://my.irida.server/api/)')
 argument_parser.add_argument('-cr', '--config_parser', action='store', nargs='?', const=True, default=False,
                              help='Override "parser" in config file. '
-                                  'Can be used without a parameter to prompt for input.')
+                                  'Choose the type of sequencer data that is being uploaded. '
+                                  'Supported parsers: ' + str(supported_parsers))
 
 
 def _set_config_override(args):
@@ -84,7 +84,8 @@ def _set_config_override(args):
 
     if args.config_client_secret is True:
         print("Enter Client Secret:")
-        client_secret = input()
+        # getpass blanks out the secret entry
+        client_secret = getpass.getpass()
     elif args.config_client_secret is not False:
         client_secret = args.config_client_secret
 
