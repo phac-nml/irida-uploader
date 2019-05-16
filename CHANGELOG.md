@@ -1,6 +1,11 @@
 Changes
 =======
 
+Beta 0.2.1
+----------
+Bug Fixes:
+* Fixed bug where 2 description fields would be sent with some miniseq runs, causing upload to fail.
+
 Beta 0.2
 --------
 Added functionality:
