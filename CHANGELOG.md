@@ -3,6 +3,10 @@ Changes
 
 Beta 0.3
 --------
+Added functionality:
+* Added config option overrides for the command line
+    * Can define in command line `--option parameter` or without a parameter `--option` for a user prompt
+    * Use the `--help` option for more details on these options
 
 Beta 0.2
 --------
