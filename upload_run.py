@@ -3,6 +3,7 @@
 import argparse
 import getpass
 import os
+import textwrap
 
 import config
 import core
@@ -11,14 +12,31 @@ from parsers import supported_parsers
 
 # Set up an argument parser. We are using defaults to stay consistent with other software.
 # description gets added to the usage statements
-argument_parser = argparse.ArgumentParser(description='This program parses sequencing runs and uploads them to IRIDA.',
-                                          epilog='-c* options can be used without a parameter to prompt for input.')
+argument_parser = argparse.ArgumentParser(
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+    description=textwrap.dedent('''
+    This program parses sequencing runs and uploads them to IRIDA.
+    
+    required arguments:
+      --d DIRECTORY, --directory DIRECTORY
+                            Location of sequencing run to upload.
+                            Directory must be writable.
+    '''),
+  prog="irida-uploader.sh -d DIRECTORY",
+  epilog='-c* options can be used without a parameter to prompt for input.')
+# Our main argument. It is required or else an error will be thrown when the program is run
+# Normally we would use a positional argument, but because of our 1 or None config overrides it makes sense to use
+# a optional argument, with the required set to True. We have to suppress the help on the argument, and add it's help
+# information to the formatted description text of the parser for the argument to be shown as required when --help
+# is used.
+argument_parser.add_argument('-d','--directory',
+                             action='store',
+                             required=True,
+                             help=argparse.SUPPRESS)
+# help='Location of sequencing run to upload. Directory must be writable.')
 # Add the version argument
 argument_parser.add_argument('--version',
                              action='version', version='IRIDA Uploader {}'.format(global_settings.UPLOADER_VERSION))
-# Our main argument. It is required or else an error will be thrown when the program is run
-argument_parser.add_argument('directory',
-                             help='Location of sequencing run to upload. Directory must be writable.')
 # Optional argument, for using an alternative config file.
 argument_parser.add_argument('-c', '--config',
                              action='store',
