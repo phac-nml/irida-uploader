@@ -22,8 +22,8 @@ argument_parser = argparse.ArgumentParser(
                             Location of sequencing run to upload.
                             Directory must be writable.
     '''),
-  prog="irida-uploader.sh -d DIRECTORY",
-  epilog='-c* options can be used without a parameter to prompt for input.')
+    prog="irida-uploader.sh -d DIRECTORY",
+    epilog='-c* options can be used without a parameter to prompt for input.')
 # Our main argument. It is required or else an error will be thrown when the program is run
 # Normally we would use a positional argument, but because of our 1 or None config overrides it makes sense to use
 # a optional argument, with the required set to True. We have to suppress the help on the argument, and add it's help
