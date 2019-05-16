@@ -4,7 +4,6 @@ import os
 
 from tests_integration import tests_integration
 
-import global_settings
 import config
 import api
 import model
@@ -42,7 +41,7 @@ class TestEndToEnd(unittest.TestCase):
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)
         # Set the config file to our test config, so that when the upload is run it grabs out config file correctly
-        global_settings.config_file = path.join(path_to_module, "test_config.conf")
+        config.set_config_file(path.join(path_to_module, "test_config.conf"))
         config.setup()
 
     def tearDown(self):
@@ -74,12 +73,13 @@ class TestEndToEnd(unittest.TestCase):
         :param parser:
         :return:
         """
-        config.write_config_option("client_id", client_id)
-        config.write_config_option("client_secret", client_secret)
-        config.write_config_option("username", username)
-        config.write_config_option("password", password)
-        config.write_config_option("base_url", base_url)
-        config.write_config_option("parser", parser)
+        config.set_config_options(client_id=client_id,
+                                  client_secret=client_secret,
+                                  username=username,
+                                  password=password,
+                                  base_url=base_url,
+                                  parser=parser)
+        config.write_config_options_to_file()
 
     def test_valid_miseq_upload(self):
         """

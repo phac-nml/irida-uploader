@@ -11,4 +11,5 @@ site/
 .python-version
 .pytest_cache/
 tests_integration/repos/
-
+irida-uploader.log
+irida_uploader_status.info

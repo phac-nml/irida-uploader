@@ -2,6 +2,12 @@ import logging
 
 from . import directory, miseq, miniseq, nextseq
 
+supported_parsers = [
+    'miseq',
+    'miniseq',
+    'nextseq',
+    'directory',
+]
 
 class Parser:
     """
