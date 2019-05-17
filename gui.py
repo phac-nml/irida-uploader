@@ -1,6 +1,8 @@
-from PyQt5 import QtWidgets, QtCore
 import logging
 import sys
+# PyQt needs to be imported like this because for whatever reason they decided not to include a __all__ = [...]
+import PyQt5.QtWidgets as QtWidgets
+import PyQt5.QtCore as QtCore
 
 from core import logger, cli_entry, api_handler
 from config import config
