@@ -4,6 +4,7 @@ import sys
 
 from core import logger, cli_entry, api_handler
 from config import config
+from parsers import supported_parsers
 from progress import signal_worker
 
 
@@ -98,6 +99,7 @@ class MyDialog(QtWidgets.QDialog):
         handler.setLevel(logging.INFO)
         logger.root_logger.addHandler(handler)
         self._console = QtWidgets.QPlainTextEdit(self)
+        self._console.setReadOnly(True)
         message_writer.messageWritten.connect(self.write_log_and_redraw)
 
         ##################################
@@ -300,7 +302,7 @@ class ConfigDialog(QtWidgets.QDialog):
         self._parser_label = QtWidgets.QLabel("Parser")
         # self._parser = QtWidgets.QLineEdit()
         self._parser = QtWidgets.QComboBox()
-        self._parser.addItems(['miseq', 'miniseq', 'directory'])
+        self._parser.addItems(supported_parsers)
 
         self._btn_check_settings = QtWidgets.QPushButton("Save and Test Settings")
         self._settings_status = QtWidgets.QLineEdit()
