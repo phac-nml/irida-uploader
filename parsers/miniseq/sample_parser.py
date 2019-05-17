@@ -233,7 +233,8 @@ def _parse_samples(sample_sheet_file):
     sample_key_translation_dict = {
         'Sample_ID': 'sequencer_sample_ID',
         'Sample_Name': 'sampleName',
-        'Sample_Project': 'sample_project'
+        'Sample_Project': 'sample_project',
+        'Description': 'description'
     }
 
     _parse_samples.sample_key_translation_dict = sample_key_translation_dict
@@ -287,11 +288,18 @@ def _parse_samples(sample_sheet_file):
 
         new_sample_dict = deepcopy(sample_dict)
         new_sample_name = new_sample_dict['sampleName']
+        # Some versions of the illumina *seq software has description fields, and others do not
+        # If they do, we need to include the description field here (or else we end up with duplication of fields)
+        # If they don't we give it a blank description
+        new_sample_desc = ''
+        if 'Description' in new_sample_dict:
+            new_sample_desc = new_sample_dict['description']
 
         sample = model.Sample(
                             sample_name=new_sample_name,
                             sample_number=sample_number + 1,
-                            samp_dict=new_sample_dict)
+                            samp_dict=new_sample_dict,
+                            description=new_sample_desc)
         sample_list.append(sample)
 
     return sample_list
