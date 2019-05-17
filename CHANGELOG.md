@@ -8,6 +8,10 @@ Added functionality:
     * Can define in command line `--option parameter` or without a parameter `--option` for a user prompt
     * Use the `--help` option for more details on these options
 
+Beta 0.2.1
+----------
+Bug Fixes:
+* Fixed bug where 2 description fields would be sent with some miniseq runs, causing upload to fail.
 Beta 0.2
 --------
 Added functionality:
