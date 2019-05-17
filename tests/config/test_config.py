@@ -3,13 +3,10 @@ from unittest.mock import patch
 import os
 
 import config
-import global_settings
 
 path_to_module = os.path.abspath(os.path.dirname(__file__))
 if len(path_to_module) == 0:
     path_to_module = '.'
-
-test_config_file_dir = os.path.join(path_to_module, "test_config_file_dir")
 
 
 class TestConfig(unittest.TestCase):
@@ -26,45 +23,75 @@ class TestConfig(unittest.TestCase):
         Sets the module level variables in the config module back to None, so each test is executed from a clean state
         :return:
         """
-        # delete files and directory that get created when tests run
-        if os.path.exists(os.path.join(test_config_file_dir, "config.conf")):
-            os.remove(os.path.join(test_config_file_dir, "config.conf"))
-        if os.path.exists(os.path.join(test_config_file_dir)):
-            os.rmdir(os.path.join(test_config_file_dir))
         # set the config module level variables back to None
-        config.config.conf_parser = None
-        config.config.user_config_file = None
-        # Set the global settings variable back to None
-        global_settings.config_file = None
+        config.config._conf_parser = None
+        config.config._user_config_file = None
 
-    @patch("config.config.user_config_dir")
-    def test_user_directory(self, mock_user_config_dir):
+    @patch("config.config._init_config_parser")
+    @patch("config.config._load_config_from_file")
+    @patch("config.config._create_new_config_file")
+    @patch("os.path.exists")
+    def test_basic_setup_all_functions_called(self, mock_path_exists, mock_create_new_config_file,
+                                              mock_load_config_from_file, mock_init_config_parser):
+
+        # Set the config file to False so that the funtion will check if a default file is set
+        config.set_config_file(True)
+        # If a new file is created, no exit will happen
+        config.setup()
+        # First init happens
+        mock_init_config_parser.assert_called_with()
+        # make sure no attempt to create a file happens
+        mock_create_new_config_file.assert_not_called()
+        # make sure it tries to load from file
+        mock_load_config_from_file.assert_called_with()
+
+    @patch("config.config._load_config_from_file")
+    @patch("config.config._create_new_config_file")
+    @patch("os.path.exists")
+    def test_create_new_file_if_none_exist(self, mock_path_exists, mock_create_new_config_file,
+                                           mock_load_config_from_file):
+
+        # Set the config file to False so that the funtion will check if a default file is set
+        config.set_config_file(False)
+        # When it checks for a default path, return False so it will attempt to create a new file
+        mock_path_exists.side_effect = [False]
+        # If a new file is created, it will try to exit
+        with self.assertRaises(SystemExit):
+            config.setup()
+        # make sure the attempt to create a file happens
+        mock_create_new_config_file.assert_called_with()
+        # make sure it doesn't try to load from file since it has exited
+        mock_load_config_from_file.assert_not_called()
+
+    @patch("config.config._init_config_parser")
+    @patch("config.config._load_config_from_file")
+    @patch("config.config._create_new_config_file")
+    @patch("os.path.exists")
+    def test_dont_create_new_file_if_exists(self, mock_path_exists, mock_create_new_config_file,
+                                            mock_load_config_from_file, mock_init_config_parser):
+
+        # Set the config file to False so that the funtion will check if a default file is set
+        config.set_config_file(False)
+        # When it checks for a default path, return False so it will attempt to create a new file
+        mock_path_exists.side_effect = [True]
+        # If a new file is created, no exit will happen
+        config.setup()
+        # First init happens
+        mock_init_config_parser.assert_called_with()
+        # make sure no attempt to create a file happens
+        mock_create_new_config_file.assert_not_called()
+        # make sure it tries to load from file
+        mock_load_config_from_file.assert_called_with()
+
+    def test_read_config_option(self):
         """
-        Make sure when using the default setup (system variable user directory),
-            the config file is found in the correct place
-        :param mock_user_config_dir:
+        Test writing to config file, make sure writen values are written correctly
         :return:
         """
-        mock_user_config_dir.side_effect = [test_config_file_dir]
-
+        # set up config
+        config.set_config_file(os.path.join(path_to_module, "example_config.conf"))
         config.setup()
-
-        self.assertTrue(os.path.exists(os.path.join(test_config_file_dir, "config.conf")))
-
-    def test_parameter(self):
-        """
-        Tests that reading from the global variables (parameter passing) works
-
-        Also ensures that it can read from the file correctly with read_config_option
-        :return:
-        """
-        example_path = os.path.join(path_to_module, "example_config.conf")
-        global_settings.config_file = example_path
-
-        config.setup()
-
-        self.assertEqual(config.config.user_config_file, example_path)
-        # Verify all the options were set correctly
+        # Test that all the parameters loaded from file are correct
         self.assertEqual(config.read_config_option('client_id'), 'uploader')
         self.assertEqual(config.read_config_option('client_secret'), 'secret')
         self.assertEqual(config.read_config_option('username'), 'admin')
@@ -72,19 +99,16 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(config.read_config_option('base_url'), 'http://localhost:8080/irida-latest/api/')
         self.assertEqual(config.read_config_option('parser'), 'miseq')
 
-    @patch("config.config.user_config_dir")
-    def test_write_config_option(self, mock_user_config_dir):
+    def test_set_config_options(self):
         """
         Test writing to config file, make sure writen values are written correctly
-        :param mock_user_config_dir:
         :return:
         """
-        mock_user_config_dir.side_effect = [test_config_file_dir]
-
+        # set up config
+        config.set_config_file(os.path.join(path_to_module, "example_config.conf"))
         config.setup()
-
-        self.assertEqual(config.read_config_option('client_id'), '')
-
-        config.write_config_option('client_id', "new_id")
-
+        # Make sure id is initially set to what we expect
+        self.assertEqual(config.read_config_option('client_id'), 'uploader')
+        # Set and test to a new id
+        config.set_config_options(client_id="new_id")
         self.assertEqual(config.read_config_option('client_id'), "new_id")

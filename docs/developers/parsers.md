@@ -15,6 +15,15 @@ This is so the parser will be able to be grabbed by the `parser` module.
 
 ### Required functions for `parser.py`
 
+####`get_required_file_list()` :
+
+Returns a list of files that are required for a run directory to be considered valid.
+
+For example, the `miseq` parser returns the following list, as the run cannot be uploaded without these files.
+```
+['SampleSheet.csv', 'CompletedJobInfo.xml']
+```
+
 ####`find_runs(directory)` :
 
 Given a directory, returns a list of `DirectoryStatus` objects for each directory in it.

@@ -19,11 +19,12 @@ STATUS_FIELD = "Upload Status"
 DATE_TIME_FIELD = "Date Time"
 RUN_ID_FIELD = "Run ID"
 IRIDA_INSTANCE_FIELD = "IRIDA Instance"
+MESSAGE_FIELD = "Message"
 
 
 def get_directory_status(directory, required_file_list):
     """
-    Gets the directory status based off using '.miseqUploaderInfo' files to track progress
+    Gets the directory status based off using 'irida_uploader_status.info' files to track progress
 
     :param directory: the directory to search for a run
     :param required_file_list: optional param: a list of required files that
@@ -38,6 +39,17 @@ def get_directory_status(directory, required_file_list):
         return result
 
     file_list = next(os.walk(directory))[2]  # Gets the list of files in the directory
+
+    # Legacy upload catch
+    # When the irida-miseq-uploader (old uploader) ran it generated a .miseqUploaderInfo file
+    # To prevent uploading runs that used this old system, we assume runs with this file are COMPLETE
+    # By default they will not be picked up automatically with --batch because they are set to COMPLETE,
+    # but they can still be uploaded using the --force option
+    if '.miseqUploaderInfo' in file_list:
+        result.status = DirectoryStatus.COMPLETE
+        result.message = "Legacy uploader run. Set to complete to avoid uploading duplicate data."
+        return result
+
     for file_name in required_file_list:
         if file_name not in file_list:
             result.status = DirectoryStatus.INVALID
@@ -56,6 +68,10 @@ def get_directory_status(directory, required_file_list):
     status = info_file[STATUS_FIELD]
     if status in DirectoryStatus.VALID_STATUS_LIST:
         result.status = status
+        if MESSAGE_FIELD in info_file:
+            result.message = info_file[MESSAGE_FIELD]
+        else:
+            result.message = None
     else:  # the status found in the file is not in the defined list
         raise exceptions.DirectoryError("Invalid Status in status file", directory)
 
@@ -81,11 +97,13 @@ def write_directory_status(directory_status, run_id=None):
     uploader_info_file = os.path.join(directory_status.directory, STATUS_FILE_NAME)
     if run_id:
         json_data = {STATUS_FIELD: directory_status.status,
+                     MESSAGE_FIELD: directory_status.message,
                      DATE_TIME_FIELD: _get_date_time_field(),
                      RUN_ID_FIELD: run_id,
                      IRIDA_INSTANCE_FIELD: config.read_config_option('base_url')}
     else:
         json_data = {STATUS_FIELD: directory_status.status,
+                     MESSAGE_FIELD: directory_status.message,
                      DATE_TIME_FIELD: _get_date_time_field()}
 
     with open(uploader_info_file, "w") as json_file:

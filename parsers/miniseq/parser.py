@@ -95,8 +95,8 @@ class Parser:
         sample_sheet_file_name = Parser.SAMPLE_SHEET_FILE_NAME
         file_list = next(os.walk(directory))[2]  # Gets the list of files in the directory
         if sample_sheet_file_name not in file_list:
-            logging.error("No sample sheet file in the MiSeq format found")
-            raise exceptions.DirectoryError("The directory {} has no sample sheet file in the MiSeq format"
+            logging.error("No sample sheet file in the MiniSeq format found")
+            raise exceptions.DirectoryError("The directory {} has no sample sheet file in the MiniSeq format"
                                             " with the name {}"
                                             .format(directory, sample_sheet_file_name), directory)
         else:

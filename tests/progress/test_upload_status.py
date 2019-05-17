@@ -82,6 +82,18 @@ class TestGetDirectoryStatus(unittest.TestCase):
         self.assertEqual(res.status, DirectoryStatus.PARTIAL)
         self.assertIsNone(res.message)
 
+    def test_has_miseq_complete_file(self):
+        """
+        Tests legacy support to show runs that contain .miseqUploaderComplete as COMPLETE
+        :return:
+        """
+        directory = path.join(path_to_module, "has_miseq_complete")
+
+        res = progress.get_directory_status(directory, ["SampleSheet.csv"])
+
+        self.assertEqual(res.status, DirectoryStatus.COMPLETE)
+        self.assertEqual(res.message, "Legacy uploader run. Set to complete to avoid uploading duplicate data.")
+
 
 class TestWriteDirectoryStatus(unittest.TestCase):
     """
