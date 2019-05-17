@@ -277,9 +277,6 @@ class MyDialog(QtWidgets.QDialog):
         self._config_button.setEnabled(True)
         self._dir_button.setEnabled(True)
         self._force_checkbox.setEnabled(True)
-        # reset directory
-        self._run_dir = ""
-        self._dir_line.setText("")
         # reset checkbox
         self._force_state = False
         self._force_checkbox.setChecked(False)
@@ -383,12 +380,13 @@ class ConfigDialog(QtWidgets.QDialog):
         self._parser.setCurrentIndex(index)
 
     def write_settings_to_file(self):
-        config.write_config_option('client_id', self._client_id.text())
-        config.write_config_option('client_secret', self._client_secret.text())
-        config.write_config_option('username', self._username.text())
-        config.write_config_option('password', self._password.text())
-        config.write_config_option('base_url', self._base_url.text())
-        config.write_config_option('parser', self._parser.currentText())
+        config.set_config_options(client_id=self._client_id.text(),
+                                  client_secret=self._client_secret.text(),
+                                  username=self._username.text(),
+                                  password=self._password.text(),
+                                  base_url=self._base_url.text(),
+                                  parser=self._parser.currentText())
+        config.write_config_options_to_file()
 
     def contact_irida(self):
         try:
@@ -427,7 +425,7 @@ class UploadThread(QtCore.QThread):
         This runs when the threads start call is done
         :return:
         """
-        cli_entry.validate_and_upload_single_entry(self._run_dir, self._force_state)
+        cli_entry.upload_run_single_entry(self._run_dir, self._force_state)
         pass
 
 
