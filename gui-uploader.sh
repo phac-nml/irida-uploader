@@ -11,4 +11,4 @@ else
     exit 1
 fi
 
-python gui.py
+python upload_gui.py
