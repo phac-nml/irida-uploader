@@ -2,7 +2,65 @@ import logging
 # PyQt needs to be imported like this because for whatever reason they decided not to include a __all__ = [...]
 import PyQt5.QtCore as QtCore
 
-from core import cli_entry
+from core import cli_entry, parsing_handler
+
+
+class StatusThread(QtCore.QThread):
+    """
+    This class handles the arguments for uploading
+    Is used an a separate thread to upload so that the GUI is still responsive while uploading
+    """
+    def __init__(self):
+        super().__init__()
+        self._directory = ""
+        self._result = None
+
+    def set_vars(self, directory):
+        """
+        Sets the variables in the object to the ones passed in
+        :return:
+        """
+        self._directory = directory
+
+    def get_result(self):
+        return self._result
+
+    def run(self):
+        """
+        This runs when the threads start call is done
+        :return:
+        """
+        self._result = parsing_handler.get_run_status(self._directory)
+        pass
+
+
+class ParseThread(QtCore.QThread):
+    """
+    This class handles the arguments for uploading
+    Is used an a separate thread to upload so that the GUI is still responsive while uploading
+    """
+    def __init__(self):
+        super().__init__()
+        self._directory = ""
+        self._run = None
+
+    def set_vars(self, directory):
+        """
+        Sets the variables in the object to the ones passed in
+        :return:
+        """
+        self._directory = directory
+
+    def get_run(self):
+        return self._run
+
+    def run(self):
+        """
+        This runs when the threads start call is done
+        :return:
+        """
+        self._run = parsing_handler.parse_and_validate(self._directory)
+        pass
 
 
 class UploadThread(QtCore.QThread):

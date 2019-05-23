@@ -8,7 +8,8 @@ from config import config
 from progress import signal_worker
 
 from .config import ConfigDialog
-from .tools import UploadThread, QtHandler
+from .tools import StatusThread, ParseThread, UploadThread, QtHandler
+
 
 class MainDialog(QtWidgets.QDialog):
     def __init__(self):
@@ -17,7 +18,10 @@ class MainDialog(QtWidgets.QDialog):
 
         self.config_dlg = ConfigDialog(parent=self)
 
-        # Initialize thread to execute uploader
+        # Initialize threads
+        # todo
+        self._status_thread = StatusThread()
+        self._parse_thread = ParseThread()
         self._upload_thread = UploadThread()
 
         # internal variables
@@ -63,6 +67,17 @@ class MainDialog(QtWidgets.QDialog):
         self._file_progress_label = QtWidgets.QLabel("File Upload Progress")
         self._file_progress = QtWidgets.QProgressBar()
 
+        # todo
+        self._table = QtWidgets.QTableWidget()
+        self._table.setRowCount(10)
+        self._table.setColumnCount(4)
+        self._table.setHorizontalHeaderLabels(["Sample Name", "File 1", "File 2", "Project"])
+        # self._table.
+        self._status_result = QtWidgets.QLineEdit()
+        self._status_result.setReadOnly(True)
+        self._parse_button = QtWidgets.QPushButton()
+        self._parse_button.setText("Parse Run")
+
         # Setup logging handler
         handler = QtHandler()
         handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)-8s %(message)s', datefmt='%H:%M:%S'))
@@ -87,7 +102,11 @@ class MainDialog(QtWidgets.QDialog):
         self._config_button.clicked.connect(self.show_config)
         self._force_checkbox.stateChanged.connect(self.click_force_upload)
         self._upload_button.clicked.connect(self.start_upload)
-        # connect running upload thread finishing to finish function
+        # connect threads finishing to finish functions
+        # todo
+        self._status_thread.finished.connect(self.finished_status)
+        self._parse_button.clicked.connect(self.start_parse)
+        self._parse_thread.finished.connect(self.finished_parse)
         self._upload_thread.finished.connect(self.finished_upload)
         # connect progress bars
         signal_worker.project_progress_signal.connect(self._project_progress.setValue)
@@ -120,8 +139,11 @@ class MainDialog(QtWidgets.QDialog):
         config_layout.addWidget(self._upload_button)
         layout.addLayout(config_layout)
 
-        # logging text box
-        layout.addWidget(self._console)
+        # todo
+        # Samples Table
+        layout.addWidget(self._table)
+        layout.addWidget(self._status_result)
+        layout.addWidget(self._parse_button)
 
         # Upload Progress
         current_project_layout = QtWidgets.QHBoxLayout()
@@ -150,6 +172,10 @@ class MainDialog(QtWidgets.QDialog):
         file_progress_layout.addWidget(self._file_progress_label)
         file_progress_layout.addWidget(self._file_progress)
         layout.addLayout(file_progress_layout)
+
+        # logging text box
+        # todo
+        layout.addWidget(self._console)
 
         return layout
 
@@ -203,6 +229,8 @@ class MainDialog(QtWidgets.QDialog):
         self._run_dir = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory"))
         self._dir_line.setText(self._run_dir)
         logging.debug("GUI: result: " + self._run_dir)
+        # todo
+        self.start_status()
 
     def show_config(self):
         """
@@ -225,6 +253,78 @@ class MainDialog(QtWidgets.QDialog):
         else:
             logging.debug("GUI: set force upload to False")
             self._force_state = False
+
+    # todo start
+    def start_status(self):
+        """
+        Blocks usage of the ui elements, runs the config setup, and starts the upload thread with set variables
+        :return:
+        """
+        logging.debug("GUI: start_upload clicked")
+        # Lock Gui
+        self._upload_button.setEnabled(False)
+        self._config_button.setEnabled(False)
+        self._dir_button.setEnabled(False)
+        self._force_checkbox.setEnabled(False)
+        # init / re-init config with config file selected
+        config.setup()
+        # start upload
+        self._status_thread.set_vars(self._run_dir)
+        self._status_thread.start()
+
+    def finished_status(self):
+        """
+        Unblocks the UI elements, resets the run directory and checkbox
+        This acts as a slot for the upload thread on finish
+        :return:
+        """
+        logging.debug("GUI: finished_upload called")
+        # Output info
+        status = self._status_thread.get_result()
+        text = status.directory + ", " + status.status + ", " + str(status.message)
+        self._status_result.setText(text)
+
+        if status.status == "new":
+            print("new run")
+
+        # Unlock GUI
+        self._upload_button.setEnabled(True)
+        self._config_button.setEnabled(True)
+        self._dir_button.setEnabled(True)
+        self._force_checkbox.setEnabled(True)
+
+    def start_parse(self):
+        """
+        Blocks usage of the ui elements, runs the config setup, and starts the upload thread with set variables
+        :return:
+        """
+        logging.debug("GUI: start_upload clicked")
+        # Lock Gui
+        self._upload_button.setEnabled(False)
+        self._config_button.setEnabled(False)
+        self._dir_button.setEnabled(False)
+        self._force_checkbox.setEnabled(False)
+        # init / re-init config with config file selected
+        config.setup()
+        # start upload
+        self._parse_thread.set_vars(self._run_dir)
+        self._parse_thread.start()
+
+    def finished_parse(self):
+        """
+        Unblocks the UI elements, resets the run directory and checkbox
+        This acts as a slot for the upload thread on finish
+        :return:
+        """
+        logging.debug("GUI: finished_upload called")
+        # Output info
+        print( str(self._parse_thread.get_run()))
+        # Unlock GUI
+        self._upload_button.setEnabled(True)
+        self._config_button.setEnabled(True)
+        self._dir_button.setEnabled(True)
+        self._force_checkbox.setEnabled(True)
+    # todo end
 
     def start_upload(self):
         """
