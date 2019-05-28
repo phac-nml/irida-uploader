@@ -2,6 +2,7 @@ SHELL=/bin/bash
 IRIDA_VERSION?=master
 
 all: clean requirements
+gui: clean requirementsgui
 
 clean:
 	rm -rf .cache
@@ -21,7 +22,14 @@ windows: clean requirements
 	source .virtualenv/bin/activate
 	python -m nsist windows-installer.cfg
 
-windowsgui: clean requirements
+requirementsgui:
+	python3 -m venv .virtualenv
+	source .virtualenv/bin/activate
+	pip3 install --upgrade wheel
+	pip3 install -r requirements.txt
+	pip3 install -r requirementsgui.txt
+
+windowsgui: clean requirementsgui
 	source .virtualenv/bin/activate
 	python -m nsist windows-gui-installer.cfg
 

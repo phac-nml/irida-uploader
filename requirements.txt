@@ -9,5 +9,3 @@ cerberus
 pynsist==2.3
 argparse
 selenium
-PyQt5==5.12.1
-PyQt5-stubs==5.12.1
