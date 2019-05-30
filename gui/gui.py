@@ -1,4 +1,5 @@
 import logging
+import os
 # PyQt needs to be imported like this because for whatever reason they decided not to include a __all__ = [...]
 import PyQt5.QtWidgets as QtWidgets
 import PyQt5.QtCore as QtCore
@@ -10,6 +11,13 @@ from model import DirectoryStatus
 
 from .config import ConfigDialog
 from .tools import StatusThread, ParseThread, UploadThread, QtHandler
+
+# X index for the table
+TABLE_SAMPLE_NAME = 0
+TABLE_FILE_1 = 1
+TABLE_FILE_2 = 2
+TABLE_PROJECT = 3
+TABLE_PROGRESS = 4
 
 
 class MainDialog(QtWidgets.QDialog):
@@ -29,6 +37,7 @@ class MainDialog(QtWidgets.QDialog):
         self._run_dir = ""
         self._force_state = False
         self._config_file = ""
+        self._console_hidden = True
 
         ###################################
         #           QT Objects            #
@@ -37,11 +46,13 @@ class MainDialog(QtWidgets.QDialog):
         # directory
         self._dir_button = QtWidgets.QPushButton(self)
         self._dir_button.setText("Open Run Directory")
+        self._dir_button.setFixedWidth(200)
         self._dir_line = QtWidgets.QLineEdit(self)
         self._dir_line.setReadOnly(True)
         # config
         self._config_button = QtWidgets.QPushButton(self)
         self._config_button.setText("Configure Settings")
+        self._config_button.setFixedWidth(200)
         # refresh
         self._refresh_button = QtWidgets.QPushButton(self)
         self._refresh_button.setText("Refresh")
@@ -68,8 +79,13 @@ class MainDialog(QtWidgets.QDialog):
         # todo
         # Table
         self._table = QtWidgets.QTableWidget()
-        self._table.setColumnCount(4)
-        self._table.setHorizontalHeaderLabels(["Sample Name", "File 1", "File 2", "Project"])
+        self._table.setColumnCount(5)
+        self._table.setHorizontalHeaderLabels(["Sample Name", "File 1", "File 2", "Project", "Progress"])
+        self._table.setColumnWidth(TABLE_SAMPLE_NAME, 170)
+        self._table.setColumnWidth(TABLE_FILE_1, 200)
+        self._table.setColumnWidth(TABLE_FILE_2, 200)
+        self._table.setColumnWidth(TABLE_PROJECT, 70)
+        self._table.setColumnWidth(TABLE_PROGRESS, 135)
 
         self._status_label = QtWidgets.QLabel("Status Result:")
         self._status_result = QtWidgets.QLineEdit()
@@ -83,6 +99,10 @@ class MainDialog(QtWidgets.QDialog):
         logger.root_logger.addHandler(handler)
         self._console = QtWidgets.QPlainTextEdit(self)
         self._console.setReadOnly(True)
+        self._console.hide()
+        self._console_button = QtWidgets.QPushButton(self)
+        self._console_button.setFixedWidth(100)
+        self._console_button.setText("Show Log")
 
         # Set Layout and Geometry
         self.setLayout(self._layout())
@@ -99,6 +119,7 @@ class MainDialog(QtWidgets.QDialog):
         self._config_button.clicked.connect(self.show_config)
         self._refresh_button.clicked.connect(self.refresh)
         self._upload_button.clicked.connect(self.start_upload)
+        self._console_button.clicked.connect(self.log_button_clicked)
         # connect threads finishing to finish functions
         self._status_thread.finished.connect(self.finished_status)
         self._parse_thread.finished.connect(self.finished_parse)
@@ -133,11 +154,10 @@ class MainDialog(QtWidgets.QDialog):
         config_layout = QtWidgets.QHBoxLayout()
         config_layout.addWidget(self._config_button)
         config_layout.addWidget(self._refresh_button)
+        config_layout.addWidget(self._status_label)
+        config_layout.addWidget(self._status_result)
         layout.addLayout(config_layout)
 
-        # todo
-        layout.addWidget(self._status_label)
-        layout.addWidget(self._status_result)
         layout.addWidget(self._table)
 
         # Upload button
@@ -173,6 +193,7 @@ class MainDialog(QtWidgets.QDialog):
 
         # todo make collapsible
         # logging text box
+        layout.addWidget(self._console_button)
         layout.addWidget(self._console)
 
         return layout
@@ -245,6 +266,16 @@ class MainDialog(QtWidgets.QDialog):
         # init / re-init config with config file selected
         # todo: This might be unnecessary,
         config.setup()
+
+    def log_button_clicked(self):
+        if self._console_hidden:
+            self._console.show()
+            self._console_button.setText("Hide Log")
+            self._console_hidden = False
+        else:
+            self._console.hide()
+            self._console_button.setText("Show Log")
+            self._console_hidden = True
 
     # todo start
     def start_status_parse(self):
@@ -369,12 +400,6 @@ class MainDialog(QtWidgets.QDialog):
         self.move(qt_rectangle.topLeft())
 
     def _fill_table(self, sequencing_run):
-        # X index for the table
-        SAMPLE_NAME = 0
-        FILE_1 = 1
-        FILE_2 = 2
-        PROJECT = 3
-
         # total number of samples
         sample_count = 0
 
@@ -390,11 +415,11 @@ class MainDialog(QtWidgets.QDialog):
             sample_list = project.sample_list
             for sample in sample_list:
                 files = sample.sequence_file.file_list
-                self._table.setItem(y_index, SAMPLE_NAME, QtWidgets.QTableWidgetItem(sample.sample_name))
-                self._table.setItem(y_index, FILE_1, QtWidgets.QTableWidgetItem(files[0]))
+                self._table.setItem(y_index, TABLE_SAMPLE_NAME, QtWidgets.QTableWidgetItem(sample.sample_name))
+                self._table.setItem(y_index, TABLE_FILE_1, QtWidgets.QTableWidgetItem(os.path.basename(files[0])))
                 if len(files) == 2:
-                    self._table.setItem(y_index, FILE_2, QtWidgets.QTableWidgetItem(files[1]))
-                self._table.setItem(y_index, PROJECT, QtWidgets.QTableWidgetItem(project.id))
+                    self._table.setItem(y_index, TABLE_FILE_2, QtWidgets.QTableWidgetItem(os.path.basename(files[1])))
+                self._table.setItem(y_index, TABLE_PROJECT, QtWidgets.QTableWidgetItem(project.id))
 
                 y_index = y_index + 1
 
