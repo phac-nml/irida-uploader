@@ -2,7 +2,10 @@ import logging
 # PyQt needs to be imported like this because for whatever reason they decided not to include a __all__ = [...]
 import PyQt5.QtCore as QtCore
 
+from pprint import pformat
+
 from core import cli_entry, parsing_handler
+from parsers import exceptions
 
 
 class StatusThread(QtCore.QThread):
@@ -43,6 +46,7 @@ class ParseThread(QtCore.QThread):
         super().__init__()
         self._directory = ""
         self._run = None
+        self._error = None
 
     def set_vars(self, directory):
         """
@@ -54,12 +58,32 @@ class ParseThread(QtCore.QThread):
     def get_run(self):
         return self._run
 
+    def get_error(self):
+        return self._error
+
     def run(self):
         """
         This runs when the threads start call is done
         :return:
         """
-        self._run = parsing_handler.parse_and_validate(self._directory)
+        try:
+            self._run = parsing_handler.parse_and_validate(self._directory)
+        except exceptions.DirectoryError as e:
+            # Directory was not valid for some reason
+            full_error = "GUI: ERROR! An error occurred with directory '{}', with message: {}".format(e.directory, e.message)
+            logging.error(full_error)
+            self._error = full_error
+            self._run = None
+        except exceptions.ValidationError as e:
+            # Sequencing Run / SampleSheet was not valid for some reason
+            error_msg = "GUI: ERROR! Errors occurred during validation with message: {}".format(e.message)
+            logging.error(error_msg)
+            error_list_msg = "GUI: Error list: " + pformat(e.validation_result.error_list)
+            logging.error(error_list_msg)
+            full_error = error_msg + ", " + error_list_msg
+            self._error = full_error
+            self._run = None
+
         pass
 
 

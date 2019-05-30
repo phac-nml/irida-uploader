@@ -6,6 +6,7 @@ import PyQt5.QtCore as QtCore
 from core import logger
 from config import config
 from progress import signal_worker
+from model import DirectoryStatus
 
 from .config import ConfigDialog
 from .tools import StatusThread, ParseThread, UploadThread, QtHandler
@@ -26,6 +27,7 @@ class MainDialog(QtWidgets.QDialog):
 
         # internal variables
         self._run_dir = ""
+        self._force_state = False
         self._config_file = ""
 
         ###################################
@@ -33,20 +35,16 @@ class MainDialog(QtWidgets.QDialog):
         ###################################
 
         # directory
-        self._dir_label = QtWidgets.QLabel(self)
-        self._dir_label.setText("Sequence Run Directory")
+        self._dir_button = QtWidgets.QPushButton(self)
+        self._dir_button.setText("Open Run Directory")
         self._dir_line = QtWidgets.QLineEdit(self)
         self._dir_line.setReadOnly(True)
-        self._dir_button = QtWidgets.QPushButton(self)
-        self._dir_button.setText("Open Directory")
         # config
         self._config_button = QtWidgets.QPushButton(self)
         self._config_button.setText("Configure Settings")
-        # force upload
-        self._force_checkbox = QtWidgets.QCheckBox(self)
-        self._force_checkbox.setText("Force Upload")
-        self._force_checkbox.setChecked(False)
-        self._force_state = False
+        # refresh
+        self._refresh_button = QtWidgets.QPushButton(self)
+        self._refresh_button.setText("Refresh")
         # upload
         self._upload_button = QtWidgets.QPushButton(self)
         self._upload_button.setText('Start Upload')
@@ -68,15 +66,14 @@ class MainDialog(QtWidgets.QDialog):
         self._file_progress = QtWidgets.QProgressBar()
 
         # todo
+        # Table
         self._table = QtWidgets.QTableWidget()
-        self._table.setRowCount(10)
         self._table.setColumnCount(4)
         self._table.setHorizontalHeaderLabels(["Sample Name", "File 1", "File 2", "Project"])
-        # self._table.
+
+        self._status_label = QtWidgets.QLabel("Status Result:")
         self._status_result = QtWidgets.QLineEdit()
         self._status_result.setReadOnly(True)
-        self._parse_button = QtWidgets.QPushButton()
-        self._parse_button.setText("Parse Run")
 
         # Setup logging handler
         handler = QtHandler()
@@ -100,12 +97,10 @@ class MainDialog(QtWidgets.QDialog):
         # buttons
         self._dir_button.clicked.connect(self.open_dir)
         self._config_button.clicked.connect(self.show_config)
-        self._force_checkbox.stateChanged.connect(self.click_force_upload)
+        self._refresh_button.clicked.connect(self.refresh)
         self._upload_button.clicked.connect(self.start_upload)
         # connect threads finishing to finish functions
-        # todo
         self._status_thread.finished.connect(self.finished_status)
-        self._parse_button.clicked.connect(self.start_parse)
         self._parse_thread.finished.connect(self.finished_parse)
         self._upload_thread.finished.connect(self.finished_upload)
         # connect progress bars
@@ -117,6 +112,9 @@ class MainDialog(QtWidgets.QDialog):
         signal_worker.current_sample_signal.connect(self.update_current_sample)
         signal_worker.current_file_signal.connect(self.update_current_file)
 
+        # init the config stuff
+        config.setup()
+
     def _layout(self):
         """
         Setup layout
@@ -127,23 +125,23 @@ class MainDialog(QtWidgets.QDialog):
 
         # Directory selection
         dir_layout = QtWidgets.QHBoxLayout()
-        layout.addWidget(self._dir_label)
-        dir_layout.addWidget(self._dir_line)
         dir_layout.addWidget(self._dir_button)
+        dir_layout.addWidget(self._dir_line)
         layout.addLayout(dir_layout)
 
-        # Config selection & force checkbox & upload button
+        # Config selection & refresh
         config_layout = QtWidgets.QHBoxLayout()
         config_layout.addWidget(self._config_button)
-        config_layout.addWidget(self._force_checkbox)
-        config_layout.addWidget(self._upload_button)
+        config_layout.addWidget(self._refresh_button)
         layout.addLayout(config_layout)
 
         # todo
-        # Samples Table
-        layout.addWidget(self._table)
+        layout.addWidget(self._status_label)
         layout.addWidget(self._status_result)
-        layout.addWidget(self._parse_button)
+        layout.addWidget(self._table)
+
+        # Upload button
+        layout.addWidget(self._upload_button)
 
         # Upload Progress
         current_project_layout = QtWidgets.QHBoxLayout()
@@ -173,8 +171,8 @@ class MainDialog(QtWidgets.QDialog):
         file_progress_layout.addWidget(self._file_progress)
         layout.addLayout(file_progress_layout)
 
+        # todo make collapsible
         # logging text box
-        # todo
         layout.addWidget(self._console)
 
         return layout
@@ -229,8 +227,12 @@ class MainDialog(QtWidgets.QDialog):
         self._run_dir = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory"))
         self._dir_line.setText(self._run_dir)
         logging.debug("GUI: result: " + self._run_dir)
-        # todo
-        self.start_status()
+
+        # Kick of status check and parsing after opening a new directory
+        self.start_status_parse()
+
+    def refresh(self):
+        self.start_status_parse()
 
     def show_config(self):
         """
@@ -240,34 +242,21 @@ class MainDialog(QtWidgets.QDialog):
         self.config_dlg.center_window()
         self.config_dlg.show()
 
-    def click_force_upload(self, state):
-        """
-        Sets the _force_state variable to reflect the current checkbox state
-        :param state: True/False
-        :return:
-        """
-        logging.debug("GUI: click_force_upload clicked")
-        if state == QtCore.Qt.Checked:
-            logging.debug("GUI: set force upload to TRUE")
-            self._force_state = True
-        else:
-            logging.debug("GUI: set force upload to False")
-            self._force_state = False
+        # init / re-init config with config file selected
+        # todo: This might be unnecessary,
+        config.setup()
 
     # todo start
-    def start_status(self):
+    def start_status_parse(self):
         """
         Blocks usage of the ui elements, runs the config setup, and starts the upload thread with set variables
         :return:
         """
         logging.debug("GUI: start_upload clicked")
-        # Lock Gui
-        self._upload_button.setEnabled(False)
-        self._config_button.setEnabled(False)
-        self._dir_button.setEnabled(False)
-        self._force_checkbox.setEnabled(False)
-        # init / re-init config with config file selected
-        config.setup()
+
+        # lock the gui so users don't click things while the parsing is still happening.
+        self._lock_gui()
+
         # start upload
         self._status_thread.set_vars(self._run_dir)
         self._status_thread.start()
@@ -284,14 +273,33 @@ class MainDialog(QtWidgets.QDialog):
         text = status.directory + ", " + status.status + ", " + str(status.message)
         self._status_result.setText(text)
 
-        if status.status == "new":
-            print("new run")
+        self.status_parse_logic(status)
 
-        # Unlock GUI
-        self._upload_button.setEnabled(True)
-        self._config_button.setEnabled(True)
-        self._dir_button.setEnabled(True)
-        self._force_checkbox.setEnabled(True)
+    def status_parse_logic(self, status):
+
+        if status.status_equals(DirectoryStatus.INVALID):
+            print("gui status: invalid")
+            # todo: do something with this info, tell the user is bad
+            # since we return here, we need to unlock the gui
+            self._unlock_gui()
+            return
+        elif status.status_equals(DirectoryStatus.NEW):
+            print("gui status: new run")
+            self._force_state = False
+        elif status.status_equals(DirectoryStatus.COMPLETE):
+            print("gui status: complete")
+            # todo: warn users this was completed already & set force
+            self._force_state = True
+        elif status.status_equals(DirectoryStatus.PARTIAL):
+            print("gui status: partial")
+            # todo: warn users its partial & set force
+            self._force_state = True
+        elif status.status_equals(DirectoryStatus.ERROR):
+            print("gui status: error")
+            # todo: warn users that it was an error & set force
+            self._force_state = True
+
+        self.start_parse()
 
     def start_parse(self):
         """
@@ -299,13 +307,6 @@ class MainDialog(QtWidgets.QDialog):
         :return:
         """
         logging.debug("GUI: start_upload clicked")
-        # Lock Gui
-        self._upload_button.setEnabled(False)
-        self._config_button.setEnabled(False)
-        self._dir_button.setEnabled(False)
-        self._force_checkbox.setEnabled(False)
-        # init / re-init config with config file selected
-        config.setup()
         # start upload
         self._parse_thread.set_vars(self._run_dir)
         self._parse_thread.start()
@@ -317,13 +318,22 @@ class MainDialog(QtWidgets.QDialog):
         :return:
         """
         logging.debug("GUI: finished_upload called")
-        # Output info
-        print( str(self._parse_thread.get_run()))
+
+        self._post_parse()
+
         # Unlock GUI
-        self._upload_button.setEnabled(True)
-        self._config_button.setEnabled(True)
-        self._dir_button.setEnabled(True)
-        self._force_checkbox.setEnabled(True)
+        self._unlock_gui()
+
+    def _post_parse(self):
+        sequencing_run = self._parse_thread.get_run()
+
+        if sequencing_run:
+            # run parsed correctly
+            self._fill_table(sequencing_run)
+        else:
+            run_errors = self._parse_thread.get_error()
+            # todo: do something when a run fails to parse
+
     # todo end
 
     def start_upload(self):
@@ -333,12 +343,7 @@ class MainDialog(QtWidgets.QDialog):
         """
         logging.debug("GUI: start_upload clicked")
         # Lock Gui
-        self._upload_button.setEnabled(False)
-        self._config_button.setEnabled(False)
-        self._dir_button.setEnabled(False)
-        self._force_checkbox.setEnabled(False)
-        # init / re-init config with config file selected
-        config.setup()
+        self._lock_gui()
         # start upload
         self._upload_thread.set_vars(self._run_dir, self._force_state)
         self._upload_thread.start()
@@ -351,13 +356,7 @@ class MainDialog(QtWidgets.QDialog):
         """
         logging.debug("GUI: finished_upload called")
         # Unlock GUI
-        self._upload_button.setEnabled(True)
-        self._config_button.setEnabled(True)
-        self._dir_button.setEnabled(True)
-        self._force_checkbox.setEnabled(True)
-        # reset checkbox
-        self._force_state = False
-        self._force_checkbox.setChecked(False)
+        self._unlock_gui()
 
     def _center_window(self):
         """
@@ -368,3 +367,45 @@ class MainDialog(QtWidgets.QDialog):
         center_point = QtWidgets.QDesktopWidget().availableGeometry().center()
         qt_rectangle.moveCenter(center_point)
         self.move(qt_rectangle.topLeft())
+
+    def _fill_table(self, sequencing_run):
+        # X index for the table
+        SAMPLE_NAME = 0
+        FILE_1 = 1
+        FILE_2 = 2
+        PROJECT = 3
+
+        # total number of samples
+        sample_count = 0
+
+        project_list = sequencing_run.project_list
+        for project in project_list:
+            sample_list = project.sample_list
+            sample_count = sample_count + len(sample_list)
+
+        self._table.setRowCount(sample_count)
+
+        y_index = 0
+        for project in project_list:
+            sample_list = project.sample_list
+            for sample in sample_list:
+                files = sample.sequence_file.file_list
+                self._table.setItem(y_index, SAMPLE_NAME, QtWidgets.QTableWidgetItem(sample.sample_name))
+                self._table.setItem(y_index, FILE_1, QtWidgets.QTableWidgetItem(files[0]))
+                if len(files) == 2:
+                    self._table.setItem(y_index, FILE_2, QtWidgets.QTableWidgetItem(files[1]))
+                self._table.setItem(y_index, PROJECT, QtWidgets.QTableWidgetItem(project.id))
+
+                y_index = y_index + 1
+
+    def _lock_gui(self):
+        # Lock Gui
+        self._upload_button.setEnabled(False)
+        self._config_button.setEnabled(False)
+        self._dir_button.setEnabled(False)
+
+    def _unlock_gui(self):
+        self._upload_button.setEnabled(True)
+        self._config_button.setEnabled(True)
+        self._dir_button.setEnabled(True)
+
