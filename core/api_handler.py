@@ -141,28 +141,20 @@ def upload_sequencing_run(sequencing_run):
         # set seq run to upload
         api_instance.set_seq_run_uploading(run_id)
 
-        num_projects = len(sequencing_run.project_list)
         current_project_number = 0
         # loop through projects
         for project in sequencing_run.project_list:
-            progress.send_current_project(project.id)
-            progress.send_project_percent(float(current_project_number/num_projects*100))
             current_project_number = current_project_number + 1
-            num_samples = len(project.sample_list)
             current_sample_number = 0
             # loop through samples
             for sample in project.sample_list:
                 logging.info("Uploading to Sample {} on Project {}".format(sample.sample_name, project.id))
-                progress.send_current_sample(sample.sample_name)
-                progress.send_sample_percent(float(current_sample_number/num_samples*100))
                 current_sample_number = current_sample_number + 1
                 # upload files
                 api_instance.send_sequence_files(sequence_file=sample.sequence_file,
                                                  sample_name=sample.sample_name,
                                                  project_id=project.id,
                                                  upload_id=run_id)
-            progress.send_sample_percent(100)
-        progress.send_project_percent(100)
 
         # set seq run to complete
         api_instance.set_seq_run_complete(run_id)

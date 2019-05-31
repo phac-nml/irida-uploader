@@ -536,14 +536,20 @@ class ApiCalls(object):
                     data = fastq_file.read(read_size)
                     # Command line progress info printing
                     # Todo: once message passing is in place, this might find its home in that module
-                    progress.send_current_file(filename)
                     bytes_read = 0
                     while data and not self._stop_upload:
                         bytes_read += len(data)
                         progress_percent = round(bytes_read/total_file_size*100, 2)
-                        progress.send_file_percent(progress_percent)
                         print("Progress: ", progress_percent,
                               "% Uploaded     \r", end="")
+                        progress.send_progress(
+                            {
+                                "project": project_id,
+                                "sample": sample_name,
+                                "file": filename,
+                                "progress": progress_percent
+                            }
+                        )
                         yield data
                         data = fastq_file.read(read_size)
                     print()  # end cap to the dots we printed above

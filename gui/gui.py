@@ -2,7 +2,6 @@ import logging
 import os
 # PyQt needs to be imported like this because for whatever reason they decided not to include a __all__ = [...]
 import PyQt5.QtWidgets as QtWidgets
-import PyQt5.QtCore as QtCore
 
 from core import logger
 from config import config
@@ -38,6 +37,7 @@ class MainDialog(QtWidgets.QDialog):
         self._force_state = False
         self._config_file = ""
         self._console_hidden = True
+        self._table_sample_index_dict = None
 
         ###################################
         #           QT Objects            #
@@ -59,22 +59,6 @@ class MainDialog(QtWidgets.QDialog):
         # upload
         self._upload_button = QtWidgets.QPushButton(self)
         self._upload_button.setText('Start Upload')
-        # Upload Progress
-        self._current_project_label = QtWidgets.QLabel("Current Project:")
-        self._current_project = QtWidgets.QLineEdit()
-        self._current_project.setReadOnly(True)
-        self._project_progress_label = QtWidgets.QLabel("Project Upload Progress")
-        self._project_progress = QtWidgets.QProgressBar()
-        self._current_sample_label = QtWidgets.QLabel("Current Sample:")
-        self._current_sample = QtWidgets.QLineEdit()
-        self._current_sample.setReadOnly(True)
-        self._sample_progress_label = QtWidgets.QLabel("Sample Upload Progress")
-        self._sample_progress = QtWidgets.QProgressBar()
-        self._current_file_label = QtWidgets.QLabel("Current File:")
-        self._current_file = QtWidgets.QLineEdit()
-        self._current_file.setReadOnly(True)
-        self._file_progress_label = QtWidgets.QLabel("File Upload Progress")
-        self._file_progress = QtWidgets.QProgressBar()
 
         # todo
         # Table
@@ -124,14 +108,8 @@ class MainDialog(QtWidgets.QDialog):
         self._status_thread.finished.connect(self.finished_status)
         self._parse_thread.finished.connect(self.finished_parse)
         self._upload_thread.finished.connect(self.finished_upload)
-        # connect progress bars
-        signal_worker.project_progress_signal.connect(self._project_progress.setValue)
-        signal_worker.sample_progress_signal.connect(self._sample_progress.setValue)
-        signal_worker.file_progress_signal.connect(self._file_progress.setValue)
-        # connect current file/sample/project text boxes
-        signal_worker.current_project_signal.connect(self.update_current_project)
-        signal_worker.current_sample_signal.connect(self.update_current_sample)
-        signal_worker.current_file_signal.connect(self.update_current_file)
+        # todo: connecting advanced
+        signal_worker.progress_signal.connect(self.update_progress)
 
         # init the config stuff
         config.setup()
@@ -163,40 +141,16 @@ class MainDialog(QtWidgets.QDialog):
         # Upload button
         layout.addWidget(self._upload_button)
 
-        # Upload Progress
-        current_project_layout = QtWidgets.QHBoxLayout()
-        current_project_layout.addWidget(self._current_project_label)
-        current_project_layout.addWidget(self._current_project)
-        layout.addLayout(current_project_layout)
-        project_progress_layout = QtWidgets.QHBoxLayout()
-        project_progress_layout.addWidget(self._project_progress_label)
-        project_progress_layout.addWidget(self._project_progress)
-        layout.addLayout(project_progress_layout)
-
-        current_sample_layout = QtWidgets.QHBoxLayout()
-        current_sample_layout.addWidget(self._current_sample_label)
-        current_sample_layout.addWidget(self._current_sample)
-        layout.addLayout(current_sample_layout)
-        sample_progress_layout = QtWidgets.QHBoxLayout()
-        sample_progress_layout.addWidget(self._sample_progress_label)
-        sample_progress_layout.addWidget(self._sample_progress)
-        layout.addLayout(sample_progress_layout)
-
-        current_file_layout = QtWidgets.QHBoxLayout()
-        current_file_layout.addWidget(self._current_file_label)
-        current_file_layout.addWidget(self._current_file)
-        layout.addLayout(current_file_layout)
-        file_progress_layout = QtWidgets.QHBoxLayout()
-        file_progress_layout.addWidget(self._file_progress_label)
-        file_progress_layout.addWidget(self._file_progress)
-        layout.addLayout(file_progress_layout)
-
         # todo make collapsible
         # logging text box
         layout.addWidget(self._console_button)
         layout.addWidget(self._console)
 
         return layout
+
+    def update_progress(self, data):
+        sample_name_project = data["sample"] + "." + str(data["project"])
+        self._table_sample_index_dict[sample_name_project].setValue(data["progress"])
 
     def write_log_and_redraw(self, text):
         """
@@ -207,36 +161,6 @@ class MainDialog(QtWidgets.QDialog):
         """
         self._console.appendPlainText(text)
         self._console.repaint()
-
-    def update_current_project(self, text):
-        """
-        Set text and repaint
-        Used as a slot for emits
-        :param text:
-        :return:
-        """
-        self._current_project.setText(text)
-        self._current_project.repaint()
-
-    def update_current_sample(self, text):
-        """
-        Set text and repaint
-        Used as a slot for emits
-        :param text:
-        :return:
-        """
-        self._current_sample.setText(text)
-        self._current_sample.repaint()
-
-    def update_current_file(self, text):
-        """
-        Set text and repaint
-        Used as a slot for emits
-        :param text:
-        :return:
-        """
-        self._current_file.setText(text)
-        self._current_file.repaint()
 
     def open_dir(self):
         """
@@ -287,6 +211,8 @@ class MainDialog(QtWidgets.QDialog):
 
         # lock the gui so users don't click things while the parsing is still happening.
         self._lock_gui()
+        # Clear the table
+        self._clear_table()
 
         # start upload
         self._status_thread.set_vars(self._run_dir)
@@ -409,6 +335,7 @@ class MainDialog(QtWidgets.QDialog):
             sample_count = sample_count + len(sample_list)
 
         self._table.setRowCount(sample_count)
+        self._table_sample_index_dict = {}
 
         y_index = 0
         for project in project_list:
@@ -421,7 +348,16 @@ class MainDialog(QtWidgets.QDialog):
                     self._table.setItem(y_index, TABLE_FILE_2, QtWidgets.QTableWidgetItem(os.path.basename(files[1])))
                 self._table.setItem(y_index, TABLE_PROJECT, QtWidgets.QTableWidgetItem(project.id))
 
+                new_progress_bar = QtWidgets.QProgressBar()
+                self._table.setCellWidget(y_index, TABLE_PROGRESS, new_progress_bar)
+                sample_project_key = sample.sample_name + "." + str(project.id)
+                self._table_sample_index_dict[sample_project_key] = new_progress_bar
+
                 y_index = y_index + 1
+
+    def _clear_table(self):
+        self._table.clearContents()
+        self._table.setRowCount(0)
 
     def _lock_gui(self):
         # Lock Gui
@@ -433,4 +369,3 @@ class MainDialog(QtWidgets.QDialog):
         self._upload_button.setEnabled(True)
         self._config_button.setEnabled(True)
         self._dir_button.setEnabled(True)
-
