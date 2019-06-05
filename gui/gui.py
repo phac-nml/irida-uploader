@@ -3,7 +3,7 @@ import os
 # PyQt needs to be imported like this because for whatever reason they decided not to include a __all__ = [...]
 import PyQt5.QtWidgets as QtWidgets
 
-from core import logger
+from core import logger, api_handler
 from config import config
 from progress import signal_worker
 from model import DirectoryStatus
@@ -27,7 +27,6 @@ class MainDialog(QtWidgets.QDialog):
         self.config_dlg = ConfigDialog(parent=self)
 
         # Initialize threads
-        # todo
         self._status_thread = StatusThread()
         self._parse_thread = ParseThread()
         self._upload_thread = UploadThread()
@@ -53,16 +52,38 @@ class MainDialog(QtWidgets.QDialog):
         self._config_button = QtWidgets.QPushButton(self)
         self._config_button.setText("Configure Settings")
         self._config_button.setFixedWidth(200)
+        # connection status
+        self._connection_status = QtWidgets.QLineEdit(self)
+        self._connection_status.setReadOnly(True)
+        self._connection_status.setFixedWidth(300)
         # refresh
         self._refresh_button = QtWidgets.QPushButton(self)
         self._refresh_button.setText("Refresh")
+        # info
+        self._info_line = QtWidgets.QLineEdit(self)
+        self._info_line.setReadOnly(True)
+        self._info_line.setStyleSheet("background-color: yellow")
+        self._info_line.hide()
+        self._prev_errors = QtWidgets.QPlainTextEdit(self)
+        self._prev_errors.setReadOnly(True)
+        self._prev_errors.hide()
+        self._info_btn = QtWidgets.QPushButton(self)
+        self._info_btn.setText("!!! Continue !!!")
+        self._info_btn.setStyleSheet("background-color: red")
+        self._curr_errors = QtWidgets.QPlainTextEdit(self)
+        self._curr_errors.setReadOnly(True)
+        self._curr_errors.setStyleSheet("background-color: pink")
+        self._curr_errors.hide()
+
+        self._info_btn.hide()
         # upload
         self._upload_button = QtWidgets.QPushButton(self)
         self._upload_button.setText('Start Upload')
+        self._upload_button.setStyleSheet("background-color: lime")
 
-        # todo
         # Table
         self._table = QtWidgets.QTableWidget()
+        self._table.setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
         self._table.setColumnCount(5)
         self._table.setHorizontalHeaderLabels(["Sample Name", "File 1", "File 2", "Project", "Progress"])
         self._table.setColumnWidth(TABLE_SAMPLE_NAME, 170)
@@ -104,15 +125,16 @@ class MainDialog(QtWidgets.QDialog):
         self._refresh_button.clicked.connect(self.refresh)
         self._upload_button.clicked.connect(self.start_upload)
         self._console_button.clicked.connect(self.log_button_clicked)
+        self._info_btn.clicked.connect(self.click_continue)
         # connect threads finishing to finish functions
         self._status_thread.finished.connect(self.finished_status)
         self._parse_thread.finished.connect(self.finished_parse)
         self._upload_thread.finished.connect(self.finished_upload)
-        # todo: connecting advanced
         signal_worker.progress_signal.connect(self.update_progress)
 
         # init the config stuff
         config.setup()
+        self.contact_irida()
 
     def _layout(self):
         """
@@ -131,19 +153,29 @@ class MainDialog(QtWidgets.QDialog):
         # Config selection & refresh
         config_layout = QtWidgets.QHBoxLayout()
         config_layout.addWidget(self._config_button)
+        config_layout.addWidget(self._connection_status)
         config_layout.addWidget(self._refresh_button)
-        config_layout.addWidget(self._status_label)
-        config_layout.addWidget(self._status_result)
+        # config_layout.addWidget(self._status_label)
+        # config_layout.addWidget(self._status_result)
         layout.addLayout(config_layout)
 
+        # info
+        layout.addWidget(self._info_line)
+        layout.addWidget(self._prev_errors)
+        layout.addWidget(self._info_btn)
+        layout.addWidget(self._curr_errors)
+
+        # table
         layout.addWidget(self._table)
 
         # Upload button
-        layout.addWidget(self._upload_button)
+        upload_layout = QtWidgets.QHBoxLayout()
+        upload_layout.addWidget(self._upload_button)
+        upload_layout.addWidget(self._console_button)
+        layout.addLayout(upload_layout)
 
         # todo make collapsible
         # logging text box
-        layout.addWidget(self._console_button)
         layout.addWidget(self._console)
 
         return layout
@@ -177,6 +209,7 @@ class MainDialog(QtWidgets.QDialog):
         self.start_status_parse()
 
     def refresh(self):
+        self.contact_irida()
         self.start_status_parse()
 
     def show_config(self):
@@ -185,11 +218,40 @@ class MainDialog(QtWidgets.QDialog):
         :return:
         """
         self.config_dlg.center_window()
-        self.config_dlg.show()
+        self.config_dlg.exec()
 
-        # init / re-init config with config file selected
-        # todo: This might be unnecessary,
-        config.setup()
+        # re-init connection
+        self.contact_irida()
+
+    def reset_info_line(self):
+        self._info_line.setText("")
+        self._info_line.hide()
+        self._info_btn.hide()
+        self._info_btn.setEnabled(True)
+
+    def show_and_fill_info_line(self, message):
+        self._info_line.setText(message)
+        self._info_line.show()
+        self._info_btn.show()
+
+    def disable_info_button(self):
+        self._info_btn.setEnabled(False)
+
+    def show_previous_error(self, errors):
+        self._prev_errors.show()
+        self._prev_errors.appendPlainText(str(errors))
+
+    def reset_previous_error(self):
+        self._prev_errors.clear()
+        self._prev_errors.hide()
+
+    def show_current_error(self, errors):
+        self._curr_errors.show()
+        self._curr_errors.appendPlainText(str(errors))
+
+    def reset_current_error(self):
+        self._curr_errors.clear()
+        self._curr_errors.hide()
 
     def log_button_clicked(self):
         if self._console_hidden:
@@ -213,6 +275,11 @@ class MainDialog(QtWidgets.QDialog):
         self._lock_gui()
         # Clear the table
         self._clear_table()
+        # reset the info line
+        self.reset_info_line()
+        # reset error lines
+        self.reset_previous_error()
+        self.reset_current_error()
 
         # start upload
         self._status_thread.set_vars(self._run_dir)
@@ -235,27 +302,48 @@ class MainDialog(QtWidgets.QDialog):
     def status_parse_logic(self, status):
 
         if status.status_equals(DirectoryStatus.INVALID):
-            print("gui status: invalid")
-            # todo: do something with this info, tell the user is bad
             # since we return here, we need to unlock the gui
             self._unlock_gui()
+            # Then we need to block upload, since it's invalid
+            self._block_upload()
+            # Give info in info line
+            self.show_and_fill_info_line("Run is not valid: " + str(status.message))
+            # an invalid run cannot be continued
+            self.disable_info_button()
             return
         elif status.status_equals(DirectoryStatus.NEW):
-            print("gui status: new run")
             self._force_state = False
+            # new runs start the parse immediately
+            self.start_parse()
         elif status.status_equals(DirectoryStatus.COMPLETE):
-            print("gui status: complete")
-            # todo: warn users this was completed already & set force
+            # We need to block upload until the user clicks continue
+            self._block_upload()
+            # give user info
+            self.show_and_fill_info_line("This run directory has already been uploaded. "
+                                         "Click continue to proceed anyway.")
+            # set force state for if user wants to continue anyways
             self._force_state = True
         elif status.status_equals(DirectoryStatus.PARTIAL):
-            print("gui status: partial")
-            # todo: warn users its partial & set force
+            # We need to block upload until the user clicks continue
+            self._block_upload()
+            # give user info
+            self.show_and_fill_info_line("This run directory may be partially uploaded. "
+                                         "Click continue to proceed anyway.")
+            # set force state for if user wants to continue anyways
             self._force_state = True
         elif status.status_equals(DirectoryStatus.ERROR):
-            print("gui status: error")
-            # todo: warn users that it was an error & set force
+            # We need to block upload until the user clicks continue
+            self._block_upload()
+            # give user info
+            self.show_and_fill_info_line("This run directory previously had the error(s) below. "
+                                         "Click continue to proceed anyway.")
+            self.show_previous_error(status.message)
+            # set force state for if user wants to continue anyways
             self._force_state = True
 
+    def click_continue(self):
+        self.reset_previous_error()
+        self.reset_info_line()
         self.start_parse()
 
     def start_parse(self):
@@ -276,22 +364,18 @@ class MainDialog(QtWidgets.QDialog):
         """
         logging.debug("GUI: finished_upload called")
 
-        self._post_parse()
-
-        # Unlock GUI
-        self._unlock_gui()
-
-    def _post_parse(self):
         sequencing_run = self._parse_thread.get_run()
 
         if sequencing_run:
             # run parsed correctly
             self._fill_table(sequencing_run)
+            self._unlock_gui()
         else:
             run_errors = self._parse_thread.get_error()
-            # todo: do something when a run fails to parse
-
-    # todo end
+            self.show_current_error(run_errors)
+            self._unlock_gui()
+            # block uploading runs with parsing errors
+            self._block_upload()
 
     def start_upload(self):
         """
@@ -367,5 +451,27 @@ class MainDialog(QtWidgets.QDialog):
 
     def _unlock_gui(self):
         self._upload_button.setEnabled(True)
+        self._upload_button.setStyleSheet("background-color: lime")
         self._config_button.setEnabled(True)
         self._dir_button.setEnabled(True)
+
+    def _block_upload(self):
+        self._upload_button.setEnabled(False)
+        self._upload_button.setStyleSheet("background-color: grey")
+
+    def contact_irida(self):
+        """
+        Attempts to connect to IRIDA
+        Sets the style and text of the status widget to green/red to indicate connected/error
+        :return:
+        """
+        try:
+            api_handler.initialize_api_from_config()
+            self._connection_status.setText("Connection OK")
+            self._connection_status.setStyleSheet("background-color: green; color: white;")
+            logging.info("Successfully connected to IRIDA")
+        except Exception:
+            self._connection_status.setText("Connection Error")
+            self._connection_status.setStyleSheet("background-color: red; color: white;")
+            logging.info("Error occurred while trying to connect to IRIDA")
+            self._block_upload()

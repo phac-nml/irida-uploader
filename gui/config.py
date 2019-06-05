@@ -101,6 +101,7 @@ class ConfigDialog(QtWidgets.QDialog):
         :return:
         """
         self.write_settings_to_file()
+        self.contact_irida()
         self.close()
 
     def cancel_and_exit(self):

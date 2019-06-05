@@ -70,9 +70,10 @@ class ParseThread(QtCore.QThread):
             self._run = parsing_handler.parse_and_validate(self._directory)
         except exceptions.DirectoryError as e:
             # Directory was not valid for some reason
-            full_error = "GUI: ERROR! An error occurred with directory '{}', with message: {}".format(e.directory, e.message)
+            full_error = "GUI: ERROR! An error occurred with directory '{}', with message: {}".format(e.directory,
+                                                                                                      e.message)
             logging.error(full_error)
-            self._error = full_error
+            self._error = e.message
             self._run = None
         except exceptions.ValidationError as e:
             # Sequencing Run / SampleSheet was not valid for some reason
@@ -80,7 +81,9 @@ class ParseThread(QtCore.QThread):
             logging.error(error_msg)
             error_list_msg = "GUI: Error list: " + pformat(e.validation_result.error_list)
             logging.error(error_list_msg)
-            full_error = error_msg + ", " + error_list_msg
+            full_error = "Error: " + e.message + "\nError List:\n"
+            for err in e.validation_result.error_list:
+                full_error = full_error + str(err) + "\n"
             self._error = full_error
             self._run = None
 
