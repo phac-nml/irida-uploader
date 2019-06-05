@@ -26,12 +26,16 @@ class StatusThread(QtCore.QThread):
         self._directory = directory
 
     def get_result(self):
+        """
+        returns the result that was returned after run was called.
+        :return: DirectoryStatus object
+        """
         return self._result
 
     def run(self):
         """
         This runs when the threads start call is done
-        :return:
+        :return: None
         """
         self._result = parsing_handler.get_run_status(self._directory)
         pass

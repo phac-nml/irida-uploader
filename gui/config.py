@@ -34,22 +34,22 @@ class ConfigDialog(QtWidgets.QDialog):
         self._btn_cancel = QtWidgets.QPushButton("Cancel")
 
         # connections
-        self._btn_check_settings.clicked.connect(self.check_connection_to_irida)
-        self._btn_accept.clicked.connect(self.accept_and_exit)
-        self._btn_cancel.clicked.connect(self.cancel_and_exit)
+        self._btn_check_settings.clicked.connect(self._check_connection_to_irida)
+        self._btn_accept.clicked.connect(self._accept_and_exit)
+        self._btn_cancel.clicked.connect(self._cancel_and_exit)
 
         # Set Layout and Geometry
         self.setLayout(self._layout())
         self.setGeometry(0, 0, 600, 300)
 
         # Init settings
-        self.get_settings_from_file()
-        self.contact_irida()
+        self._get_settings_from_file()
+        self._contact_irida()
 
     def _layout(self):
         """
         Layout widgets
-        :return:
+        :return: QtWidgets.QVBoxLayout()
         """
         # base layout
         layout = QtWidgets.QVBoxLayout()
@@ -95,23 +95,23 @@ class ConfigDialog(QtWidgets.QDialog):
 
         return layout
 
-    def accept_and_exit(self):
+    def _accept_and_exit(self):
         """
         Writes the settings to file and then closes
         :return:
         """
-        self.write_settings_to_file()
-        self.contact_irida()
+        self._write_settings_to_file()
+        self._contact_irida()
         self.close()
 
-    def cancel_and_exit(self):
+    def _cancel_and_exit(self):
         """
         closes this widget
         :return:
         """
         self.close()
 
-    def get_settings_from_file(self):
+    def _get_settings_from_file(self):
         """
         Loads the config settings from file and fills the widgets
         :return:
@@ -125,7 +125,7 @@ class ConfigDialog(QtWidgets.QDialog):
         index = self._parser.findText(config.read_config_option('parser'))
         self._parser.setCurrentIndex(index)
 
-    def write_settings_to_file(self):
+    def _write_settings_to_file(self):
         """
         Writes the settings in the config boxes to file
         :return:
@@ -138,7 +138,7 @@ class ConfigDialog(QtWidgets.QDialog):
                                   parser=self._parser.currentText())
         config.write_config_options_to_file()
 
-    def contact_irida(self):
+    def _contact_irida(self):
         """
         Attempts to connect to IRIDA
         Sets the style and text of the status widget to green/red to indicate connected/error
@@ -154,13 +154,13 @@ class ConfigDialog(QtWidgets.QDialog):
             self._settings_status.setStyleSheet("background-color: red; color: white;")
             logging.info("Error occurred while trying to connect to IRIDA")
 
-    def check_connection_to_irida(self):
+    def _check_connection_to_irida(self):
         """
         Writes the settings in the boxes to the config file, and then tries to connect to IRIDA
         :return:
         """
-        self.write_settings_to_file()
-        self.contact_irida()
+        self._write_settings_to_file()
+        self._contact_irida()
 
     def center_window(self):
         """
