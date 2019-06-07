@@ -6,6 +6,10 @@ from core import api_handler
 from config import config
 from parsers import supported_parsers
 
+# Colour Codes
+COLOUR_GREEN_LIGHT = "#D9F7BE"
+COLOUR_RED_LIGHT = "#FFCCC7"
+
 
 class ConfigDialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
@@ -21,6 +25,7 @@ class ConfigDialog(QtWidgets.QDialog):
         self._username = QtWidgets.QLineEdit()
         self._password_label = QtWidgets.QLabel("Password")
         self._password = QtWidgets.QLineEdit()
+        self._password.setEchoMode(QtWidgets.QLineEdit.Password)
         self._base_url_label = QtWidgets.QLabel("Base URL")
         self._base_url = QtWidgets.QLineEdit()
         self._parser_label = QtWidgets.QLabel("Parser")
@@ -30,6 +35,8 @@ class ConfigDialog(QtWidgets.QDialog):
         self._btn_check_settings = QtWidgets.QPushButton("Save and Test Settings")
         self._settings_status = QtWidgets.QLineEdit()
         self._settings_status.setReadOnly(True)
+        self._settings_status.setEnabled(False)
+        self._settings_status.setStyleSheet("color: black")
         self._btn_accept = QtWidgets.QPushButton("Accept")
         self._btn_cancel = QtWidgets.QPushButton("Cancel")
 
@@ -147,11 +154,11 @@ class ConfigDialog(QtWidgets.QDialog):
         try:
             api_handler.initialize_api_from_config()
             self._settings_status.setText("Connection OK")
-            self._settings_status.setStyleSheet("background-color: green; color: white;")
+            self._settings_status.setStyleSheet("background-color: {}; color: black;".format(COLOUR_GREEN_LIGHT))
             logging.info("Successfully connected to IRIDA")
         except Exception:
             self._settings_status.setText("ERROR!")
-            self._settings_status.setStyleSheet("background-color: red; color: white;")
+            self._settings_status.setStyleSheet("background-color: {}; color: black;".format(COLOUR_RED_LIGHT))
             logging.info("Error occurred while trying to connect to IRIDA")
 
     def _check_connection_to_irida(self):

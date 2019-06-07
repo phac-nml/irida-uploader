@@ -2,6 +2,7 @@ import logging
 import os
 # PyQt needs to be imported like this because for whatever reason they decided not to include a __all__ = [...]
 import PyQt5.QtWidgets as QtWidgets
+import PyQt5.QtCore as QtCore
 
 from core import logger, api_handler
 from config import config
@@ -17,6 +18,16 @@ TABLE_FILE_1 = 1
 TABLE_FILE_2 = 2
 TABLE_PROJECT = 3
 TABLE_PROGRESS = 4
+
+# Colour Codes
+COLOUR_GREEN_LIGHT = "#D9F7BE"
+COLOUR_GREEN_DARK = "#52C41A"
+COLOUR_BLUE_LIGHT = "#BAE7FF"
+COLOUR_BLUE_DARK = "#1890FF"
+COLOUR_RED_LIGHT = "#FFCCC7"
+COLOUR_RED_DARK = "#F5222D"
+COLOUR_YELLOW_LIGHT = "#FFFFB8"
+COLOUR_YELLOW_DARK = "#FADB14"
 
 
 class MainDialog(QtWidgets.QDialog):
@@ -79,6 +90,8 @@ class MainDialog(QtWidgets.QDialog):
         config.setup()
         # attempt connecting to IRIDA
         self._contact_irida()
+        # block upload on start
+        self._block_upload()
 
     def _init_objects(self):
         """
@@ -91,6 +104,8 @@ class MainDialog(QtWidgets.QDialog):
         self._dir_button.setFixedWidth(200)
         self._dir_line = QtWidgets.QLineEdit(self)
         self._dir_line.setReadOnly(True)
+        self._dir_line.setEnabled(False)
+        self._dir_line.setStyleSheet("color: black")
         # config
         self._config_button = QtWidgets.QPushButton(self)
         self._config_button.setText("Configure Settings")
@@ -99,29 +114,33 @@ class MainDialog(QtWidgets.QDialog):
         self._connection_status = QtWidgets.QLineEdit(self)
         self._connection_status.setReadOnly(True)
         self._connection_status.setFixedWidth(300)
+        self._connection_status.setStyleSheet("color: black")
+        self._connection_status.setEnabled(False)
         # refresh
         self._refresh_button = QtWidgets.QPushButton(self)
         self._refresh_button.setText("Refresh")
         # Info lines, these start out as hidden
         self._info_line = QtWidgets.QLineEdit(self)
         self._info_line.setReadOnly(True)
-        self._info_line.setStyleSheet("background-color: yellow")
+        self._info_line.setStyleSheet("background-color: {}".format(COLOUR_YELLOW_LIGHT))
         self._info_line.hide()
         self._prev_errors = QtWidgets.QPlainTextEdit(self)
         self._prev_errors.setReadOnly(True)
+        # todo self._prev_errors.setStyleSheet("background-color: {}; color: black".format(COLOUR_RED_LIGHT))
+        self._connection_status.setEnabled(False)
         self._prev_errors.hide()
         self._info_btn = QtWidgets.QPushButton(self)
-        self._info_btn.setText("!!! Continue !!!")
-        self._info_btn.setStyleSheet("background-color: red")
+        self._info_btn.setText("Continue")
+        self._info_btn.setStyleSheet("background-color: {}".format(COLOUR_RED_LIGHT))
         self._info_btn.hide()
         self._curr_errors = QtWidgets.QPlainTextEdit(self)
         self._curr_errors.setReadOnly(True)
-        self._curr_errors.setStyleSheet("background-color: pink")
+        self._curr_errors.setStyleSheet("background-color: {}".format(COLOUR_RED_LIGHT))
         self._curr_errors.hide()
         # Upload button
         self._upload_button = QtWidgets.QPushButton(self)
         self._upload_button.setText('Start Upload')
-        self._upload_button.setStyleSheet("background-color: lime; color: black")
+        self._upload_button.setStyleSheet("background-color: {}; color: black".format(COLOUR_BLUE_LIGHT))
         # Table
         self._table = QtWidgets.QTableWidget()
         self._table.setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
@@ -231,6 +250,7 @@ class MainDialog(QtWidgets.QDialog):
         logging.debug("GUI: _btn_upload clicked")
         # Lock Gui
         self._lock_gui()
+        self._block_upload()
         # start upload
         self._upload_thread.set_vars(self._run_dir, self._force_state)
         self._upload_thread.start()
@@ -296,7 +316,7 @@ class MainDialog(QtWidgets.QDialog):
             # Give info in info line
             self._show_and_fill_info_line("Run is not valid: " + str(status.message))
             # an invalid run cannot be continued
-            self._disable_info_button()
+            self._hide_info_button()
 
         elif status.status_equals(DirectoryStatus.NEW):
             self._force_state = False
@@ -308,7 +328,7 @@ class MainDialog(QtWidgets.QDialog):
             self._block_upload()
             # give user info
             self._show_and_fill_info_line("This run directory has already been uploaded. "
-                                         "Click continue to proceed anyway.")
+                                          "Click continue to proceed anyway.")
             # set force state for if user wants to continue anyways
             self._force_state = True
 
@@ -317,7 +337,7 @@ class MainDialog(QtWidgets.QDialog):
             self._block_upload()
             # give user info
             self._show_and_fill_info_line("This run directory may be partially uploaded. "
-                                         "Click continue to proceed anyway.")
+                                          "Click continue to proceed anyway.")
             # set force state for if user wants to continue anyways
             self._force_state = True
 
@@ -326,7 +346,7 @@ class MainDialog(QtWidgets.QDialog):
             self._block_upload()
             # give user info
             self._show_and_fill_info_line("This run directory previously had the error(s) below. "
-                                         "Click continue to proceed anyway.")
+                                          "Click continue to proceed anyway.")
             self._show_previous_error(status.message)
             # set force state for if user wants to continue anyways
             self._force_state = True
@@ -426,12 +446,12 @@ class MainDialog(QtWidgets.QDialog):
         try:
             api_handler.initialize_api_from_config()
             self._connection_status.setText("Connection OK")
-            self._connection_status.setStyleSheet("background-color: green; color: white;")
+            self._connection_status.setStyleSheet("background-color: {}; color: black;".format(COLOUR_GREEN_LIGHT))
             logging.info("GUI: Successfully connected to IRIDA")
         # todo: advanced error handling from the api side would be nice (tell users what part failed)
         except Exception:
             self._connection_status.setText("Connection Error")
-            self._connection_status.setStyleSheet("background-color: red; color: white;")
+            self._connection_status.setStyleSheet("background-color: {}; color: white;".format(COLOUR_RED_DARK))
             logging.info("GUI: Error occurred while trying to connect to IRIDA")
             self._block_upload()
 
@@ -461,21 +481,19 @@ class MainDialog(QtWidgets.QDialog):
         """
         Hides the info line
         blanks out the info line
-        unblocks the info button
-        :return: 
+        :return:
         """
         self._info_line.setText("")
         self._info_line.hide()
         self._info_btn.hide()
-        self._info_btn.setEnabled(True)
 
-    def _disable_info_button(self):
+    def _hide_info_button(self):
         """
         disables the use of the info (continue) button
         Useful in the case of an invalid run that should never be parsed
         :return: 
         """
-        self._info_btn.setEnabled(False)
+        self._info_btn.hide()
 
     def _show_previous_error(self, errors):
         """
@@ -542,7 +560,8 @@ class MainDialog(QtWidgets.QDialog):
                     self._table.setItem(y_index, TABLE_FILE_2, QtWidgets.QTableWidgetItem(os.path.basename(files[1])))
                 self._table.setItem(y_index, TABLE_PROJECT, QtWidgets.QTableWidgetItem(project.id))
 
-                new_progress_bar = QtWidgets.QProgressBar()
+                new_progress_bar = UploadProgressBar()
+                # new_progress_bar.setStyleSheet()
                 self._table.setCellWidget(y_index, TABLE_PROGRESS, new_progress_bar)
                 sample_project_key = sample.sample_name + "." + str(project.id)
                 self._table_sample_index_dict[sample_project_key] = new_progress_bar
@@ -573,7 +592,7 @@ class MainDialog(QtWidgets.QDialog):
         """
         self._upload_button.setEnabled(True)
         self._upload_button.setText("Upload")
-        self._upload_button.setStyleSheet("background-color: lime; color: black")
+        self._upload_button.setStyleSheet("background-color: {}; color: black".format(COLOUR_BLUE_LIGHT))
         self._config_button.setEnabled(True)
         self._dir_button.setEnabled(True)
 
@@ -593,4 +612,43 @@ class MainDialog(QtWidgets.QDialog):
         """
         self._upload_button.setEnabled(False)
         self._upload_button.setText("Complete")
-        self._upload_button.setStyleSheet("background-color: aqua; color: black")
+        self._upload_button.setStyleSheet("background-color: {}; color: black".format(COLOUR_GREEN_LIGHT))
+
+
+# light blue
+DEFAULT_STYLE = """
+QProgressBar{
+    text-align: center
+}
+
+QProgressBar::chunk {
+    background-color: #BAE7FF;
+    width: 10px;
+    margin: 0px;
+}
+"""
+# light green
+COMPLETED_STYLE = """
+QProgressBar{
+    text-align: center
+}
+
+QProgressBar::chunk {
+    background-color: #D9F7BE;
+    width: 10px;
+    margin: 0px;
+}
+"""
+
+
+class UploadProgressBar(QtWidgets.QProgressBar):
+    def __init__(self, parent=None):
+        super().__init__()
+        QtWidgets.QProgressBar.__init__(self, parent)
+        self.setStyleSheet(DEFAULT_STYLE)
+
+    def setValue(self, value):
+        QtWidgets.QProgressBar.setValue(self, value)
+
+        if value == 100.0:
+            self.setStyleSheet(COMPLETED_STYLE)
