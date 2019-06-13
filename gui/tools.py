@@ -123,9 +123,9 @@ class UploadThread(QtCore.QThread):
         self._exit_return = cli_entry.upload_run_single_entry(self._run_dir, self._force_state)
         pass
 
-    def get_exit_code(self):
+    def is_success(self):
         if self._exit_return:
-            return self._exit_return.exit_code
+            return self._exit_return.exit_code == cli_entry.ExitReturn.EXIT_CODE_SUCCESS
 
     def get_exit_error(self):
         if self._exit_return:

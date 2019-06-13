@@ -221,6 +221,8 @@ class MainDialog(QtWidgets.QDialog):
         self._dir_line.setText(self._run_dir)
         logging.debug("GUI: result: " + self._run_dir)
 
+        # try connecting to IRIDA again
+        self._contact_irida()
         # Kick of status check and parsing after opening a new directory
         self._start_status()
 
@@ -256,7 +258,7 @@ class MainDialog(QtWidgets.QDialog):
         logging.debug("GUI: _btn_upload clicked")
         # Lock Gui
         self._lock_gui()
-        self._block_upload()
+        self._block_upload_working()
         # start upload
         self._upload_thread.set_vars(self._run_dir, self._force_state)
         self._upload_thread.start()
@@ -388,10 +390,16 @@ class MainDialog(QtWidgets.QDialog):
         """
         logging.debug("GUI: _thread_finished_upload called")
         # TODO Add upload error logic here (like parse logic above)
-        # Unlock GUI
-
-        self._unlock_gui()
-        self._block_upload_finished_success()
+        if not self._upload_thread.is_success():
+            error = self._upload_thread.get_exit_error()
+            self._show_upload_error(str(error))
+            # Unlock GUI
+            self._unlock_gui()
+            self._block_upload()
+        else:
+            # Unlock GUI
+            self._unlock_gui()
+            self._block_upload_finished_success()
 
     def _signal_update_progress(self, data):
         """
@@ -400,7 +408,15 @@ class MainDialog(QtWidgets.QDialog):
         :return:
         """
         sample_name_project = data["sample"] + "." + str(data["project"])
-        self._table_sample_index_dict[sample_name_project].setValue(data["progress"])
+        paired = self._table_sample_index_dict[sample_name_project]["paired"]
+        progress_bar = self._table_sample_index_dict[sample_name_project]["bar"]
+        if paired:
+            if progress_bar.value() < 50:
+                progress_bar.setValue(0.5 * data["progress"])
+            else:
+                progress_bar.setValue(50 + (0.5 * data["progress"]))
+        else:
+            progress_bar.setValue(data["progress"])
 
     #######################
     #   Thread Starters   #
@@ -423,6 +439,7 @@ class MainDialog(QtWidgets.QDialog):
         self._reset_info_line()
         self._reset_previous_error()
         self._reset_current_error()
+        self._reset_upload_error()
 
         # start status thread
         self._status_thread.set_vars(self._run_dir)
@@ -454,6 +471,7 @@ class MainDialog(QtWidgets.QDialog):
             api_handler.initialize_api_from_config()
             self._connection_status.setText("Connection OK")
             self._connection_status.setStyleSheet("background-color: {}; color: black;".format(COLOUR_GREEN_LIGHT))
+            # self._connection_status.setStyleSheet("color: {};".format(COLOUR_GREEN_DARK))
             logging.info("GUI: Successfully connected to IRIDA")
         # todo: advanced error handling from the api side would be nice (tell users what part failed)
         except Exception:
@@ -545,16 +563,16 @@ class MainDialog(QtWidgets.QDialog):
         :param errors: string of errors to display to user
         :return:
         """
-        self._curr_errors.show()
-        self._curr_errors.appendPlainText(str(errors))
+        self._upload_errors.show()
+        self._upload_errors.appendPlainText(str(errors))
 
     def _reset_upload_error(self):
         """
         blanks out and hides the current upload error box
         :return:
         """
-        self._curr_errors.clear()
-        self._curr_errors.hide()
+        self._upload_errors.clear()
+        self._upload_errors.hide()
 
     def _fill_table(self, sequencing_run):
         """
@@ -589,7 +607,8 @@ class MainDialog(QtWidgets.QDialog):
                 # new_progress_bar.setStyleSheet()
                 self._table.setCellWidget(y_index, TABLE_PROGRESS, new_progress_bar)
                 sample_project_key = sample.sample_name + "." + str(project.id)
-                self._table_sample_index_dict[sample_project_key] = new_progress_bar
+                data_dict = {"bar": new_progress_bar, "paired": (len(files) == 2)}
+                self._table_sample_index_dict[sample_project_key] = data_dict
 
                 y_index = y_index + 1
 
@@ -609,6 +628,7 @@ class MainDialog(QtWidgets.QDialog):
         self._upload_button.setEnabled(False)
         self._config_button.setEnabled(False)
         self._dir_button.setEnabled(False)
+        self._refresh_button.setEnabled(False)
 
     def _unlock_gui(self):
         """
@@ -620,6 +640,7 @@ class MainDialog(QtWidgets.QDialog):
         self._upload_button.setStyleSheet("background-color: {}; color: black".format(COLOUR_BLUE_LIGHT))
         self._config_button.setEnabled(True)
         self._dir_button.setEnabled(True)
+        self._refresh_button.setEnabled(True)
 
     def _block_upload(self):
         """
@@ -629,6 +650,15 @@ class MainDialog(QtWidgets.QDialog):
         self._upload_button.setEnabled(False)
         self._upload_button.setText("Upload")
         self._upload_button.setStyleSheet("background-color: grey; color: white")
+
+    def _block_upload_working(self):
+        """
+        blocks the upload button, so that invalid/errorred runs cannot be run
+        :return:
+        """
+        self._upload_button.setEnabled(False)
+        self._upload_button.setText("Uploading... See log for details.")
+        self._upload_button.setStyleSheet("background-color: {}; color: black".format(COLOUR_YELLOW_LIGHT))
 
     def _block_upload_finished_success(self):
         """
