@@ -103,6 +103,7 @@ class UploadThread(QtCore.QThread):
         super().__init__()
         self._run_dir = ""
         self._force_state = False
+        self._exit_return = None
 
     def set_vars(self, run_dir, force_state):
         """
@@ -119,8 +120,16 @@ class UploadThread(QtCore.QThread):
         This runs when the threads start call is done
         :return:
         """
-        cli_entry.upload_run_single_entry(self._run_dir, self._force_state)
+        self._exit_return = cli_entry.upload_run_single_entry(self._run_dir, self._force_state)
         pass
+
+    def get_exit_code(self):
+        if self._exit_return:
+            return self._exit_return.exit_code
+
+    def get_exit_error(self):
+        if self._exit_return:
+            return self._exit_return.error
 
 
 class QtHandler(logging.Handler):

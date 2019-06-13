@@ -2,7 +2,6 @@ import logging
 import os
 # PyQt needs to be imported like this because for whatever reason they decided not to include a __all__ = [...]
 import PyQt5.QtWidgets as QtWidgets
-import PyQt5.QtCore as QtCore
 
 from core import logger, api_handler
 from config import config
@@ -127,7 +126,6 @@ class MainDialog(QtWidgets.QDialog):
         self._prev_errors = QtWidgets.QPlainTextEdit(self)
         self._prev_errors.setReadOnly(True)
         # todo self._prev_errors.setStyleSheet("background-color: {}; color: black".format(COLOUR_RED_LIGHT))
-        self._connection_status.setEnabled(False)
         self._prev_errors.hide()
         self._info_btn = QtWidgets.QPushButton(self)
         self._info_btn.setText("Continue")
@@ -151,6 +149,11 @@ class MainDialog(QtWidgets.QDialog):
         self._table.setColumnWidth(TABLE_FILE_2, 200)
         self._table.setColumnWidth(TABLE_PROJECT, 70)
         self._table.setColumnWidth(TABLE_PROGRESS, 135)
+        # Upload error text
+        self._upload_errors = QtWidgets.QPlainTextEdit(self)
+        self._upload_errors.setReadOnly(True)
+        self._upload_errors.setStyleSheet("background-color: {}".format(COLOUR_RED_LIGHT))
+        self._upload_errors.hide()
         # Logging console
         self._console = QtWidgets.QPlainTextEdit(self)
         self._console.setReadOnly(True)
@@ -188,6 +191,9 @@ class MainDialog(QtWidgets.QDialog):
 
         # table
         layout.addWidget(self._table)
+
+        # Upload error
+        layout.addWidget(self._upload_errors)
 
         # Upload button
         upload_layout = QtWidgets.QHBoxLayout()
@@ -383,6 +389,7 @@ class MainDialog(QtWidgets.QDialog):
         logging.debug("GUI: _thread_finished_upload called")
         # TODO Add upload error logic here (like parse logic above)
         # Unlock GUI
+
         self._unlock_gui()
         self._block_upload_finished_success()
 
@@ -527,6 +534,24 @@ class MainDialog(QtWidgets.QDialog):
         """
         blanks out and hides the current error box
         :return: 
+        """
+        self._curr_errors.clear()
+        self._curr_errors.hide()
+
+    def _show_upload_error(self, errors):
+        """
+        Shows errors from a current upload
+        unhides a textbox and fills it with a string
+        :param errors: string of errors to display to user
+        :return:
+        """
+        self._curr_errors.show()
+        self._curr_errors.appendPlainText(str(errors))
+
+    def _reset_upload_error(self):
+        """
+        blanks out and hides the current upload error box
+        :return:
         """
         self._curr_errors.clear()
         self._curr_errors.hide()
