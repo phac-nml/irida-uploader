@@ -542,14 +542,10 @@ class ApiCalls(object):
                         progress_percent = round(bytes_read/total_file_size*100, 2)
                         print("Progress: ", progress_percent,
                               "% Uploaded     \r", end="")
-                        progress.send_progress(
-                            {
-                                "project": project_id,
-                                "sample": sample_name,
-                                "file": filename,
-                                "progress": progress_percent
-                            }
-                        )
+                        progress.send_progress(progress.ProgressData(sample=sample_name,
+                                                                     project=project_id,
+                                                                     file=filename,
+                                                                     progress=progress_percent))
                         yield data
                         data = fastq_file.read(read_size)
                     print()  # end cap to the dots we printed above

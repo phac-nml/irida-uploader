@@ -1,11 +1,14 @@
 import logging
 # PyQt needs to be imported like this because for whatever reason they decided not to include a __all__ = [...]
 import PyQt5.QtCore as QtCore
+import PyQt5.QtWidgets as QtWidgets
 
 from pprint import pformat
 
 from core import cli_entry, parsing_handler
 from parsers import exceptions
+
+from . import colours
 
 
 class StatusThread(QtCore.QThread):
@@ -167,3 +170,101 @@ class MessageWriter(QtCore.QObject):
 
     def write(self, msg):
         self.messageWritten.emit(msg)
+
+
+class ProgressBarHandler:
+    def __init__(self, q_parent=None):
+        # Create a dictionary for new progress bars
+        self._bar_dict = {}
+        # link the qt parent so things die correctly
+        self._q_parent = q_parent
+
+    @staticmethod
+    def _get_key(sample, project):
+        """
+        Key is created by joining the sample and project id together with a period
+        :param sample:
+        :param project:
+        :return:
+        """
+        return sample + "." + project
+
+    def _get_bar(self, sample, project):
+        """
+        Gets the progress bars key and returns is
+        :param sample:
+        :param project:
+        :return:
+        """
+        return self._bar_dict[self._get_key(sample, project)]
+
+    def add_bar(self, sample, project, paired_end_run=False):
+        """
+        Create a new progress bar given a sample and project id
+        :param sample: sample name
+        :param project: project id
+        :param paired_end_run: Boolean, if this sample uses paired end files
+        :return: QUploadProgressBar
+        """
+        key = self._get_key(sample, project)
+        bar = self.QUploadProgressBar(parent=self._q_parent, paired_end_run=paired_end_run)
+        self._bar_dict[key] = bar
+        return bar
+
+    def clear(self):
+        """
+        Clears all the progress bars
+        :return:
+        """
+        self._bar_dict.clear()
+
+    def set_value(self, sample, project, value):
+        """
+        Sets the value of a progress bar given a sample and project id
+        :param sample: sample name
+        :param project: project id
+        :param value: value to set (0-100), if the sample is paired end, the progress advances at half rate
+        :return:
+        """
+        bar = self._get_bar(sample, project)
+        bar.setValue(value)
+
+    class QUploadProgressBar(QtWidgets.QProgressBar):
+        # Styles for progress bar using the Qt style sheet format
+        DEFAULT_STYLE = (
+            "QProgressBar{{text-align: center}}"
+            "QProgressBar::chunk {{background-color: {0}; width: 10px; margin: 0px;}}".format(
+                colours.BLUE_LIGHT
+            )
+        )
+        COMPLETED_STYLE =  (
+            "QProgressBar{{text-align: center}}"
+            "QProgressBar::chunk {{background-color: {}; width: 10px; margin: 0px;}}".format(
+                colours.GREEN_LIGHT
+            )
+        )
+
+        def __init__(self, parent=None, paired_end_run=False):
+            super().__init__()
+            QtWidgets.QProgressBar.__init__(self, parent)
+            self.setStyleSheet(self.DEFAULT_STYLE)
+            self._paired_end_run = paired_end_run
+
+        def setValue(self, value):
+            """
+            Sets the value of of the progress bar
+            If its a paired end read, it will progress to 50% for the first file, and the remaining 50% for the second
+            :param value: int or float
+            :return: None
+            """
+            if self._paired_end_run:  # 2 files being uploaded
+                if self.value() < 50:  # First file uploading
+                    QtWidgets.QProgressBar.setValue(self, int(0.5 * value))
+                else:  # Second file uploading
+                    QtWidgets.QProgressBar.setValue(self, int(50 + (0.5 * value)))
+            else:  # 1 file being uploaded
+                QtWidgets.QProgressBar.setValue(self, value)
+
+            # upload is complete, set the style
+            if QtWidgets.QProgressBar.value(self) == 100:
+                self.setStyleSheet(self.COMPLETED_STYLE)

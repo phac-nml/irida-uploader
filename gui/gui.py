@@ -9,7 +9,8 @@ from progress import signal_worker
 from model import DirectoryStatus
 
 from .config import ConfigDialog
-from .tools import StatusThread, ParseThread, UploadThread, QtHandler
+from .tools import StatusThread, ParseThread, UploadThread, QtHandler, ProgressBarHandler
+from . import colours
 
 # X index for the table
 TABLE_SAMPLE_NAME = 0
@@ -17,16 +18,6 @@ TABLE_FILE_1 = 1
 TABLE_FILE_2 = 2
 TABLE_PROJECT = 3
 TABLE_PROGRESS = 4
-
-# Colour Codes
-COLOUR_GREEN_LIGHT = "#D9F7BE"
-COLOUR_GREEN_DARK = "#52C41A"
-COLOUR_BLUE_LIGHT = "#BAE7FF"
-COLOUR_BLUE_DARK = "#1890FF"
-COLOUR_RED_LIGHT = "#FFCCC7"
-COLOUR_RED_DARK = "#F5222D"
-COLOUR_YELLOW_LIGHT = "#FFFFB8"
-COLOUR_YELLOW_DARK = "#FADB14"
 
 
 class MainDialog(QtWidgets.QDialog):
@@ -46,7 +37,7 @@ class MainDialog(QtWidgets.QDialog):
         self._force_state = False
         self._config_file = ""
         self._console_hidden = True
-        self._table_sample_index_dict = None
+        self._progress_bars = ProgressBarHandler(self)
 
         # Setup gui objects
         self._init_objects()
@@ -121,24 +112,24 @@ class MainDialog(QtWidgets.QDialog):
         # Info lines, these start out as hidden
         self._info_line = QtWidgets.QLineEdit(self)
         self._info_line.setReadOnly(True)
-        self._info_line.setStyleSheet("background-color: {}".format(COLOUR_YELLOW_LIGHT))
+        self._info_line.setStyleSheet("background-color: {}".format(colours.YELLOW_LIGHT))
         self._info_line.hide()
         self._prev_errors = QtWidgets.QPlainTextEdit(self)
         self._prev_errors.setReadOnly(True)
-        # todo self._prev_errors.setStyleSheet("background-color: {}; color: black".format(COLOUR_RED_LIGHT))
+        # todo self._prev_errors.setStyleSheet("background-color: {}; color: black".format(colours.RED_LIGHT))
         self._prev_errors.hide()
         self._info_btn = QtWidgets.QPushButton(self)
         self._info_btn.setText("Continue")
-        self._info_btn.setStyleSheet("background-color: {}".format(COLOUR_RED_LIGHT))
+        self._info_btn.setStyleSheet("background-color: {}".format(colours.RED_LIGHT))
         self._info_btn.hide()
         self._curr_errors = QtWidgets.QPlainTextEdit(self)
         self._curr_errors.setReadOnly(True)
-        self._curr_errors.setStyleSheet("background-color: {}".format(COLOUR_RED_LIGHT))
+        self._curr_errors.setStyleSheet("background-color: {}".format(colours.RED_LIGHT))
         self._curr_errors.hide()
         # Upload button
         self._upload_button = QtWidgets.QPushButton(self)
         self._upload_button.setText('Start Upload')
-        self._upload_button.setStyleSheet("background-color: {}; color: black".format(COLOUR_BLUE_LIGHT))
+        self._upload_button.setStyleSheet("background-color: {}; color: black".format(colours.BLUE_LIGHT))
         # Table
         self._table = QtWidgets.QTableWidget()
         self._table.setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
@@ -152,7 +143,7 @@ class MainDialog(QtWidgets.QDialog):
         # Upload error text
         self._upload_errors = QtWidgets.QPlainTextEdit(self)
         self._upload_errors.setReadOnly(True)
-        self._upload_errors.setStyleSheet("background-color: {}".format(COLOUR_RED_LIGHT))
+        self._upload_errors.setStyleSheet("background-color: {}".format(colours.RED_LIGHT))
         self._upload_errors.hide()
         # Logging console
         self._console = QtWidgets.QPlainTextEdit(self)
@@ -403,20 +394,13 @@ class MainDialog(QtWidgets.QDialog):
 
     def _signal_update_progress(self, data):
         """
-        concatenates sample name and project id into key for table, then updates progress bar
+        receives the ProgressData object signal, and calls to the progress bar handler to update progres
         :param data:
         :return:
         """
-        sample_name_project = data["sample"] + "." + str(data["project"])
-        paired = self._table_sample_index_dict[sample_name_project]["paired"]
-        progress_bar = self._table_sample_index_dict[sample_name_project]["bar"]
-        if paired:
-            if progress_bar.value() < 50:
-                progress_bar.setValue(0.5 * data["progress"])
-            else:
-                progress_bar.setValue(50 + (0.5 * data["progress"]))
-        else:
-            progress_bar.setValue(data["progress"])
+        self._progress_bars.set_value(sample=data.sample,
+                                      project=data.project,
+                                      value=data.progress)
 
     #######################
     #   Thread Starters   #
@@ -470,13 +454,13 @@ class MainDialog(QtWidgets.QDialog):
         try:
             api_handler.initialize_api_from_config()
             self._connection_status.setText("Connection OK")
-            self._connection_status.setStyleSheet("background-color: {}; color: black;".format(COLOUR_GREEN_LIGHT))
-            # self._connection_status.setStyleSheet("color: {};".format(COLOUR_GREEN_DARK))
+            self._connection_status.setStyleSheet("background-color: {}; color: black;".format(colours.GREEN_LIGHT))
+            # self._connection_status.setStyleSheet("color: {};".format(colours.GREEN_DARK))
             logging.info("GUI: Successfully connected to IRIDA")
         # todo: advanced error handling from the api side would be nice (tell users what part failed)
         except Exception:
             self._connection_status.setText("Connection Error")
-            self._connection_status.setStyleSheet("background-color: {}; color: white;".format(COLOUR_RED_DARK))
+            self._connection_status.setStyleSheet("background-color: {}; color: white;".format(colours.RED_DARK))
             logging.info("GUI: Error occurred while trying to connect to IRIDA")
             self._block_upload()
 
@@ -589,8 +573,10 @@ class MainDialog(QtWidgets.QDialog):
             sample_list = project.sample_list
             sample_count = sample_count + len(sample_list)
 
+        # Set the row count to the number of samples in this run
         self._table.setRowCount(sample_count)
-        self._table_sample_index_dict = {}
+        # clear all the progress bars we may have created
+        self._progress_bars.clear()
 
         y_index = 0
         for project in project_list:
@@ -603,12 +589,10 @@ class MainDialog(QtWidgets.QDialog):
                     self._table.setItem(y_index, TABLE_FILE_2, QtWidgets.QTableWidgetItem(os.path.basename(files[1])))
                 self._table.setItem(y_index, TABLE_PROJECT, QtWidgets.QTableWidgetItem(project.id))
 
-                new_progress_bar = UploadProgressBar()
-                # new_progress_bar.setStyleSheet()
+                new_progress_bar = self._progress_bars.add_bar(sample=sample.sample_name,
+                                                               project=str(project.id),
+                                                               paired_end_run=(len(files) == 2))
                 self._table.setCellWidget(y_index, TABLE_PROGRESS, new_progress_bar)
-                sample_project_key = sample.sample_name + "." + str(project.id)
-                data_dict = {"bar": new_progress_bar, "paired": (len(files) == 2)}
-                self._table_sample_index_dict[sample_project_key] = data_dict
 
                 y_index = y_index + 1
 
@@ -637,7 +621,7 @@ class MainDialog(QtWidgets.QDialog):
         """
         self._upload_button.setEnabled(True)
         self._upload_button.setText("Upload")
-        self._upload_button.setStyleSheet("background-color: {}; color: black".format(COLOUR_BLUE_LIGHT))
+        self._upload_button.setStyleSheet("background-color: {}; color: black".format(colours.BLUE_LIGHT))
         self._config_button.setEnabled(True)
         self._dir_button.setEnabled(True)
         self._refresh_button.setEnabled(True)
@@ -658,7 +642,7 @@ class MainDialog(QtWidgets.QDialog):
         """
         self._upload_button.setEnabled(False)
         self._upload_button.setText("Uploading... See log for details.")
-        self._upload_button.setStyleSheet("background-color: {}; color: black".format(COLOUR_YELLOW_LIGHT))
+        self._upload_button.setStyleSheet("background-color: {}; color: black".format(colours.YELLOW_LIGHT))
 
     def _block_upload_finished_success(self):
         """
@@ -667,43 +651,4 @@ class MainDialog(QtWidgets.QDialog):
         """
         self._upload_button.setEnabled(False)
         self._upload_button.setText("Complete")
-        self._upload_button.setStyleSheet("background-color: {}; color: black".format(COLOUR_GREEN_LIGHT))
-
-
-# light blue
-DEFAULT_STYLE = """
-QProgressBar{
-    text-align: center
-}
-
-QProgressBar::chunk {
-    background-color: #BAE7FF;
-    width: 10px;
-    margin: 0px;
-}
-"""
-# light green
-COMPLETED_STYLE = """
-QProgressBar{
-    text-align: center
-}
-
-QProgressBar::chunk {
-    background-color: #D9F7BE;
-    width: 10px;
-    margin: 0px;
-}
-"""
-
-
-class UploadProgressBar(QtWidgets.QProgressBar):
-    def __init__(self, parent=None):
-        super().__init__()
-        QtWidgets.QProgressBar.__init__(self, parent)
-        self.setStyleSheet(DEFAULT_STYLE)
-
-    def setValue(self, value):
-        QtWidgets.QProgressBar.setValue(self, value)
-
-        if value == 100.0:
-            self.setStyleSheet(COMPLETED_STYLE)
+        self._upload_button.setStyleSheet("background-color: {}; color: black".format(colours.GREEN_LIGHT))
