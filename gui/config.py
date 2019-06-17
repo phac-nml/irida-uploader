@@ -2,9 +2,10 @@ import logging
 # PyQt needs to be imported like this because for whatever reason they decided not to include a __all__ = [...]
 import PyQt5.QtWidgets as QtWidgets
 
-from core import api_handler
 from config import config
 from parsers import supported_parsers
+
+from . import tools
 
 # Colour Codes
 COLOUR_GREEN_LIGHT = "#D9F7BE"
@@ -151,12 +152,11 @@ class ConfigDialog(QtWidgets.QDialog):
         Sets the style and text of the status widget to green/red to indicate connected/error
         :return:
         """
-        try:
-            api_handler.initialize_api_from_config()
+        if tools.is_connected_to_irida():
             self._settings_status.setText("Connection OK")
             self._settings_status.setStyleSheet("background-color: {}; color: black;".format(COLOUR_GREEN_LIGHT))
             logging.info("Successfully connected to IRIDA")
-        except Exception:
+        else:
             self._settings_status.setText("ERROR!")
             self._settings_status.setStyleSheet("background-color: {}; color: black;".format(COLOUR_RED_LIGHT))
             logging.info("Error occurred while trying to connect to IRIDA")

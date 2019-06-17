@@ -1,23 +1,12 @@
 import logging
-import os
 # PyQt needs to be imported like this because for whatever reason they decided not to include a __all__ = [...]
 import PyQt5.QtWidgets as QtWidgets
 
-from core import logger, api_handler
 from config import config
-from progress import signal_worker
 from model import DirectoryStatus
 
 from .config import ConfigDialog
-from .tools import StatusThread, ParseThread, UploadThread, QtHandler, ProgressBarHandler
-from . import colours
-
-# X index for the table
-TABLE_SAMPLE_NAME = 0
-TABLE_FILE_1 = 1
-TABLE_FILE_2 = 2
-TABLE_PROJECT = 3
-TABLE_PROGRESS = 4
+from . import tools, widgets, colours, threads
 
 
 class MainDialog(QtWidgets.QDialog):
@@ -28,28 +17,17 @@ class MainDialog(QtWidgets.QDialog):
         self.config_dlg = ConfigDialog(parent=self)
 
         # Initialize threads from the tools file
-        self._status_thread = StatusThread()
-        self._parse_thread = ParseThread()
-        self._upload_thread = UploadThread()
+        self._status_thread = threads.StatusThread()
+        self._parse_thread = threads.ParseThread()
+        self._upload_thread = threads.UploadThread()
 
         # internal variables
         self._run_dir = ""
         self._force_state = False
         self._config_file = ""
-        self._console_hidden = True
-        self._progress_bars = ProgressBarHandler(self)
 
         # Setup gui objects
         self._init_objects()
-
-        # Setup logging handler
-        handler = QtHandler()
-        handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)-8s %(message)s', datefmt='%H:%M:%S'))
-        handler.setLevel(logging.INFO)
-        # connect to the log/redraw function
-        handler.message_writer.messageWritten.connect(self._write_log_and_redraw)
-        # finally add it to the logging module
-        logger.root_logger.addHandler(handler)
 
         # Set Layout and Geometry
         self.setLayout(self._init_layout())
@@ -73,15 +51,11 @@ class MainDialog(QtWidgets.QDialog):
         self._status_thread.finished.connect(self._thread_finished_status)
         self._parse_thread.finished.connect(self._thread_finished_parse)
         self._upload_thread.finished.connect(self._thread_finished_upload)
-        # connect progress module signals to updating progress function
-        signal_worker.progress_signal.connect(self._signal_update_progress)
 
         # init the config file
         config.setup()
-        # attempt connecting to IRIDA
-        self._contact_irida()
-        # block upload on start
-        self._block_upload()
+        # block uploading at start
+        self._upload_button.set_block()
 
     def _init_objects(self):
         """
@@ -101,11 +75,13 @@ class MainDialog(QtWidgets.QDialog):
         self._config_button.setText("Configure Settings")
         self._config_button.setFixedWidth(200)
         # connection status
-        self._connection_status = QtWidgets.QLineEdit(self)
-        self._connection_status.setReadOnly(True)
-        self._connection_status.setFixedWidth(300)
-        self._connection_status.setStyleSheet("color: black")
-        self._connection_status.setEnabled(False)
+        #todo
+        # self._connection_label = QtWidgets.QLabel("IRIDA Connection:")
+        # self._connection_status = QtWidgets.QLineEdit(self)
+        # self._connection_status.setReadOnly(True)
+        # self._connection_status.setFixedWidth(300)
+        # self._connection_status.setStyleSheet("color: black")
+        # self._connection_status.setEnabled(False)
         # refresh
         self._refresh_button = QtWidgets.QPushButton(self)
         self._refresh_button.setText("Refresh")
@@ -127,28 +103,16 @@ class MainDialog(QtWidgets.QDialog):
         self._curr_errors.setStyleSheet("background-color: {}".format(colours.RED_LIGHT))
         self._curr_errors.hide()
         # Upload button
-        self._upload_button = QtWidgets.QPushButton(self)
-        self._upload_button.setText('Start Upload')
-        self._upload_button.setStyleSheet("background-color: {}; color: black".format(colours.BLUE_LIGHT))
+        self._upload_button = widgets.UploadButton(self)
         # Table
-        self._table = QtWidgets.QTableWidget()
-        self._table.setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
-        self._table.setColumnCount(5)
-        self._table.setHorizontalHeaderLabels(["Sample Name", "File 1", "File 2", "Project", "Progress"])
-        self._table.setColumnWidth(TABLE_SAMPLE_NAME, 170)
-        self._table.setColumnWidth(TABLE_FILE_1, 200)
-        self._table.setColumnWidth(TABLE_FILE_2, 200)
-        self._table.setColumnWidth(TABLE_PROJECT, 70)
-        self._table.setColumnWidth(TABLE_PROGRESS, 135)
+        self._table = widgets.SampleTable(self)
         # Upload error text
         self._upload_errors = QtWidgets.QPlainTextEdit(self)
         self._upload_errors.setReadOnly(True)
         self._upload_errors.setStyleSheet("background-color: {}".format(colours.RED_LIGHT))
         self._upload_errors.hide()
         # Logging console
-        self._console = QtWidgets.QPlainTextEdit(self)
-        self._console.setReadOnly(True)
-        self._console.hide()
+        self._console = widgets.LogTextBox(self)
         self._console_button = QtWidgets.QPushButton(self)
         self._console_button.setFixedWidth(100)
         self._console_button.setText("Show Log")
@@ -170,7 +134,9 @@ class MainDialog(QtWidgets.QDialog):
         # Config selection & refresh
         config_layout = QtWidgets.QHBoxLayout()
         config_layout.addWidget(self._config_button)
-        config_layout.addWidget(self._connection_status)
+        #todo
+        # config_layout.addWidget(self._connection_label)
+        # config_layout.addWidget(self._connection_status)
         config_layout.addWidget(self._refresh_button)
         layout.addLayout(config_layout)
 
@@ -212,8 +178,6 @@ class MainDialog(QtWidgets.QDialog):
         self._dir_line.setText(self._run_dir)
         logging.debug("GUI: result: " + self._run_dir)
 
-        # try connecting to IRIDA again
-        self._contact_irida()
         # Kick of status check and parsing after opening a new directory
         self._start_status()
 
@@ -226,9 +190,7 @@ class MainDialog(QtWidgets.QDialog):
         self.config_dlg.center_window()
         self.config_dlg.exec()
 
-        # re-init connection
-        self._contact_irida()
-        # redo the status thread for safety
+        # restart the status thread
         self._start_status()
 
     def _btn_refresh(self):
@@ -236,9 +198,7 @@ class MainDialog(QtWidgets.QDialog):
         Clicking the refresh button re-tries the connection to IRIDA, and then re-tries a parse
         :return:
         """
-        # try connecting to IRIDA again
-        self._contact_irida()
-        # kick off status thread
+        # restart the status thread
         self._start_status()
 
     def _btn_upload(self):
@@ -247,26 +207,19 @@ class MainDialog(QtWidgets.QDialog):
         :return:
         """
         logging.debug("GUI: _btn_upload clicked")
-        # Lock Gui
-        self._lock_gui()
-        self._block_upload_working()
-        # start upload
-        self._upload_thread.set_vars(self._run_dir, self._force_state)
-        self._upload_thread.start()
+        self._start_upload()
 
     def _btn_log(self):
         """
         If the log is hidden, show, and vice versa
         :return:
         """
-        if self._console_hidden:
-            self._console.show()
-            self._console_button.setText("Hide Log")
-            self._console_hidden = False
-        else:
+        if self._console.isVisible():
             self._console.hide()
             self._console_button.setText("Show Log")
-            self._console_hidden = True
+        else:
+            self._console.show()
+            self._console_button.setText("Hide Log")
 
     def _btn_continue(self):
         """
@@ -277,9 +230,56 @@ class MainDialog(QtWidgets.QDialog):
         self._reset_info_line()
         self._start_parse()
 
-    #################
-    #    Threads    #
-    #################
+    #######################
+    #   Thread Starters   #
+    #######################
+
+    def _start_status(self):
+        """
+        Blocks usage of the ui elements
+        Clear data and info out of gui
+        Starts the status thread
+        This acts as the logical start point for status/parsing run directories
+        :return:
+        """
+        logging.debug("GUI: _btn_upload clicked")
+
+        # lock the gui so users don't click things while the parsing is still happening.
+        self._lock_gui()
+        # Clear everything
+        self._table.clear_table()
+        self._reset_info_line()
+        self._reset_previous_error()
+        self._reset_current_error()
+        self._reset_upload_error()
+
+        # start status thread
+        self._status_thread.set_vars(self._run_dir)
+        self._status_thread.start()
+
+    def _start_parse(self):
+        """
+        Starts the parse thread
+        :return:
+        """
+        logging.debug("GUI: _start_parse clicked")
+        # lock gui
+        self._lock_gui()
+        # start parsing
+        self._parse_thread.set_vars(self._run_dir)
+        self._parse_thread.start()
+
+    def _start_upload(self):
+        # Lock Gui
+        self._lock_gui()
+        self._upload_button.set_uploading()
+        # start upload
+        self._upload_thread.set_vars(self._run_dir, self._force_state)
+        self._upload_thread.start()
+
+    ##########################
+    #    Threads Complete    #
+    ##########################
 
     def _thread_finished_status(self):
         """
@@ -311,7 +311,7 @@ class MainDialog(QtWidgets.QDialog):
 
         if status.status_equals(DirectoryStatus.INVALID):
             # Then we need to block upload, since it's invalid
-            self._block_upload()
+            self._upload_button.set_block()
             # Give info in info line
             self._show_and_fill_info_line("Run is not valid: " + str(status.message))
             # an invalid run cannot be continued
@@ -324,7 +324,7 @@ class MainDialog(QtWidgets.QDialog):
 
         elif status.status_equals(DirectoryStatus.COMPLETE):
             # We need to block upload until the user clicks continue
-            self._block_upload()
+            self._upload_button.set_block()
             # give user info
             self._show_and_fill_info_line("This run directory has already been uploaded. "
                                           "Click continue to proceed anyway.")
@@ -333,7 +333,7 @@ class MainDialog(QtWidgets.QDialog):
 
         elif status.status_equals(DirectoryStatus.PARTIAL):
             # We need to block upload until the user clicks continue
-            self._block_upload()
+            self._upload_button.set_block()
             # give user info
             self._show_and_fill_info_line("This run directory may be partially uploaded. "
                                           "Click continue to proceed anyway.")
@@ -342,7 +342,7 @@ class MainDialog(QtWidgets.QDialog):
 
         elif status.status_equals(DirectoryStatus.ERROR):
             # We need to block upload until the user clicks continue
-            self._block_upload()
+            self._upload_button.set_block()
             # give user info
             self._show_and_fill_info_line("This run directory previously had the error(s) below. "
                                           "Click continue to proceed anyway.")
@@ -365,14 +365,14 @@ class MainDialog(QtWidgets.QDialog):
 
         if sequencing_run:
             # run parsed correctly
-            self._fill_table(sequencing_run)
+            self._table.fill_table(sequencing_run)
             self._unlock_gui()
         else:
             run_errors = self._parse_thread.get_error()
             self._show_current_error(run_errors)
             self._unlock_gui()
             # block uploading runs with parsing errors
-            self._block_upload()
+            self._upload_button.set_block()
 
     def _thread_finished_upload(self):
         """
@@ -380,99 +380,20 @@ class MainDialog(QtWidgets.QDialog):
         :return:
         """
         logging.debug("GUI: _thread_finished_upload called")
-        # TODO Add upload error logic here (like parse logic above)
         if not self._upload_thread.is_success():
             error = self._upload_thread.get_exit_error()
             self._show_upload_error(str(error))
             # Unlock GUI
             self._unlock_gui()
-            self._block_upload()
+            self._upload_button.set_block()
         else:
             # Unlock GUI
             self._unlock_gui()
-            self._block_upload_finished_success()
-
-    def _signal_update_progress(self, data):
-        """
-        receives the ProgressData object signal, and calls to the progress bar handler to update progres
-        :param data:
-        :return:
-        """
-        self._progress_bars.set_value(sample=data.sample,
-                                      project=data.project,
-                                      value=data.progress)
-
-    #######################
-    #   Thread Starters   #
-    #######################
-
-    def _start_status(self):
-        """
-        Blocks usage of the ui elements
-        Clear data and info out of gui
-        Starts the status thread
-        This acts as the logical start point for status/parsing run directories
-        :return:
-        """
-        logging.debug("GUI: _btn_upload clicked")
-
-        # lock the gui so users don't click things while the parsing is still happening.
-        self._lock_gui()
-        # Clear everything
-        self._clear_table()
-        self._reset_info_line()
-        self._reset_previous_error()
-        self._reset_current_error()
-        self._reset_upload_error()
-
-        # start status thread
-        self._status_thread.set_vars(self._run_dir)
-        self._status_thread.start()
-
-    def _start_parse(self):
-        """
-        Starts the parse thread
-        :return:
-        """
-        logging.debug("GUI: _start_parse clicked")
-        # lock gui
-        self._lock_gui()
-        # start parsing
-        self._parse_thread.set_vars(self._run_dir)
-        self._parse_thread.start()
+            self._upload_button.set_finished()
 
     ############################
     #   Show/Hide/Fill/Clear   #
     ############################
-
-    def _contact_irida(self):
-        """
-        Attempts to connect to IRIDA
-        Sets the style and text of the status widget to green/red to indicate connected/error
-        :return:
-        """
-        try:
-            api_handler.initialize_api_from_config()
-            self._connection_status.setText("Connection OK")
-            self._connection_status.setStyleSheet("background-color: {}; color: black;".format(colours.GREEN_LIGHT))
-            # self._connection_status.setStyleSheet("color: {};".format(colours.GREEN_DARK))
-            logging.info("GUI: Successfully connected to IRIDA")
-        # todo: advanced error handling from the api side would be nice (tell users what part failed)
-        except Exception:
-            self._connection_status.setText("Connection Error")
-            self._connection_status.setStyleSheet("background-color: {}; color: white;".format(colours.RED_DARK))
-            logging.info("GUI: Error occurred while trying to connect to IRIDA")
-            self._block_upload()
-
-    def _write_log_and_redraw(self, text):
-        """
-        Adds the text given to the logger box, and repaints so it displays
-        Used as a slot for emits
-        :param text:
-        :return:
-        """
-        self._console.appendPlainText(text)
-        self._console.repaint()
 
     def _show_and_fill_info_line(self, message):
         """
@@ -558,97 +479,24 @@ class MainDialog(QtWidgets.QDialog):
         self._upload_errors.clear()
         self._upload_errors.hide()
 
-    def _fill_table(self, sequencing_run):
-        """
-        Given a SequencingRun, fill the table with data
-        includes sample name, file names, project, and progress widget
-        :param sequencing_run: SequencingRun object
-        :return:
-        """
-        # total number of samples
-        sample_count = 0
-
-        project_list = sequencing_run.project_list
-        for project in project_list:
-            sample_list = project.sample_list
-            sample_count = sample_count + len(sample_list)
-
-        # Set the row count to the number of samples in this run
-        self._table.setRowCount(sample_count)
-        # clear all the progress bars we may have created
-        self._progress_bars.clear()
-
-        y_index = 0
-        for project in project_list:
-            sample_list = project.sample_list
-            for sample in sample_list:
-                files = sample.sequence_file.file_list
-                self._table.setItem(y_index, TABLE_SAMPLE_NAME, QtWidgets.QTableWidgetItem(sample.sample_name))
-                self._table.setItem(y_index, TABLE_FILE_1, QtWidgets.QTableWidgetItem(os.path.basename(files[0])))
-                if len(files) == 2:
-                    self._table.setItem(y_index, TABLE_FILE_2, QtWidgets.QTableWidgetItem(os.path.basename(files[1])))
-                self._table.setItem(y_index, TABLE_PROJECT, QtWidgets.QTableWidgetItem(project.id))
-
-                new_progress_bar = self._progress_bars.add_bar(sample=sample.sample_name,
-                                                               project=str(project.id),
-                                                               paired_end_run=(len(files) == 2))
-                self._table.setCellWidget(y_index, TABLE_PROGRESS, new_progress_bar)
-
-                y_index = y_index + 1
-
-    def _clear_table(self):
-        """
-        Wipes out tables contents and sets the row count back to 0
-        :return:
-        """
-        self._table.clearContents()
-        self._table.setRowCount(0)
-
     def _lock_gui(self):
         """
         Locks gui elements that users should not be able to interact with when threads are running
         :return:
         """
-        self._upload_button.setEnabled(False)
         self._config_button.setEnabled(False)
         self._dir_button.setEnabled(False)
         self._refresh_button.setEnabled(False)
+        self._upload_button.set_block()
 
     def _unlock_gui(self):
         """
         Unlocks all the gui elements that are blocked for threading reasons
         :return:
         """
-        self._upload_button.setEnabled(True)
-        self._upload_button.setText("Upload")
-        self._upload_button.setStyleSheet("background-color: {}; color: black".format(colours.BLUE_LIGHT))
         self._config_button.setEnabled(True)
         self._dir_button.setEnabled(True)
         self._refresh_button.setEnabled(True)
 
-    def _block_upload(self):
-        """
-        blocks the upload button, so that invalid/errorred runs cannot be run
-        :return:
-        """
-        self._upload_button.setEnabled(False)
-        self._upload_button.setText("Upload")
-        self._upload_button.setStyleSheet("background-color: grey; color: white")
-
-    def _block_upload_working(self):
-        """
-        blocks the upload button, so that invalid/errorred runs cannot be run
-        :return:
-        """
-        self._upload_button.setEnabled(False)
-        self._upload_button.setText("Uploading... See log for details.")
-        self._upload_button.setStyleSheet("background-color: {}; color: black".format(colours.YELLOW_LIGHT))
-
-    def _block_upload_finished_success(self):
-        """
-        blocks the upload button, so that invalid/error runs cannot be run
-        :return:
-        """
-        self._upload_button.setEnabled(False)
-        self._upload_button.setText("Complete")
-        self._upload_button.setStyleSheet("background-color: {}; color: black".format(colours.GREEN_LIGHT))
+        # Check that we have a connection to IRIDA, if there is no connection, block upload to prevent errors
+        self._upload_button.set_ready()
