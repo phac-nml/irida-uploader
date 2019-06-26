@@ -75,6 +75,7 @@ def _parse_sample_list(sample_sheet_file):
     :return: list of sample data dicts
     """
     sample_dict_list = _parse_samples(sample_sheet_file)
+
     data_dir = path.dirname(sample_sheet_file)
     data_dir_file_list = next(walk(data_dir))[2]  # Create a file list of the data directory, only hit the os once
 
