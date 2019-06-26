@@ -28,6 +28,7 @@ addons:
     packages:
       - chromium-chromedriver
       - xvfb
+  chrome: stable
 
 before_script:
   - java -version
