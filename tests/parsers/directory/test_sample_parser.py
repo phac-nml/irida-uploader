@@ -214,13 +214,11 @@ class TestParseSampleList(unittest.TestCase):
                                 "fake_dir_data", "file_2.fastq.gz")
 
 
-        file_name_1 = path_to_module + "/fake_dir_data/file_1.fastq.gz"
-        file_name_2 = path_to_module + "/fake_dir_data/file_2.fastq.gz"
         sample_dict_list = [OrderedDict([
             ('Sample_Name', 'my-sample-1'),
             ('Project_ID', '75'),
-            ('File_Forward', file_name_1),
-            ('File_Reverse', file_name_2)
+            ('File_Forward', path.abspath(file_path_1)),
+            ('File_Reverse', path.abspath(file_path_2))
         ])]
 
         mock_parse_samples.return_value = sample_dict_list
@@ -233,8 +231,8 @@ class TestParseSampleList(unittest.TestCase):
         # Check if data is correct
         self.assertEqual(res[0]["Sample_Name"], "my-sample-1")
         self.assertEqual(res[0]["Project_ID"], "75")
-        self.assertEqual(res[0]["File_Forward"], file_path_1)
-        self.assertEqual(res[0]["File_Reverse"], file_path_2)
+        self.assertEqual(res[0]["File_Forward"], path.abspath(file_path_1))
+        self.assertEqual(res[0]["File_Reverse"], path.abspath(file_path_2))
 
     def test_no_forward_read(self):
         """

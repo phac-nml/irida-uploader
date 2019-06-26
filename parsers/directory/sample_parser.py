@@ -75,10 +75,12 @@ def _parse_sample_list(sample_sheet_file):
     :return: list of sample data dicts
     """
     sample_dict_list = _parse_samples(sample_sheet_file)
-
     data_dir = path.dirname(sample_sheet_file)
     data_dir_file_list = next(walk(data_dir))[2]  # Create a file list of the data directory, only hit the os once
 
+    data_dir_file_list_full_path = []
+    for file_name in data_dir_file_list:
+        data_dir_file_list_full_path.append(path.join(path.abspath(data_dir), file_name))
     has_paired_end_read = False
     has_single_end_read = False
 
@@ -94,13 +96,15 @@ def _parse_sample_list(sample_sheet_file):
             has_single_end_read = True
 
         # Check if file names are in the files we found in the directory
-        if sample_dict['File_Forward'] not in data_dir_file_list:
+        if (sample_dict['File_Forward'] not in data_dir_file_list and
+           sample_dict['File_Forward'] not in data_dir_file_list_full_path):
             raise exceptions.SampleSheetError(
                 ("Your sample sheet is malformed. {} Does not match any file in the directory {}"
                  "".format(sample_dict['File_Forward'], data_dir)),
                 sample_sheet_file
             )
-        if paired_end_read and sample_dict['File_Reverse'] not in data_dir_file_list:
+        if ((paired_end_read and sample_dict['File_Reverse'] not in data_dir_file_list) and
+           (paired_end_read and sample_dict['File_Reverse'] not in data_dir_file_list_full_path)):
             raise exceptions.SampleSheetError(
                 ("Your sample sheet is malformed. {} Does not match any file in the directory {}"
                  "".format(sample_dict['File_Reverse'], data_dir)),
@@ -108,8 +112,9 @@ def _parse_sample_list(sample_sheet_file):
             )
 
         # Add the dir to each file to create the full path
-        sample_dict['File_Forward'] = path.join(data_dir, sample_dict['File_Forward'])
-        if paired_end_read:
+        if sample_dict['File_Forward'] not in data_dir_file_list_full_path:
+            sample_dict['File_Forward'] = path.join(data_dir, sample_dict['File_Forward'])
+        if paired_end_read and sample_dict['File_Reverse'] not in data_dir_file_list_full_path:
             sample_dict['File_Reverse'] = path.join(data_dir, sample_dict['File_Reverse'])
 
     # Verify we don't have both single end and paired end reads
