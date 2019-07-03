@@ -47,7 +47,7 @@ class SetupIridaData:
         reference_file = "tests_integration/tmp/reference-files"
         sequence_files = "tests_integration/tmp/sequence-files"
 
-        self.IRIDA_CMD = ['mvn', 'clean', 'jetty:run',
+        self.IRIDA_CMD = ['mvn', 'clean', 'jetty:run', '--quiet',
                           '-Djdbc.url=jdbc:mysql://localhost:3306/' + db_name,
                           '-Djdbc.username=test', '-Djdbc.password=test',
                           '-Dliquibase.update.database.schema=true',
