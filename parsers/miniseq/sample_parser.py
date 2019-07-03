@@ -126,6 +126,13 @@ def _parse_sample_list(sample_sheet_file):
     sample_list = _parse_samples(sample_sheet_file)
     sample_sheet_dir = path.dirname(sample_sheet_file)
     partial_data_dir = path.join(sample_sheet_dir, "Alignment_1")
+    # Verify the partial path exits, path could not exist if there was a sequencing error
+    # Also, if someone runs the miniseq parser on a miseq directory, this is the failure point
+    if not path.exists(partial_data_dir):
+        raise exceptions.SequenceFileError(
+            ("The uploader was unable to find the data directory with the path: {}, Verify that the run directory is "
+             "undamaged, and that it is a MiniSeq sequencing run.").format(partial_data_dir))
+
     # get the directories [1] get the first directory [0]
     data_dir = path.join(partial_data_dir, next(walk(partial_data_dir))[1][0], "Fastq")
     data_dir_file_list = next(walk(data_dir))[2]  # Create a file list of the data directory, only hit the os once

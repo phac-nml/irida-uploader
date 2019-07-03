@@ -11,6 +11,7 @@ Added functionality:
 
 Bug Fixes:
 * Fixed hard crash that sometimes occurred when valid url's were given as the base_url
+* Fixed hard crash when running the miniseq parser on a miseq run directory
 
 Beta 0.2.1
 ----------
