@@ -74,14 +74,6 @@ class MainDialog(QtWidgets.QDialog):
         self._config_button = QtWidgets.QPushButton(self)
         self._config_button.setText("Configure Settings")
         self._config_button.setFixedWidth(200)
-        # connection status
-        #todo
-        # self._connection_label = QtWidgets.QLabel("IRIDA Connection:")
-        # self._connection_status = QtWidgets.QLineEdit(self)
-        # self._connection_status.setReadOnly(True)
-        # self._connection_status.setFixedWidth(300)
-        # self._connection_status.setStyleSheet("color: black")
-        # self._connection_status.setEnabled(False)
         # refresh
         self._refresh_button = QtWidgets.QPushButton(self)
         self._refresh_button.setText("Refresh")
@@ -92,7 +84,6 @@ class MainDialog(QtWidgets.QDialog):
         self._info_line.hide()
         self._prev_errors = QtWidgets.QPlainTextEdit(self)
         self._prev_errors.setReadOnly(True)
-        # todo self._prev_errors.setStyleSheet("background-color: {}; color: black".format(colours.RED_LIGHT))
         self._prev_errors.hide()
         self._info_btn = QtWidgets.QPushButton(self)
         self._info_btn.setText("Continue")
@@ -134,9 +125,6 @@ class MainDialog(QtWidgets.QDialog):
         # Config selection & refresh
         config_layout = QtWidgets.QHBoxLayout()
         config_layout.addWidget(self._config_button)
-        #todo
-        # config_layout.addWidget(self._connection_label)
-        # config_layout.addWidget(self._connection_status)
         config_layout.addWidget(self._refresh_button)
         layout.addLayout(config_layout)
 
@@ -207,7 +195,26 @@ class MainDialog(QtWidgets.QDialog):
         :return:
         """
         logging.debug("GUI: _btn_upload clicked")
-        self._start_upload()
+
+        if tools.is_connected_to_irida():
+            self._start_upload()
+        else:
+            # If no connection to irida, display a warning to the user
+            msg = QtWidgets.QMessageBox()
+            msg.setIcon(QtWidgets.QMessageBox.Warning)
+            msg.setText("Cannot Connect to IRIDA")
+            msg.setInformativeText('Please check your configuration')
+            msg.setWindowTitle("Connection Error")
+            # You need 2 buttons on the widget for the exit button to not be the same as the Open Config button
+            # So we add an "OK" button, and then hide it
+            p_config_button = msg.addButton("Open Config", QtWidgets.QMessageBox.YesRole)
+            p_accept_button = msg.addButton("OK", QtWidgets.QMessageBox.NoRole)
+            p_accept_button.hide()
+            # Show the window, and don't let user interact with main dialog
+            msg.exec()
+            # allow user to go directoy to the config page
+            if msg.clickedButton() == p_config_button:
+                self._btn_show_config()
 
     def _btn_log(self):
         """

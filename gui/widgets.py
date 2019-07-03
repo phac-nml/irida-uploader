@@ -116,7 +116,6 @@ class UploadButton(QtWidgets.QPushButton):
 
     """
     Set various text and styles for the different states the upload button can be in
-    If we don't have a connection to IRIDA, set to connection error instead
     """
     def set_ready(self):
         """
@@ -124,12 +123,9 @@ class UploadButton(QtWidgets.QPushButton):
         if there is no connection to IRIDA, show connection error instead and block
         :return:
         """
-        if tools.is_connected_to_irida():
-            self.setEnabled(True)
-            self.setText("Start Upload")
-            self.setStyleSheet("background-color: {}; color: black".format(colours.BLUE_LIGHT))
-        else:
-            self._set_connection_error()
+        self.setEnabled(True)
+        self.setText("Start Upload")
+        self.setStyleSheet("background-color: {}; color: black".format(colours.BLUE_LIGHT))
 
     def set_block(self):
         """
@@ -137,12 +133,9 @@ class UploadButton(QtWidgets.QPushButton):
         if there is no connection to IRIDA, show connection error instead
         :return:
         """
-        if tools.is_connected_to_irida():
-            self.setEnabled(False)
-            self.setText("Start Upload")
-            self.setStyleSheet("background-color: grey; color: white")
-        else:
-            self._set_connection_error()
+        self.setEnabled(False)
+        self.setText("Start Upload")
+        self.setStyleSheet("background-color: grey; color: white")
 
     def set_uploading(self):
         self.setEnabled(False)
@@ -153,11 +146,6 @@ class UploadButton(QtWidgets.QPushButton):
         self.setEnabled(False)
         self.setText("Upload Complete")
         self.setStyleSheet("background-color: {}; color: black".format(colours.GREEN_LIGHT))
-
-    def _set_connection_error(self):
-        self.setEnabled(False)
-        self.setText("Cannot connect to IRIDA. Please check configuration")
-        self.setStyleSheet("background-color: {}; color: white".format(colours.RED_DARK))
 
 
 class SampleTable(QtWidgets.QTableWidget):
