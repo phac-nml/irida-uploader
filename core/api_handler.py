@@ -107,6 +107,10 @@ def prepare_and_validate_for_upload(sequencing_run):
                     logging.debug("Sample could not be created")
                     validation_result.add_error(e)
                     continue
+                except api.exceptions.IridaConnectionError as e:
+                    logging.debug("Sample could not be created")
+                    validation_result.add_error(e)
+                    continue
                 logging.debug("Verifying sample was created")
                 if not api_instance.sample_exists(sample.sample_name, project.id):
                     logging.debug("Sample was not created")
@@ -190,5 +194,8 @@ def send_project(project):
     try:
         api_instance.send_project(project)
     except api.exceptions.IridaResourceError as e:
+        logging.error("Failed to send project to IRIDA")
+        raise e
+    except api.exceptions.IridaConnectionError as e:
         logging.error("Failed to send project to IRIDA")
         raise e
