@@ -1,6 +1,9 @@
 import unittest
+from collections import OrderedDict
 from os import path
+from unittest.mock import patch
 
+import parsers.directory
 import parsers.directory.sample_parser as sample_parser
 from parsers.exceptions import SampleSheetError
 import model
@@ -195,6 +198,41 @@ class TestParseSampleList(unittest.TestCase):
         self.assertEqual(res[0]["Project_ID"], "75")
         self.assertEqual(res[0]["File_Forward"], file_path_1)
         self.assertEqual(res[0]["File_Reverse"], file_path_2)
+
+    @patch("parsers.directory.sample_parser._parse_samples")
+    def test_valid_full_file_path(self, mock_parse_samples):
+        """
+        Given a valid sample sheet with full file paths, parse correctly
+        :return:
+        """
+        sheet_file = path.join(path_to_module, "fake_dir_data",
+                               "SampleList_simple.csv")
+
+        file_path_1 = path.join(path_to_module,
+                                "fake_dir_data", "file_1.fastq.gz")
+        file_path_2 = path.join(path_to_module,
+                                "fake_dir_data", "file_2.fastq.gz")
+
+
+        sample_dict_list = [OrderedDict([
+            ('Sample_Name', 'my-sample-1'),
+            ('Project_ID', '75'),
+            ('File_Forward', path.abspath(file_path_1)),
+            ('File_Reverse', path.abspath(file_path_2))
+        ])]
+
+        mock_parse_samples.return_value = sample_dict_list
+
+        res = parsers.directory.sample_parser._parse_sample_list(sheet_file)
+
+        mock_parse_samples.assert_called_with(sheet_file)
+        # Check we have 1 sample
+        self.assertEqual(len(res), 1)
+        # Check if data is correct
+        self.assertEqual(res[0]["Sample_Name"], "my-sample-1")
+        self.assertEqual(res[0]["Project_ID"], "75")
+        self.assertEqual(res[0]["File_Forward"], path.abspath(file_path_1))
+        self.assertEqual(res[0]["File_Reverse"], path.abspath(file_path_2))
 
     def test_no_forward_read(self):
         """

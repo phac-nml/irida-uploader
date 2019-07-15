@@ -7,6 +7,7 @@ Added functionality:
 * Added config option overrides for the command line
     * Can define in command line `--option parameter` or without a parameter `--option` for a user prompt
     * Use the `--help` option for more details on these options
+* The `directory` parser can now handle full (absolute) file paths in the sample list file
 
 Bug Fixes:
 * Fixed hard crash that sometimes occurred when valid url's were given as the base_url
