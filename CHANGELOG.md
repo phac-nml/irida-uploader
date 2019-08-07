@@ -13,6 +13,9 @@ Bug Fixes:
 * Fixed hard crash that sometimes occurred when valid url's were given as the base_url
 * Fixed hard crash when running the miniseq parser on a miseq run directory
 
+API Changes:
+* Added 400, 401, 403, and 500 to http errors we explicitly have exceptions for. (Other errors still generate generic exceptions that are handled the same way.)
+
 Beta 0.2.1
 ----------
 Bug Fixes:

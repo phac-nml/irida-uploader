@@ -253,6 +253,39 @@ class ApiCalls(object):
 
         return ret_val
 
+    @staticmethod
+    def _get_irida_exception(response):
+        """
+        Generates and returns an appropriate exception based on the status code in the response returned by irida
+
+        :param response: response from irida (Non 201)
+        :return: Exception Sub Class
+        """
+        logging.debug("response.status_code: " + str(response.status_code))
+        logging.debug("response.text: " + response.text)
+        if response.status_code == HTTPStatus.BAD_REQUEST:
+            e = exceptions.IridaResourceError("Request to IRIDA was invalid: "
+                                              "{status_code}: {err_msg}\n".format(
+                                                status_code=str(response.status_code),
+                                                err_msg=response.reason))
+        elif response.status_code in [HTTPStatus.UNAUTHORIZED,
+                                      HTTPStatus.FORBIDDEN]:
+            e = exceptions.IridaResourceError("Request to IRIDA is Forbidden. Do you have access to this resource?: "
+                                              "{status_code}: {err_msg}\n".format(
+                                                status_code=str(response.status_code),
+                                                err_msg=response.reason))
+        elif response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+            e = exceptions.IridaConnectionError("IRIDA encountered an error while handling your request: "
+                                                "{status_code}: {err_msg}\n".format(
+                                                  status_code=str(response.status_code),
+                                                  err_msg=response.reason))
+        else:
+            e = exceptions.IridaConnectionError("Error encountered while communicating with IRIDA: "
+                                                "{status_code}: {err_msg}\n".format(
+                                                  status_code=str(response.status_code),
+                                                  err_msg=response.reason))
+        return e
+
     def get_projects(self):
         """
         API call to api/projects to get list of projects
@@ -423,8 +456,7 @@ class ApiCalls(object):
             json_res = json.loads(response.text)
         else:
             logging.error("Error sending project: {} {}".format(response.status_code, response.text))
-            raise exceptions.IridaResourceError("Error sending project: {} {}"
-                                                "".format(response.status_code, response.text))
+            raise self._get_irida_exception(response)
 
         return json_res
 
@@ -468,13 +500,7 @@ class ApiCalls(object):
         else:
             logging.error("Did not create sample on server. Response code is '{}' and error message is '{}'"
                           "".format(response.status_code, response.text))
-            e = exceptions.IridaResourceError("Error {status_code}: {err_msg}.\nSample data: {sample_data}"
-                                              "".format(
-                                                    status_code=str(response.status_code),
-                                                    err_msg=response.text,
-                                                    sample_data=str(sample)
-                                              ), sample.sample_name)
-            raise e
+            raise self._get_irida_exception(response)
 
         return json_res
 
@@ -648,11 +674,8 @@ class ApiCalls(object):
         if response.status_code == HTTPStatus.CREATED:
             json_res = json.loads(response.text)
         else:
-            e = exceptions.IridaConnectionError("Error {status_code}: {err_msg}\n".format(
-                                                status_code=str(response.status_code), err_msg=response.reason))
             logging.error("Error while uploading [{}]: [{}]".format(sample_name, response.reason))
-            logging.debug("response.text: " + response.text)
-            raise e
+            raise self._get_irida_exception(response)
 
         return json_res
 
@@ -714,7 +737,7 @@ class ApiCalls(object):
         else:
             logging.error("Encountered error while creating sequence run: {} {}"
                           "".format(response.status_code, response.reason))
-            raise exceptions.IridaConnectionError("Error: {} {}".format(response.status_code, response.reason))
+            raise self._get_irida_exception(response)
 
         # Grab the run identifier from the returned json
         sequencing_run_id = json_res['resource']['identifier']
