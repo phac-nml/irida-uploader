@@ -182,6 +182,18 @@ def _validate_and_upload(directory_status):
         full_error = "Lost connection to Irida. Errors: " + pformat(e.args)
         _set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
         return exit_error(e)
+    except api.exceptions.IridaResourceError as e:
+        logging.error("Could not access IRIDA resource")
+        logging.error("Errors: " + pformat(e.args))
+        full_error = "Could not access IRIDA resource Errors: " + pformat(e.args)
+        _set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
+        return exit_error(e)
+    except api.exceptions.FileError as e:
+        logging.error("Could not upload file to IRIDA")
+        logging.error("Errors: " + pformat(e.args))
+        full_error = "Could not upload file to IRIDA. Errors: " + pformat(e.args)
+        _set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
+        return exit_error(e)
     logging.info("*** Upload Complete ***")
 
     # Set progress file to complete

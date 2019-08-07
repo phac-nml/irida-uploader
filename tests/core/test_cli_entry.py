@@ -6,6 +6,7 @@ import os
 from core import cli_entry, logger
 from model import DirectoryStatus
 from parsers.exceptions import DirectoryError
+from api.exceptions import FileError, IridaResourceError, IridaConnectionError
 
 path_to_module = path.abspath(path.dirname(__file__))
 if len(path_to_module) == 0:
@@ -359,6 +360,150 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_parsing_handler.parse_and_validate.assert_not_called()
         # make sure the upload is NOT done, as validation is invalid
         mock_api_handler.upload_sequencing_run.assert_not_called()
+
+    @patch("core.cli_entry.progress")
+    @patch("core.cli_entry.api_handler")
+    @patch("core.cli_entry.parsing_handler")
+    def test_valid_connection_error_during_upload(self, mock_parsing_handler, mock_api_handler, mock_progress):
+        """
+        Makes sure no crash occurs and program exits with error when IridaConnectionError occurs during upload
+        :return:
+        """
+        my_directory = path.join(path_to_module, "fake_ngs_data")
+
+        class StubValidationResult:
+            @staticmethod
+            def is_valid():
+                return True
+
+        class StubDirectoryStatus:
+            directory = my_directory
+            status = DirectoryStatus.NEW
+
+            @staticmethod
+            def status_equals(status):
+                return status == DirectoryStatus.NEW
+
+        # add mock data to the function calls that are essential
+        stub_directory_status = StubDirectoryStatus()
+        mock_parsing_handler.get_run_status.side_effect = [stub_directory_status]
+        mock_parsing_handler.parse_and_validate.side_effect = ["Fake Sequencing Run"]
+        mock_api_handler.initialize_api_from_config.side_effect = [None]
+        mock_api_handler.prepare_and_validate_for_upload.side_effect = [StubValidationResult]
+        mock_api_handler.upload_sequencing_run.side_effect = [None]
+        mock_api_handler.upload_sequencing_run.side_effect = [IridaConnectionError("")]
+        mock_progress.write_directory_status.side_effect = [None, None]
+
+        result = cli_entry.upload_run_single_entry(my_directory, force_upload=False)
+
+        # Check that the run failed to upload
+        self.assertEqual(result, cli_entry.EXIT_CODE_ERROR)
+        # Make sure directory status is init
+        mock_progress.write_directory_status.assert_called_with(stub_directory_status)
+        # Make sure parsing and validation is done
+        mock_parsing_handler.parse_and_validate.assert_called_with(my_directory)
+        # api must be initialized
+        mock_api_handler.initialize_api_from_config.assert_called_with()
+        # api must prep for upload
+        mock_api_handler.prepare_and_validate_for_upload.assert_called_with("Fake Sequencing Run")
+        # api should try to upload
+        mock_api_handler.upload_sequencing_run.assert_called_with("Fake Sequencing Run")
+
+    @patch("core.cli_entry.progress")
+    @patch("core.cli_entry.api_handler")
+    @patch("core.cli_entry.parsing_handler")
+    def test_valid_resourse_error_during_upload(self, mock_parsing_handler, mock_api_handler, mock_progress):
+        """
+        Makes sure no crash occurs and program exits with error when IridaResourceError occurs during upload
+        :return:
+        """
+        my_directory = path.join(path_to_module, "fake_ngs_data")
+
+        class StubValidationResult:
+            @staticmethod
+            def is_valid():
+                return True
+
+        class StubDirectoryStatus:
+            directory = my_directory
+            status = DirectoryStatus.NEW
+
+            @staticmethod
+            def status_equals(status):
+                return status == DirectoryStatus.NEW
+
+        # add mock data to the function calls that are essential
+        stub_directory_status = StubDirectoryStatus()
+        mock_parsing_handler.get_run_status.side_effect = [stub_directory_status]
+        mock_parsing_handler.parse_and_validate.side_effect = ["Fake Sequencing Run"]
+        mock_api_handler.initialize_api_from_config.side_effect = [None]
+        mock_api_handler.prepare_and_validate_for_upload.side_effect = [StubValidationResult]
+        mock_api_handler.upload_sequencing_run.side_effect = [None]
+        mock_api_handler.upload_sequencing_run.side_effect = [IridaResourceError("")]
+        mock_progress.write_directory_status.side_effect = [None, None]
+
+        result = cli_entry.upload_run_single_entry(my_directory, force_upload=False)
+
+        # Check that the run failed to upload
+        self.assertEqual(result, cli_entry.EXIT_CODE_ERROR)
+        # Make sure directory status is init
+        mock_progress.write_directory_status.assert_called_with(stub_directory_status)
+        # Make sure parsing and validation is done
+        mock_parsing_handler.parse_and_validate.assert_called_with(my_directory)
+        # api must be initialized
+        mock_api_handler.initialize_api_from_config.assert_called_with()
+        # api must prep for upload
+        mock_api_handler.prepare_and_validate_for_upload.assert_called_with("Fake Sequencing Run")
+        # api should try to upload
+        mock_api_handler.upload_sequencing_run.assert_called_with("Fake Sequencing Run")
+
+    @patch("core.cli_entry.progress")
+    @patch("core.cli_entry.api_handler")
+    @patch("core.cli_entry.parsing_handler")
+    def test_valid_file_error_during_upload(self, mock_parsing_handler, mock_api_handler, mock_progress):
+        """
+        Makes sure no crash occurs and program exits with error when FileError occurs during upload
+        :return:
+        """
+        my_directory = path.join(path_to_module, "fake_ngs_data")
+
+        class StubValidationResult:
+            @staticmethod
+            def is_valid():
+                return True
+
+        class StubDirectoryStatus:
+            directory = my_directory
+            status = DirectoryStatus.NEW
+
+            @staticmethod
+            def status_equals(status):
+                return status == DirectoryStatus.NEW
+
+        # add mock data to the function calls that are essential
+        stub_directory_status = StubDirectoryStatus()
+        mock_parsing_handler.get_run_status.side_effect = [stub_directory_status]
+        mock_parsing_handler.parse_and_validate.side_effect = ["Fake Sequencing Run"]
+        mock_api_handler.initialize_api_from_config.side_effect = [None]
+        mock_api_handler.prepare_and_validate_for_upload.side_effect = [StubValidationResult]
+        mock_api_handler.upload_sequencing_run.side_effect = [None]
+        mock_api_handler.upload_sequencing_run.side_effect = [FileError("")]
+        mock_progress.write_directory_status.side_effect = [None, None]
+
+        result = cli_entry.upload_run_single_entry(my_directory, force_upload=False)
+
+        # Check that the run failed to upload
+        self.assertEqual(result, cli_entry.EXIT_CODE_ERROR)
+        # Make sure directory status is init
+        mock_progress.write_directory_status.assert_called_with(stub_directory_status)
+        # Make sure parsing and validation is done
+        mock_parsing_handler.parse_and_validate.assert_called_with(my_directory)
+        # api must be initialized
+        mock_api_handler.initialize_api_from_config.assert_called_with()
+        # api must prep for upload
+        mock_api_handler.prepare_and_validate_for_upload.assert_called_with("Fake Sequencing Run")
+        # api should try to upload
+        mock_api_handler.upload_sequencing_run.assert_called_with("Fake Sequencing Run")
 
 
 class TestBatchUploadSingleEntry(unittest.TestCase):
