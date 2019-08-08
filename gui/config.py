@@ -5,11 +5,7 @@ import PyQt5.QtWidgets as QtWidgets
 from config import config
 from parsers import supported_parsers
 
-from . import tools
-
-# Colour Codes
-COLOUR_GREEN_LIGHT = "#D9F7BE"
-COLOUR_RED_LIGHT = "#FFCCC7"
+from . import tools, colours
 
 
 class ConfigDialog(QtWidgets.QDialog):
@@ -154,11 +150,11 @@ class ConfigDialog(QtWidgets.QDialog):
         """
         if tools.is_connected_to_irida():
             self._settings_status.setText("Connection OK")
-            self._settings_status.setStyleSheet("background-color: {}; color: black;".format(COLOUR_GREEN_LIGHT))
+            self._settings_status.setStyleSheet("background-color: {}; color: black;".format(colours.GREEN_LIGHT))
             logging.info("Successfully connected to IRIDA")
         else:
             self._settings_status.setText("ERROR!")
-            self._settings_status.setStyleSheet("background-color: {}; color: black;".format(COLOUR_RED_LIGHT))
+            self._settings_status.setStyleSheet("background-color: {}; color: black;".format(colours.RED_LIGHT))
             logging.info("Error occurred while trying to connect to IRIDA")
 
     def _check_connection_to_irida(self):
