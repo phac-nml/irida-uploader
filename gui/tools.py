@@ -12,10 +12,8 @@ class QtHandler(logging.Handler):
 
     A non Qt object cannot execute Qt emits so we wrap this handler around the MessageWriter
     """
-    # def __init__(self, message_writer):
     def __init__(self):
         logging.Handler.__init__(self)
-        # self._message_writer = message_writer
         self._message_writer = MessageWriter()
 
     def emit(self, record):
