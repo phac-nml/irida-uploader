@@ -167,6 +167,8 @@ class SampleTable(QtWidgets.QTableWidget):
         self.setColumnWidth(self.TABLE_FILE_2, 200)
         self.setColumnWidth(self.TABLE_PROJECT, 70)
         self.setColumnWidth(self.TABLE_PROGRESS, 135)
+        header = self.horizontalHeader()
+        header.setSectionResizeMode(self.TABLE_PROGRESS, QtWidgets.QHeaderView.Stretch)
         # set up progress bar handler
         self._progress_bars = ProgressBarHandler(self)
         # subscribe the progress updates signal
