@@ -57,3 +57,6 @@ def send_progress(data):
     # Only send progress if gui is loaded
     if GUI_PKG_INSTALLED:
         signal_worker.send_progress(data)
+    else:
+        # Just print the progress of the current file to the console
+        print("Progress: ", data.progress, "% Uploaded     \r", end="")

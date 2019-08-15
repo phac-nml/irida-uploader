@@ -55,6 +55,7 @@ argument_parser.add_argument('-b', '--batch',
                                   'The list of runs is generated at start time '
                                   '(Runs added to directory mid upload will not be uploaded).')
 
+
 # Optional arguments for overriding config file settings
 # Explanation:
 #   nargs='?', const=True, default=False,
@@ -79,6 +80,13 @@ argument_parser.add_argument('-cr', '--config_parser', action='store', nargs='?'
                              help='Override "parser" in config file. '
                                   'Choose the type of sequencer data that is being uploaded. '
                                   'Supported parsers: ' + str(supported_parsers))
+argument_parser.add_argument('-m', '--multithreading',
+                             action='store_true',  # This line makes it not parse a variable
+                             help='Uploader will multithread the upload for faster upload times. '
+                                  'If the config file is set to False, this will override it to True')
+argument_parser.add_argument('-t', '--threads',
+                             action='store',
+                             help='The number of threads to use when multithreading is enabled, Default=4')
 
 
 def _set_config_override(args):
@@ -93,6 +101,7 @@ def _set_config_override(args):
     password = None
     base_url = None
     parser = None
+    threads = None
 
     if args.config_client_id is True:
         print("Enter Client ID:")
@@ -132,12 +141,21 @@ def _set_config_override(args):
     elif args.config_parser is not False:
         parser = args.config_parser
 
+    if args.multithreading is True:
+        multithreading = True
+    else:
+        multithreading = False
+    if args.threads is not None:
+        threads = int(args.threads)
+
     config.set_config_options(client_id=client_id,
                               client_secret=client_secret,
                               username=username,
                               password=password,
                               base_url=base_url,
-                              parser=parser)
+                              parser=parser,
+                              multithreading=multithreading,
+                              threads=threads)
 
 
 def _config_uploader(args):

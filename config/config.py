@@ -40,7 +40,9 @@ def _init_config_parser():
                         SettingsDefault._make(["username", ""]),
                         SettingsDefault._make(["password", ""]),
                         SettingsDefault._make(["base_url", ""]),
-                        SettingsDefault._make(["parser", "directory"])]
+                        SettingsDefault._make(["parser", "directory"]),
+                        SettingsDefault._make(["multithreading", False]),
+                        SettingsDefault._make(["threads", 4])]
     # add defaults to config parser
     for config in default_settings:
         _conf_parser.set("Settings", config.setting, config.default_value)
@@ -104,7 +106,9 @@ def set_config_options(client_id=None,
                        username=None,
                        password=None,
                        base_url=None,
-                       parser=None):
+                       parser=None,
+                       multithreading=None,
+                       threads=None):
     """
     Updates the config options for all not None parameters
     :param client_id:
@@ -113,6 +117,8 @@ def set_config_options(client_id=None,
     :param password:
     :param base_url:
     :param parser:
+    :param multithreading:
+    :param threads:
     :return:
     """
     global _conf_parser
@@ -138,6 +144,13 @@ def set_config_options(client_id=None,
     if parser:
         logging.debug("Setting 'parser' config to {}".format(parser))
         _update_config_option("parser", parser)
+    # since multithreading is a bool and not a string, we need to check that is is not None, not just not True
+    if multithreading is not None:
+        logging.debug("Setting 'multithreading' config to {}".format(multithreading))
+        _update_config_option("multithreading", multithreading)
+    if threads:
+        logging.debug("Setting 'threads' config to {}".format(threads))
+        _update_config_option("threads", threads)
 
 
 def setup():

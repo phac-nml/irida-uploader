@@ -4,10 +4,10 @@ It handles initializing and managing an api instance as well as preparing IRIDA 
 """
 
 import logging
+import concurrent.futures
 
 import api
 import config
-import progress
 import model
 from . import model_validator
 
@@ -145,20 +145,7 @@ def upload_sequencing_run(sequencing_run):
         # set seq run to upload
         api_instance.set_seq_run_uploading(run_id)
 
-        current_project_number = 0
-        # loop through projects
-        for project in sequencing_run.project_list:
-            current_project_number = current_project_number + 1
-            current_sample_number = 0
-            # loop through samples
-            for sample in project.sample_list:
-                logging.info("Uploading to Sample {} on Project {}".format(sample.sample_name, project.id))
-                current_sample_number = current_sample_number + 1
-                # upload files
-                api_instance.send_sequence_files(sequence_file=sample.sequence_file,
-                                                 sample_name=sample.sample_name,
-                                                 project_id=project.id,
-                                                 upload_id=run_id)
+        _run_upload_handler(api_instance, sequencing_run, run_id)
 
         # set seq run to complete
         api_instance.set_seq_run_complete(run_id)
@@ -178,6 +165,108 @@ def upload_sequencing_run(sequencing_run):
     # Todo: once threading is added, the upload canceled error will likely need to be caught/raised here
 
     return run_id
+
+
+def _run_upload_handler(api_instance, sequencing_run, run_id):
+    """
+    Gets the multithreading config option and runs either the standard upload, or the multithreaded upload
+    :param api_instance: api instance should have already been initialized
+    :param sequencing_run: sequencing run to upload
+    :param run_id: run id to use for upload
+    :return:
+    """
+    multi_threading = config.read_config_option("multithreading")
+    if multi_threading:
+        return _run_upload_threadpool(api_instance, sequencing_run, run_id)
+    else:
+        return _run_upload_basic(api_instance, sequencing_run, run_id)
+
+
+def _run_upload_basic(api_instance, sequencing_run, run_id):
+    """
+    Loop through projects and files one at a time to upload
+    :param api_instance: api instance should have already been initialized
+    :param sequencing_run: sequencing run to upload
+    :param run_id: run id to use for upload
+    :return:
+    """
+    # loop through projects
+    for project in sequencing_run.project_list:
+        # loop through samples
+        for sample in project.sample_list:
+            logging.info("Uploading to Sample {} on Project {}".format(sample.sample_name, project.id))
+            # upload files
+            api_instance.send_sequence_files(sequence_file=sample.sequence_file,
+                                             sample_name=sample.sample_name,
+                                             project_id=project.id,
+                                             upload_id=run_id)
+
+
+def _run_upload_threadpool(api_instance, sequencing_run, run_id):
+    """
+    Starts a threading pool with thread count defined in config. Threadpool then uploads samples simultaneously
+    :param api_instance: api instance should have already been initialized
+    :param sequencing_run: sequencing run to upload
+    :param run_id: run id to use for upload
+    :return:
+    """
+
+    def _run_upload(data_tup, sequence_run_id):
+        """
+        Do the data upload
+        :param data_tup: tuple containing the project and sample
+        :param sequence_run_id: run id to upload with
+        :return:
+        """
+        project_data = data_tup[0]
+        sample_data = data_tup[1]
+        logging.debug("Processing queue item for project {} sample {}".format(project_data.id,
+                                                                              sample_data.sample_name))
+
+        api_instance.send_sequence_files(sequence_file=sample_data.sequence_file,
+                                         sample_name=sample_data.sample_name,
+                                         project_id=project_data.id,
+                                         upload_id=sequence_run_id)
+
+    # Maximum number of uploads that can be running at once
+    max_threads = int(config.read_config_option("threads"))
+
+    # Put all the project/samples into a single list so the thread pool can assign them easier
+    all_samples = []
+    for project in sequencing_run.project_list:
+        for sample in project.sample_list:
+            sample_tuple = (project, sample)
+            all_samples.append(sample_tuple)
+
+    logging.info("Starting Multithreaded upload of {} samples with {} threads".format(len(all_samples), max_threads))
+
+    # Keep track of the first exception, if an exception occurs
+    upload_exception = None
+
+    # Create a executor for our thread pool
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_threads) as executor:
+        # future_to_upload is a list of future uploads (this starts the threads)
+        future_to_upload = {executor.submit(_run_upload, tup, run_id): tup for tup in all_samples}
+        # as uploads/futures finish, they will be be handled here
+        for future in concurrent.futures.as_completed(future_to_upload):
+            try:
+                # attempt to get the result. If an exception occurred, it will be thrown here
+                future.result()
+            except concurrent.futures.CancelledError:
+                # In the case that we signaled cancellations, all futures will end up here.
+                logging.debug("Upload on this thread canceled")
+            except Exception as e:
+                # If an exception occurs during upload capture it and cancel all futures
+                upload_exception = e
+                logging.error("Exception occured during upload. Canceling other uploads in threading pool.")
+                for ff in future_to_upload:
+                    ff.cancel()
+
+    logging.info("Finished Multithreading, all threads closed")
+
+    # Raise the exception so it can be handled at a higher level
+    if upload_exception:
+        raise upload_exception
 
 
 def send_project(project):
