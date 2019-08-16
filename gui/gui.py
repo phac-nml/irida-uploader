@@ -408,7 +408,7 @@ class MainDialog(QtWidgets.QDialog):
         fills the info line with message
         shows the info button (continue button)
         :param message: string to display to the user
-        :return: 
+        :return:
         """
         self._info_line.setText(message)
         self._info_line.show()
@@ -428,7 +428,7 @@ class MainDialog(QtWidgets.QDialog):
         """
         disables the use of the info (continue) button
         Useful in the case of an invalid run that should never be parsed
-        :return: 
+        :return:
         """
         self._info_btn.hide()
 
@@ -437,7 +437,7 @@ class MainDialog(QtWidgets.QDialog):
         Shows errors from a previous run attempt
         unhides a textbox and fills it with a string
         :param errors: string of errors to display to user
-        :return: 
+        :return:
         """
         self._prev_errors.show()
         self._prev_errors.appendPlainText(str(errors))
@@ -445,7 +445,7 @@ class MainDialog(QtWidgets.QDialog):
     def _reset_previous_error(self):
         """
         blanks out and hides the previous error box
-        :return: 
+        :return:
         """
         self._prev_errors.clear()
         self._prev_errors.hide()
@@ -455,7 +455,7 @@ class MainDialog(QtWidgets.QDialog):
         Shows errors from a current parse attempt
         unhides a textbox and fills it with a string
         :param errors: string of errors to display to user
-        :return: 
+        :return:
         """
         self._curr_errors.show()
         self._curr_errors.appendPlainText(str(errors))
@@ -463,7 +463,7 @@ class MainDialog(QtWidgets.QDialog):
     def _reset_current_error(self):
         """
         blanks out and hides the current error box
-        :return: 
+        :return:
         """
         self._curr_errors.clear()
         self._curr_errors.hide()

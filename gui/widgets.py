@@ -200,12 +200,12 @@ class SampleTable(QtWidgets.QTableWidget):
             for sample in sample_list:
                 files = sample.sequence_file.file_list
                 self.setItem(y_index, self.TABLE_SAMPLE_NAME,
-                                    QtWidgets.QTableWidgetItem(sample.sample_name))
+                             QtWidgets.QTableWidgetItem(sample.sample_name))
                 self.setItem(y_index, self.TABLE_FILE_1,
-                                    QtWidgets.QTableWidgetItem(os.path.basename(files[0])))
+                             QtWidgets.QTableWidgetItem(os.path.basename(files[0])))
                 if len(files) == 2:
                     self.setItem(y_index, self.TABLE_FILE_2,
-                                        QtWidgets.QTableWidgetItem(os.path.basename(files[1])))
+                                 QtWidgets.QTableWidgetItem(os.path.basename(files[1])))
                 self.setItem(y_index, self.TABLE_PROJECT, QtWidgets.QTableWidgetItem(project.id))
 
                 new_progress_bar = self._progress_bars.add_bar(sample=sample.sample_name,
