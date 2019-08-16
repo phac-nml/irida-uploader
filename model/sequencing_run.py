@@ -9,17 +9,23 @@ class SequencingRun:
     _project_type = TypeDefinition('project', (Project,), ())
     Validator.types_mapping['project'] = _project_type
 
-    uploadable_schema = {'_project_list': {
-                            'type': 'list',
-                            'empty': False,  # must have at least 1 project
-                            'schema': {'type': 'project'}
-                            },
-                         '_metadata': {
-                            'type': 'dict',
-                            'schema': {'layoutType': {'type': 'string',
-                                                      'required': True,
-                                                      'allowed': ['PAIRED_END', 'SINGLE_END']}}
-                         }}
+    uploadable_schema = {
+        '_project_list': {
+            'type': 'list',
+            'empty': False,  # must have at least 1 project
+            'schema': {'type': 'project'}
+        },
+        '_metadata': {
+            'type': 'dict',
+            'schema': {
+                'layoutType': {
+                    'type': 'string',
+                    'required': True,
+                    'allowed': ['PAIRED_END', 'SINGLE_END']
+                }
+            }
+        }
+    }
 
     def __init__(self, metadata, project_list):
         self._project_list = project_list

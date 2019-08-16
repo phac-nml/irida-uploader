@@ -22,27 +22,27 @@ class TestValidation(unittest.TestCase):
         :param mock_csv_reader:
         :return:
         """
-        headers = ("Sample_ID,Sample_Name,Sample_Plate,Sample_Well," +
-                   "I7_Index_ID,index,I5_Index_ID,index2,Sample_Project," +
+        headers = ("Sample_ID,Sample_Name,Sample_Plate,Sample_Well,"
+                   "I7_Index_ID,index,I5_Index_ID,index2,Sample_Project,"
                    "Description")
 
         field_values = (
-                "15-0318,,2015-08-05-SE,A01,N701,TAAGGCGA,S502,CTCTCTAT,203\n" +
-                "15-0455,,2015-08-05-SE,B01,N701,TAAGGCGA,S503,TATCCTCT,203\n" +
-                "15-0462,,2015-08-05-SE,C01,N701,TAAGGCGA,S505,GTAAGGAG,203\n"
+            "15-0318,,2015-08-05-SE,A01,N701,TAAGGCGA,S502,CTCTCTAT,203\n"
+            "15-0455,,2015-08-05-SE,B01,N701,TAAGGCGA,S503,TATCCTCT,203\n"
+            "15-0462,,2015-08-05-SE,C01,N701,TAAGGCGA,S505,GTAAGGAG,203\n"
         )
 
         reads = (
-                "251\n" +
-                "251\n"
+            "251\n"
+            "251\n"
         )
 
         file_contents_str = (
-                "[Reads]\n" +
-                "{reads}\n" +
-                "[Data]\n" +
-                "{headers}\n" +
-                "{field_values}"
+            "[Reads]\n"
+            "{reads}\n"
+            "[Data]\n"
+            "{headers}\n"
+            "{field_values}"
         ).format(headers=headers, reads=reads, field_values=field_values)
 
         # converts string as a pseudo file / memory file
@@ -69,30 +69,30 @@ class TestValidation(unittest.TestCase):
         :return:
         """
         field_values = (
-                "15-0318,,2015-08-05-SE,A01,N701,TAAGGCGA,S502,CTCTCTAT,203\n" +
-                "15-0455,,2015-08-05-SE,B01,N701,TAAGGCGA,S503,TATCCTCT,203\n" +
-                "15-0462,,2015-08-05-SE,C01,N701,TAAGGCGA,S505,GTAAGGAG,203\n" +
-                "IEMFileVersion, 4\n" +
-                "Investigator Name, Test Name\n" +
-                "Experiment Name, Some_Test_Data\n" +
-                "Date, 2015-05-14\n" +
-                "Workflow, GenerateFASTQ\n" +
-                "Application, FASTQ Only\n" +
-                "Assay, ASDF\n" +
-                "Description, 12-34\n" +
-                "Chemistry, Yes\n"
+            "15-0318,,2015-08-05-SE,A01,N701,TAAGGCGA,S502,CTCTCTAT,203\n"
+            "15-0455,,2015-08-05-SE,B01,N701,TAAGGCGA,S503,TATCCTCT,203\n"
+            "15-0462,,2015-08-05-SE,C01,N701,TAAGGCGA,S505,GTAAGGAG,203\n"
+            "IEMFileVersion, 4\n"
+            "Investigator Name, Test Name\n"
+            "Experiment Name, Some_Test_Data\n"
+            "Date, 2015-05-14\n"
+            "Workflow, GenerateFASTQ\n"
+            "Application, FASTQ Only\n"
+            "Assay, ASDF\n"
+            "Description, 12-34\n"
+            "Chemistry, Yes\n"
         )
 
         reads = (
-                "251\n" +
-                "251\n"
+            "251\n"
+            "251\n"
         )
 
         file_contents_str = (
-                "[Header]\n" +
-                "{field_values}\n" +
-                "[Reads]\n" +
-                "{reads}"
+            "[Header]\n"
+            "{field_values}\n"
+            "[Reads]\n"
+            "{reads}"
         ).format(field_values=field_values, reads=reads)
 
         # converts string as a pseudo file / memory file
@@ -120,40 +120,40 @@ class TestValidation(unittest.TestCase):
         :return:
         """
         h_field_values = (
-                "IEMFileVersion, 4\n" +
-                "Investigator Name, Test Name\n" +
-                "Experiment Name, Some_Test_Data\n" +
-                "Date, 2015-05-14\n" +
-                "Workflow, GenerateFASTQ\n" +
-                "Application, FASTQ Only\n" +
-                "Assay, ASDF\n" +
-                "Description, 12-34\n" +
-                "Chemistry, Yes\n"
+            "IEMFileVersion, 4\n"
+            "Investigator Name, Test Name\n"
+            "Experiment Name, Some_Test_Data\n"
+            "Date, 2015-05-14\n"
+            "Workflow, GenerateFASTQ\n"
+            "Application, FASTQ Only\n"
+            "Assay, ASDF\n"
+            "Description, 12-34\n"
+            "Chemistry, Yes\n"
         )
 
         reads = (
-                "251\n" +
-                "251\n"
+            "251\n"
+            "251\n"
         )
 
-        d_headers = ("Sample_Name,Sample_Plate,Sample_Well," +
-                     "I7_Index_ID,index,I5_Index_ID,index2,Sample_Project," +
+        d_headers = ("Sample_Name,Sample_Plate,Sample_Well,"
+                     "I7_Index_ID,index,I5_Index_ID,index2,Sample_Project,"
                      "Description")
 
         d_field_values = (
-                "15-0318,,2015-08-05-SE,A01,N701,TAAGGCGA,S502,CTCTCTAT,203\n" +
-                "15-0455,,2015-08-05-SE,B01,N701,TAAGGCGA,S503,TATCCTCT,203\n" +
-                "15-0462,,2015-08-05-SE,C01,N701,TAAGGCGA,S505,GTAAGGAG,203\n"
+            "15-0318,,2015-08-05-SE,A01,N701,TAAGGCGA,S502,CTCTCTAT,203\n"
+            "15-0455,,2015-08-05-SE,B01,N701,TAAGGCGA,S503,TATCCTCT,203\n"
+            "15-0462,,2015-08-05-SE,C01,N701,TAAGGCGA,S505,GTAAGGAG,203\n"
         )
 
         file_contents_str = (
-                "[Header]\n" +
-                "{h_field_values}\n" +
-                "[Reads]\n" +
-                "{reads}\n" +
-                "[Data]\n" +
-                "{d_headers}\n" +
-                "{d_field_values}"
+            "[Header]\n"
+            "{h_field_values}\n"
+            "[Reads]\n"
+            "{reads}\n"
+            "[Data]\n"
+            "{d_headers}\n"
+            "{d_field_values}"
         ).format(h_field_values=h_field_values, reads=reads, d_headers=d_headers, d_field_values=d_field_values)
 
         # converts string as a pseudo file / memory file
@@ -180,40 +180,40 @@ class TestValidation(unittest.TestCase):
         :return:
         """
         h_field_values = (
-                "IEMFileVersion, 4\n" +
-                "Investigator Name, Test Name\n" +
-                "Experiment Name, Some_Test_Data\n" +
-                "Date, 2015-05-14\n" +
-                "Workflow, GenerateFASTQ\n" +
-                "Application, FASTQ Only\n" +
-                "Assay, ASDF\n" +
-                "Description, 12-34\n" +
-                "Chemistry, Yes\n"
+            "IEMFileVersion, 4\n"
+            "Investigator Name, Test Name\n"
+            "Experiment Name, Some_Test_Data\n"
+            "Date, 2015-05-14\n"
+            "Workflow, GenerateFASTQ\n"
+            "Application, FASTQ Only\n"
+            "Assay, ASDF\n"
+            "Description, 12-34\n"
+            "Chemistry, Yes\n"
         )
 
         reads = (
-                "251\n" +
-                "251\n"
+            "251\n"
+            "251\n"
         )
 
-        d_headers = ("Sample_ID,Sample_Name,Sample_Plate,Sample_Well," +
-                   "I7_Index_ID,index,I5_Index_ID,index2,Sample_Project," +
-                   "Description")
+        d_headers = ("Sample_ID,Sample_Name,Sample_Plate,Sample_Well,"
+                     "I7_Index_ID,index,I5_Index_ID,index2,Sample_Project,"
+                     "Description")
 
         d_field_values = (
-                "15-0318,,2015-08-05-SE,A01,N701,TAAGGCGA,S502,CTCTCTAT,203\n" +
-                "15-0455,,2015-08-05-SE,B01,N701,TAAGGCGA,S503,TATCCTCT,203\n" +
-                "15-0462,,2015-08-05-SE,C01,N701,TAAGGCGA,S505,GTAAGGAG,203\n"
+            "15-0318,,2015-08-05-SE,A01,N701,TAAGGCGA,S502,CTCTCTAT,203\n"
+            "15-0455,,2015-08-05-SE,B01,N701,TAAGGCGA,S503,TATCCTCT,203\n"
+            "15-0462,,2015-08-05-SE,C01,N701,TAAGGCGA,S505,GTAAGGAG,203\n"
         )
 
         file_contents_str = (
-                "[Header]\n" +
-                "{h_field_values}\n" +
-                "[Reads]\n" +
-                "{reads}\n" +
-                "[Data]\n" +
-                "{d_headers}\n" +
-                "{d_field_values}"
+            "[Header]\n"
+            "{h_field_values}\n"
+            "[Reads]\n"
+            "{reads}\n"
+            "[Data]\n"
+            "{d_headers}\n"
+            "{d_field_values}"
         ).format(h_field_values=h_field_values, reads=reads, d_headers=d_headers, d_field_values=d_field_values)
 
         # converts string as a pseudo file / memory file

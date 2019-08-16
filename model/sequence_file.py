@@ -12,14 +12,16 @@ etc.
 
 class SequenceFile:
 
-    uploadable_schema = {'_file_list': {
-                            'type': 'list',
-                            'empty': False,  # must have at least 1 file
-                            'nullable': False,
-                            'required': True,
-                            'schema': {'type': 'string'}},
-                         '_properties_dict': {'type': 'dict'}
-                         }
+    uploadable_schema = {
+        '_file_list': {
+            'type': 'list',
+            'empty': False,  # must have at least 1 file
+            'nullable': False,
+            'required': True,
+            'schema': {'type': 'string'}
+        },
+        '_properties_dict': {'type': 'dict'}
+    }
 
     def __init__(self, file_list, properties_dict=None):
         if properties_dict is None:

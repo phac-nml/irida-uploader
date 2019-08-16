@@ -23,12 +23,12 @@ class TestValidation(unittest.TestCase):
         :return:
         """
         field_values = (
-                "Sample_Name,Project_ID,File_Forward,File_Reverse\n" +
-                "my-sample-1, 72,file_1.fastq.gz,file_2.fastq.gz\n"
+            "Sample_Name,Project_ID,File_Forward,File_Reverse\n"
+            "my-sample-1, 72,file_1.fastq.gz,file_2.fastq.gz\n"
         )
 
         file_contents_str = (
-                "{field_values}"
+            "{field_values}"
         ).format(field_values=field_values)
 
         # converts string as a pseudo file / memory file
@@ -81,9 +81,9 @@ class TestValidation(unittest.TestCase):
         :return:
         """
         field_values = (
-                "[Data]\n" +
-                "Sample_Name,Project_ID,File_Forward,File_Reverse\n" +
-                "my-sample-1,72,file_1.fastq.gz,file_2.fastq.gz\n"
+            "[Data]\n"
+            "Sample_Name,Project_ID,File_Forward,File_Reverse\n"
+            "my-sample-1,72,file_1.fastq.gz,file_2.fastq.gz\n"
         )
 
         file_contents_str = (

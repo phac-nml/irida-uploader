@@ -17,27 +17,29 @@ class Sample:
     _sample_type = TypeDefinition('sequence_file', (SequenceFile,), ())
     Validator.types_mapping['sequence_file'] = _sample_type
 
-    uploadable_schema = {'_sequence_file': {
-                            'type': 'sequence_file',
-                            'nullable': False,
-                            'required': True,
-                         },
-                         '_sample_name': {
-                            'type': 'string',
-                            'nullable': False,
-                            'required': True,
-                            'minlength': 3  # Minimum sample name length is 3
-                         },
-                         '_description': {
-                            'type': 'string',
-                            'nullable': True,
-                            'required': False
-                         },
-                         '_sample_number': {
-                            'anyof_type': ['string', 'integer'],
-                            'nullable': True,
-                            'required': False
-                         }}
+    uploadable_schema = {
+        '_sequence_file': {
+            'type': 'sequence_file',
+            'nullable': False,
+            'required': True,
+        },
+        '_sample_name': {
+            'type': 'string',
+            'nullable': False,
+            'required': True,
+            'minlength': 3  # Minimum sample name length is 3
+        },
+        '_description': {
+            'type': 'string',
+            'nullable': True,
+            'required': False
+        },
+        '_sample_number': {
+            'anyof_type': ['string', 'integer'],
+            'nullable': True,
+            'required': False
+        }
+    }
 
     def __init__(self, sample_name, description='', sample_number=None, samp_dict=None):
         self._sample_name = sample_name

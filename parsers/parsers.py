@@ -9,6 +9,7 @@ supported_parsers = [
     'directory',
 ]
 
+
 class Parser:
     """
     This class handles creation of the different parser objects.

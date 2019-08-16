@@ -232,12 +232,11 @@ class ApiCalls(object):
             try:
                 links_list = next(
                     r["links"] for r in resources_list
-                    if r[target_dict["key"]].lower() ==
-                    str(target_dict["value"]).lower()
+                    if r[target_dict["key"]].lower() == str(target_dict["value"]).lower()
                 )
 
             except KeyError:
-                raise exceptions.IridaKeyError(target_dict["key"] + " not found. Available keys: " +
+                raise exceptions.IridaKeyError(target_dict["key"] + " not found. Available keys: "
                                                ", ".join(resources_list[0].keys()))
 
             except StopIteration:
@@ -250,9 +249,9 @@ class ApiCalls(object):
                            if link["rel"] == target_key)
 
         except StopIteration:
-            logging.debug(target_key + " not found in links. Available links: " +
+            logging.debug(target_key + " not found in links. Available links: "
                           ", ".join([str(link["rel"]) for link in links_list]))
-            raise exceptions.IridaKeyError(target_key + " not found in links. Available links: " +
+            raise exceptions.IridaKeyError(target_key + " not found in links. Available links: "
                                            ", ".join([str(link["rel"]) for link in links_list]))
 
         return ret_val
@@ -270,24 +269,24 @@ class ApiCalls(object):
         if response.status_code == HTTPStatus.BAD_REQUEST:
             e = exceptions.IridaResourceError("Request to IRIDA was invalid: "
                                               "{status_code}: {err_msg}\n".format(
-                                                status_code=str(response.status_code),
-                                                err_msg=response.reason))
+                                                  status_code=str(response.status_code),
+                                                  err_msg=response.reason))
         elif response.status_code in [HTTPStatus.UNAUTHORIZED,
                                       HTTPStatus.FORBIDDEN]:
             e = exceptions.IridaResourceError("Request to IRIDA is Forbidden. Do you have access to this resource?: "
                                               "{status_code}: {err_msg}\n".format(
-                                                status_code=str(response.status_code),
-                                                err_msg=response.reason))
+                                                  status_code=str(response.status_code),
+                                                  err_msg=response.reason))
         elif response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             e = exceptions.IridaConnectionError("IRIDA encountered an error while handling your request: "
                                                 "{status_code}: {err_msg}\n".format(
-                                                  status_code=str(response.status_code),
-                                                  err_msg=response.reason))
+                                                    status_code=str(response.status_code),
+                                                    err_msg=response.reason))
         else:
             e = exceptions.IridaConnectionError("Error encountered while communicating with IRIDA: "
                                                 "{status_code}: {err_msg}\n".format(
-                                                  status_code=str(response.status_code),
-                                                  err_msg=response.reason))
+                                                    status_code=str(response.status_code),
+                                                    err_msg=response.reason))
         return e
 
     def get_projects(self):
@@ -319,9 +318,9 @@ class ApiCalls(object):
             except KeyError as e:
                 e.args = map(str, e.args)
                 msg_arg = " ".join(e.args)
-                logging.debug(msg_arg + " not found. Available keys: " +
+                logging.debug(msg_arg + " not found. Available keys: "
                               ", ".join(result[0].keys()))
-                raise exceptions.IridaKeyError(msg_arg + " not found. Available keys: " +
+                raise exceptions.IridaKeyError(msg_arg + " not found. Available keys: "
                                                ", ".join(result[0].keys()))
             self.cached_projects = project_list
         else:
@@ -571,7 +570,7 @@ class ApiCalls(object):
                     bytes_read = 0
                     while data and not self._stop_upload:
                         bytes_read += len(data)
-                        progress_percent = round(bytes_read/total_file_size*100, 2)
+                        progress_percent = round(bytes_read / total_file_size * 100, 2)
                         print("Progress: ", progress_percent,
                               "% Uploaded     \r", end="")
                         progress.send_progress(progress.ProgressData(sample=sample_name,

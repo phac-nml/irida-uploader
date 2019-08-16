@@ -10,38 +10,42 @@ class Project:
     Validator.types_mapping['sample'] = _sample_type
 
     # schema for sequence file uploading
-    uploadable_schema = {'_sample_list': {
-                            'type': 'list',
-                            'empty': False,  # must have at least 1 sample
-                            'schema': {'type': 'sample'}},
-                         '_name': {
-                            'type': 'string',
-                            'nullable': True,
-                            'required': False
-                         },
-                         '_description': {
-                            'type': 'string',
-                            'nullable': True,
-                            'required': False
-                         },
-                         '_id': {
-                            'type': 'string',
-                            'nullable': False,
-                            'required': True
-                         }}
+    uploadable_schema = {
+        '_sample_list': {
+            'type': 'list',
+            'empty': False,  # must have at least 1 sample
+            'schema': {'type': 'sample'}},
+        '_name': {
+            'type': 'string',
+            'nullable': True,
+            'required': False
+        },
+        '_description': {
+            'type': 'string',
+            'nullable': True,
+            'required': False
+        },
+        '_id': {
+            'type': 'string',
+            'nullable': False,
+            'required': True
+        }
+    }
 
     # schema for project uploading
-    send_project_schema = {'_name': {
-                                'type': 'string',
-                                'nullable': False,
-                                'required': True,
-                                'minlength': 5  # when uploading a new project
-                           },
-                           '_description': {
-                                'type': 'string',
-                                'nullable': True,
-                                'required': False
-                           }}
+    send_project_schema = {
+        '_name': {
+            'type': 'string',
+            'nullable': False,
+            'required': True,
+            'minlength': 5  # when uploading a new project
+        },
+        '_description': {
+            'type': 'string',
+            'nullable': True,
+            'required': False
+        }
+    }
 
     # project_id is optional because it's not necessary when creating a Project object to send.
     # project_id is the identifier key when getting projects from the API.
