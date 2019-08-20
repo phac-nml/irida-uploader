@@ -17,8 +17,30 @@ matrix:
       python: 3.7
     - env: "TEST_SUITE=integrationtests"
       python: 3.6
+      before_script:
+        - java -version
+        - echo $JAVA_HOME
+        - sudo add-apt-repository ppa:openjdk-r/ppa -y
+        - sudo apt-get update
+        - sudo apt-get install openjdk-8-jdk -y
+        - export JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
+        - export PATH=${JAVA_HOME}/bin:$PATH
+        - java -version
+        - echo $JAVA_HOME
+        - ln -s /usr/lib/chromium-browser/chromedriver ~/bin/chromedriver
     - env: "TEST_SUITE=integrationtestsdev"
       python: 3.6
+      before_script:
+        - java -version
+        - echo $JAVA_HOME
+        - sudo add-apt-repository ppa:openjdk-r/ppa -y
+        - sudo apt-get update
+        - sudo apt-get install openjdk-8-jdk -y
+        - export JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
+        - export PATH=${JAVA_HOME}/bin:$PATH
+        - java -version
+        - echo $JAVA_HOME
+        - ln -s /usr/lib/chromium-browser/chromedriver ~/bin/chromedriver
     - env: "TEST_SUITE=pep8"
       python: 3.6
 
@@ -35,18 +57,6 @@ addons:
       - chromium-chromedriver
       - xvfb
   chrome: stable
-
-before_script:
-  - java -version
-  - echo $JAVA_HOME
-  - sudo add-apt-repository ppa:openjdk-r/ppa -y
-  - sudo apt-get update
-  - sudo apt-get install openjdk-8-jdk -y
-  - export JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
-  - export PATH=${JAVA_HOME}/bin:$PATH
-  - java -version
-  - echo $JAVA_HOME
-  - ln -s /usr/lib/chromium-browser/chromedriver ~/bin/chromedriver
 
 install:
   - mysql -e "CREATE USER '$MYSQL_USER'@'localhost' IDENTIFIED BY '$MYSQL_PASSWORD'; GRANT ALL ON $MYSQL_DATABASE.* to '$MYSQL_USER'@'localhost';"
