@@ -175,8 +175,8 @@ def _run_upload_handler(api_instance, sequencing_run, run_id):
     :param run_id: run id to use for upload
     :return:
     """
-    multi_threading = config.read_config_option("multithreading")
-    if multi_threading:
+    multithreading_config = config.read_config_option('multithreading', bool, False)
+    if multithreading_config is not None and multithreading_config is True:
         return _run_upload_threadpool(api_instance, sequencing_run, run_id)
     else:
         return _run_upload_basic(api_instance, sequencing_run, run_id)

@@ -158,8 +158,8 @@ class ConfigDialog(QtWidgets.QDialog):
         self._base_url.setText(config.read_config_option('base_url'))
         index = self._parser.findText(config.read_config_option('parser'))
         self._parser.setCurrentIndex(index)
-        multithreading_config_string = config.read_config_option('multithreading')
-        multithreading_state = QtCore.Qt.Checked if multithreading_config_string == 'True' else QtCore.Qt.Unchecked
+        multithreading_config = config.read_config_option('multithreading', bool, False)
+        multithreading_state = QtCore.Qt.Checked if multithreading_config is True else QtCore.Qt.Unchecked
         self._multithreading.setCheckState(multithreading_state)
         self._multithreading_state_changed(multithreading_state)
         self._threads.setValue(int(config.read_config_option('threads')))

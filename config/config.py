@@ -201,8 +201,14 @@ def read_config_option(key, expected_type=None, default_value=None):
             logging.debug("Got configuration for key {}: {}".format(key, value))
             return _conf_parser.get("Settings", key)
         elif expected_type is bool:
-            return _conf_parser.getboolean("Settings", key)
-    except (ValueError, NoOptionError):
+            res = _conf_parser.get("Settings", key)
+            if type(res) is bool:
+                return res
+            elif type(res) is str:
+                return eval(res)
+            else:
+                raise NameError
+    except (ValueError, NameError, NoOptionError):
         if default_value:
             return default_value
         else:
