@@ -13,6 +13,9 @@ class ConfigDialog(QtWidgets.QDialog):
         super().__init__(parent)
         logging.debug("GUI: Setting up ConfigDialog")
 
+        # Set dialog title
+        self.setWindowTitle("Configure Settings")
+
         # Widgets
         self._client_id_label = QtWidgets.QLabel("Client ID")
         self._client_id = QtWidgets.QLineEdit()

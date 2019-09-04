@@ -1,12 +1,15 @@
 import logging
 # PyQt needs to be imported like this because for whatever reason they decided not to include a __all__ = [...]
 import PyQt5.QtWidgets as QtWidgets
+import PyQt5.QtGui as QtGui
 
 from config import config
 from model import DirectoryStatus
 
 from .config import ConfigDialog
 from . import tools, widgets, colours, threads
+
+import os
 
 
 class MainDialog(QtWidgets.QDialog):
@@ -15,6 +18,11 @@ class MainDialog(QtWidgets.QDialog):
         logging.debug("GUI: Setting up MainDialog")
 
         self.config_dlg = ConfigDialog(parent=self)
+
+        # set window title and icon
+        self.setWindowTitle("IRIDA Uploader")
+        icon_path = os.path.join(os.path.dirname(__file__), 'images/icon.ico')
+        self.setWindowIcon(QtGui.QIcon(icon_path))
 
         # Initialize threads from the tools file
         self._status_thread = threads.StatusThread()
