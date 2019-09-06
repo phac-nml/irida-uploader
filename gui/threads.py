@@ -4,7 +4,7 @@ import PyQt5.QtCore as QtCore
 
 from pprint import pformat
 
-from core import cli_entry, parsing_handler
+from core import cli_entry, parsing_handler, exit_return
 from parsers import exceptions
 
 
@@ -125,7 +125,7 @@ class UploadThread(QtCore.QThread):
 
     def is_success(self):
         if self._exit_return:
-            return self._exit_return.exit_code == cli_entry.ExitReturn.EXIT_CODE_SUCCESS
+            return self._exit_return.exit_code == exit_return.EXIT_CODE_SUCCESS
 
     def get_exit_error(self):
         if self._exit_return:
