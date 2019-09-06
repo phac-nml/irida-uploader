@@ -9,6 +9,13 @@ from . import tools, colours
 
 
 class ConfigDialog(QtWidgets.QDialog):
+    """
+    Configuration/Settings dialog window.
+
+    This has multiple options that the user can change instead of using the config file.
+    On opening the dialog the settings will be loaded from the config file.
+    When the user accepts, or clicks "save and test", the settings will be written to the config file.
+    """
     def __init__(self, parent=None):
         super().__init__(parent)
         logging.debug("GUI: Setting up ConfigDialog")

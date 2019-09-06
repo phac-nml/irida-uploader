@@ -13,6 +13,13 @@ import os
 
 
 class MainDialog(QtWidgets.QDialog):
+    """
+    The programs main interactive window.
+
+    Includes directory selection, automatic parsing, sample/project preview and error reporting.
+
+    The user will be warned when a run is invalid, has already been uploaded, or errors happen during upload.
+    """
     def __init__(self):
         super().__init__()
         logging.debug("GUI: Setting up MainDialog")
