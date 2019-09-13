@@ -7,7 +7,6 @@ import logging
 
 import api
 import config
-import progress
 import model
 from . import model_validator
 
@@ -145,15 +144,11 @@ def upload_sequencing_run(sequencing_run):
         # set seq run to upload
         api_instance.set_seq_run_uploading(run_id)
 
-        current_project_number = 0
         # loop through projects
         for project in sequencing_run.project_list:
-            current_project_number = current_project_number + 1
-            current_sample_number = 0
             # loop through samples
             for sample in project.sample_list:
                 logging.info("Uploading to Sample {} on Project {}".format(sample.sample_name, project.id))
-                current_sample_number = current_sample_number + 1
                 # upload files
                 api_instance.send_sequence_files(sequence_file=sample.sequence_file,
                                                  sample_name=sample.sample_name,

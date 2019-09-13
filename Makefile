@@ -3,6 +3,7 @@ IRIDA_VERSION?=master
 
 all: clean requirements
 gui: clean requirementsgui
+guidev: clean requirementsguidev
 
 clean:
 	rm -rf .cache
@@ -28,6 +29,13 @@ requirementsgui:
 	pip3 install --upgrade wheel
 	pip3 install -r requirements.txt
 	pip3 install -r requirementsgui.txt
+
+requirementsguidev:
+	python3 -m venv .virtualenv
+	source .virtualenv/bin/activate
+	pip3 install --upgrade wheel
+	pip3 install -r requirements.txt
+	pip3 install -r requirementsguidev.txt
 
 windowsgui: clean requirementsgui
 	source .virtualenv/bin/activate
