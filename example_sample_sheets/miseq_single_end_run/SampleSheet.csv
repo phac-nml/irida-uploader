@@ -1,0 +1,23 @@
+[Header]
+IEMFileVersion,4
+Investigator Name,Onishi
+Experiment Name,Takashi Contact Results
+Date,12/06/2019
+Workflow,GenerateFASTQ
+Application,FASTQ Only
+Assay,Nextera XT
+Description,Tetsuo Shima Sample
+Chemistry,Esper
+
+[Reads]
+251
+
+[Settings]
+ReverseComplement,0
+Adapter,AAAAGGGGAAAAGGGGAAA
+
+[Data]
+Sample_ID,Sample_Name,Sample_Plate,Sample_Well,I7_Index_ID,index,I5_Index_ID,index2,Sample_Project,Description
+01-1111,01-1111,1,01,N01,AAAAAAAA,S01,TTTTTTTT,6,Sample 1 
+02-2222,02-2222,2,02,N02,GGGGGGGG,S02,CCCCCCCC,6,Sample 2 
+03-3333,03-3333,3,03,N03,CCCCCCCC,S03,GGGGGGGG,6,Sample 3 

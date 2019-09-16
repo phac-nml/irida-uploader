@@ -3,7 +3,7 @@ from unittest.mock import patch, MagicMock, Mock, call
 from os import path
 import os
 
-from core import cli_entry, logger
+from core import cli_entry, logger, exit_return
 from model import DirectoryStatus
 from parsers.exceptions import DirectoryError
 from api.exceptions import FileError, IridaResourceError, IridaConnectionError
@@ -397,7 +397,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         result = cli_entry.upload_run_single_entry(my_directory, force_upload=False)
 
         # Check that the run failed to upload
-        self.assertEqual(result, cli_entry.EXIT_CODE_ERROR)
+        self.assertEqual(result.exit_code, exit_return.EXIT_CODE_ERROR)
         # Make sure directory status is init
         mock_progress.write_directory_status.assert_called_with(stub_directory_status)
         # Make sure parsing and validation is done
@@ -445,7 +445,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         result = cli_entry.upload_run_single_entry(my_directory, force_upload=False)
 
         # Check that the run failed to upload
-        self.assertEqual(result, cli_entry.EXIT_CODE_ERROR)
+        self.assertEqual(result.exit_code, exit_return.EXIT_CODE_ERROR)
         # Make sure directory status is init
         mock_progress.write_directory_status.assert_called_with(stub_directory_status)
         # Make sure parsing and validation is done
@@ -493,7 +493,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         result = cli_entry.upload_run_single_entry(my_directory, force_upload=False)
 
         # Check that the run failed to upload
-        self.assertEqual(result, cli_entry.EXIT_CODE_ERROR)
+        self.assertEqual(result.exit_code, exit_return.EXIT_CODE_ERROR)
         # Make sure directory status is init
         mock_progress.write_directory_status.assert_called_with(stub_directory_status)
         # Make sure parsing and validation is done
@@ -549,7 +549,6 @@ class TestBatchUploadSingleEntry(unittest.TestCase):
 
         # validate calls only happen once
         mock_validate_and_upload.assert_called_once_with(stub_directory_status_valid)
-
 
     @patch("core.cli_entry._validate_and_upload")
     @patch("core.cli_entry.parsing_handler")

@@ -179,9 +179,9 @@ def upload(run_directory, force_upload):
     start upload on a single run directory
     :param run_directory:
     :param force_upload:
-    :return:
+    :return: exit code 0 or 1
     """
-    return core.cli_entry.upload_run_single_entry(run_directory, force_upload)
+    return core.cli_entry.upload_run_single_entry(run_directory, force_upload).exit_code
 
 
 def upload_batch(batch_directory, force_upload):
@@ -189,9 +189,9 @@ def upload_batch(batch_directory, force_upload):
     Start uploading runs in the batch directory
     :param batch_directory:
     :param force_upload:
-    :return:
+    :return: exit code 0 or 1
     """
-    return core.cli_entry.batch_upload_single_entry(batch_directory, force_upload)
+    return core.cli_entry.batch_upload_single_entry(batch_directory, force_upload).exit_code
 
 
 # This is called when the program is run for the first time

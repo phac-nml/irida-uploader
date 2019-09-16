@@ -120,7 +120,7 @@ class TestEndToEnd(unittest.TestCase):
         upload_result = upload_run_single_entry(path.join(path_to_module, "fake_ngs_data"))
 
         # Make sure the upload was a success
-        self.assertEqual(upload_result, 0)
+        self.assertEqual(upload_result.exit_code, 0)
 
         # Verify the files were uploaded
         sample_list = test_api.get_samples(project_id)
@@ -219,7 +219,7 @@ class TestEndToEnd(unittest.TestCase):
         upload_result = batch_upload_single_entry(path.join(path_to_module, "fake_batch_data"))
 
         # Make sure the upload was a success
-        self.assertEqual(upload_result, 0)
+        self.assertEqual(upload_result.exit_code, 0)
 
         # Verify the files were uploaded
         sample_list = test_api.get_samples(project_id)
@@ -303,7 +303,7 @@ class TestEndToEnd(unittest.TestCase):
         upload_result = upload_run_single_entry(path.join(path_to_module, "fake_dir_data"))
 
         # Make sure the upload was a success
-        self.assertEqual(upload_result, 0)
+        self.assertEqual(upload_result.exit_code, 0)
 
         # Verify the files were uploaded
         sample_list = test_api.get_samples(project_id)
@@ -376,7 +376,7 @@ class TestEndToEnd(unittest.TestCase):
         upload_result = upload_run_single_entry(path.join(path_to_module, "fake_miniseq_data"))
 
         # Make sure the upload was a success
-        self.assertEqual(upload_result, 0)
+        self.assertEqual(upload_result.exit_code, 0)
 
         # Verify the files were uploaded
         sample_list = test_api.get_samples(project_id)
@@ -477,7 +477,7 @@ class TestEndToEnd(unittest.TestCase):
         upload_result = upload_run_single_entry(path.join(path_to_module, "fake_nextseq_data"))
 
         # Make sure the upload was a success
-        self.assertEqual(upload_result, 0)
+        self.assertEqual(upload_result.exit_code, 0)
 
         # Verify the files were uploaded
         sample_list_1 = test_api.get_samples(project_id_1)
@@ -558,7 +558,7 @@ class TestEndToEnd(unittest.TestCase):
         upload_result = upload_run_single_entry(path.join(path_to_module, "fake_ngs_data_nonexistent_project"))
 
         # Make sure the upload was a failure
-        self.assertEqual(upload_result, 1)
+        self.assertEqual(upload_result.exit_code, 1)
 
         # Verify that the project does not exist
         project_id = "1000"
@@ -603,7 +603,7 @@ class TestEndToEnd(unittest.TestCase):
         upload_result = upload_run_single_entry(path.join(path_to_module, "fake_ngs_data_parse_fail"))
 
         # Make sure the upload was a failure
-        self.assertEqual(upload_result, 1)
+        self.assertEqual(upload_result.exit_code, 1)
 
     def test_valid_miseq_with_status_file_force(self):
         """
@@ -651,7 +651,7 @@ class TestEndToEnd(unittest.TestCase):
         upload_result = upload_run_single_entry(path.join(path_to_module, "fake_ngs_data_force"), True)
 
         # Make sure the upload was a success
-        self.assertEqual(upload_result, 0)
+        self.assertEqual(upload_result.exit_code, 0)
 
         # Verify the files were uploaded
         sample_list = test_api.get_samples(project_id)
@@ -732,7 +732,7 @@ class TestEndToEnd(unittest.TestCase):
         upload_result = upload_run_single_entry(path.join(path_to_module, "fake_ngs_data"), False)
 
         # Make sure the upload was a failure
-        self.assertEqual(upload_result, 1)
+        self.assertEqual(upload_result.exit_code, 1)
 
     def test_invalid_miseq_no_completed_file(self):
         """
@@ -755,4 +755,4 @@ class TestEndToEnd(unittest.TestCase):
         upload_result = upload_run_single_entry(path.join(path_to_module, "fake_ngs_data_no_completed_file"), False)
 
         # Make sure the upload was a failure
-        self.assertEqual(upload_result, 1)
+        self.assertEqual(upload_result.exit_code, 1)

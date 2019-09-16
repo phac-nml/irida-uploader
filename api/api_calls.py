@@ -13,6 +13,10 @@ from urllib.parse import urljoin, urlparse
 from urllib.error import URLError
 
 import model
+# For a truly independent api module, we should have a signal, or pubsub system in the module, that the progress module
+# can subscribe to. That way, the api module is seperate, and other applications could use the emits/messages in their
+# own setups.
+import progress
 
 from . import exceptions
 
@@ -567,8 +571,13 @@ class ApiCalls(object):
                     bytes_read = 0
                     while data and not self._stop_upload:
                         bytes_read += len(data)
-                        print("Progress: ", round(bytes_read/total_file_size*100, 2),
+                        progress_percent = round(bytes_read/total_file_size*100, 2)
+                        print("Progress: ", progress_percent,
                               "% Uploaded     \r", end="")
+                        progress.send_progress(progress.ProgressData(sample=sample_name,
+                                                                     project=project_id,
+                                                                     file=filename,
+                                                                     progress=progress_percent))
                         yield data
                         data = fastq_file.read(read_size)
                     print()  # end cap to the dots we printed above

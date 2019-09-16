@@ -8,10 +8,7 @@ import global_settings
 import progress
 from model import DirectoryStatus
 
-from . import api_handler, parsing_handler, logger
-
-EXIT_CODE_ERROR = 1
-EXIT_CODE_SUCCESS = 0
+from . import api_handler, parsing_handler, logger, exit_return
 
 
 def upload_run_single_entry(directory, force_upload=False):
@@ -22,24 +19,26 @@ def upload_run_single_entry(directory, force_upload=False):
 
     :param directory: Directory of the sequencing run to upload
     :param force_upload: When set to true, the upload status file will be ignored and file will attempt to be uploaded
-    :return:
+    :return: ExitReturn
     """
     directory_status = parsing_handler.get_run_status(directory)
     # Check if a run is invalid, an invalid run cannot be uploaded.
     if directory_status.status_equals(DirectoryStatus.INVALID):
-        logging.error("ERROR! Run in directory {} is invalid. Returned with message: '{}'"
-                      "".format(directory_status.directory, directory_status.message))
-        return exit_error()
+        error_msg = "ERROR! Run in directory {} is invalid. Returned with message: '{}'".format(
+            directory_status.directory, directory_status.message)
+        logging.error(error_msg)
+        return exit_error(error_msg)
 
     # Only upload if run is new, or force_upload is True
     if not force_upload:
         if not directory_status.status_equals(DirectoryStatus.NEW):
-            logging.error("ERROR! Run in directory {} is not new. It has either been uploaded, "
-                          "or an upload was attempted with error. "
-                          "Please check the status file 'irida_uploader_status.info' "
-                          "in the run directory for more details. "
-                          "You can bypass this error by uploading with the --force argument.".format(directory))
-            return exit_error()
+            error_msg = "ERROR! Run in directory {} is not new. It has either been uploaded, " \
+                        "or an upload was attempted with error. " \
+                        "Please check the status file 'irida_uploader_status.info' " \
+                        "in the run directory for more details. " \
+                        "You can bypass this error by uploading with the --force argument.".format(directory)
+            logging.error(error_msg)
+            return exit_error(error_msg)
 
     return _validate_and_upload(directory_status)
 
@@ -54,7 +53,7 @@ def batch_upload_single_entry(batch_directory, force_upload=False):
 
     :param batch_directory: Directory containing sequencing run directories to upload
     :param force_upload: When set to true, the upload status file will be ignored and file will attempt to be uploaded
-    :return:
+    :return: ExitReturn
     """
     logging.debug("batch_upload_single_entry:Starting {} with force={}".format(batch_directory, force_upload))
     # get all potential directories to upload
@@ -82,7 +81,7 @@ def batch_upload_single_entry(batch_directory, force_upload=False):
     for directory_status in upload_list:
         logging.info("Starting upload for {}".format(directory_status.directory))
         result = _validate_and_upload(directory_status)
-        if result == EXIT_CODE_ERROR:
+        if result.exit_code == exit_return.EXIT_CODE_ERROR:
             error_list.append(directory_status.directory)
 
     logging.info("Uploads completed with {} error(s)".format(len(error_list)))
@@ -105,7 +104,7 @@ def _validate_and_upload(directory_status):
     Starts the upload
 
     :param directory_status: DirectoryStatus object that has directory to try upload
-    :return:
+    :return: ExitReturn
     """
     logging_start_block(directory_status.directory)
     logging.debug("upload_run_single_entry:Starting {}".format(directory_status.directory))
@@ -128,7 +127,7 @@ def _validate_and_upload(directory_status):
         logging.error(full_error)
         logging.info("Samples not uploaded!")
         _set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
-        return exit_error()
+        return exit_error(e)
     except parsers.exceptions.ValidationError as e:
         # Sequencing Run / SampleSheet was not valid for some reason
         error_msg = "ERROR! Errors occurred during validation with message: {}".format(e.message)
@@ -138,7 +137,7 @@ def _validate_and_upload(directory_status):
         logging.info("Samples not uploaded!")
         full_error = error_msg + ", " + error_list_msg
         _set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
-        return exit_error()
+        return exit_error(e)
 
     # Initialize the api for first use
     logging.info("*** Connecting to IRIDA ***")
@@ -150,7 +149,7 @@ def _validate_and_upload(directory_status):
         logging.info("Samples not uploaded!")
         full_error = "ERROR! Could not initialize irida api. Errors: " + pformat(e.args)
         _set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
-        return exit_error()
+        return exit_error(e)
     logging.info("*** Connected ***")
 
     logging.info("*** Verifying run (online validation) ***")
@@ -161,7 +160,7 @@ def _validate_and_upload(directory_status):
         logging.error("Errors: " + pformat(e.args))
         full_error = "Lost connection to Irida. Errors: " + pformat(e.args)
         _set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
-        return exit_error()
+        return exit_error(e)
 
     if not validation_result.is_valid():
         logging.error("Sequencing run can not be uploaded")
@@ -170,7 +169,7 @@ def _validate_and_upload(directory_status):
         logging.error("Errors: " + pformat(validation_result.error_list))
         full_error = "Sequencing run can not be uploaded, Errors: " + pformat(validation_result.error_list)
         _set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
-        return exit_error()
+        return exit_error(full_error)
     logging.info("*** Run Verified ***")
 
     # Start upload
@@ -182,19 +181,19 @@ def _validate_and_upload(directory_status):
         logging.error("Errors: " + pformat(e.args))
         full_error = "Lost connection to Irida. Errors: " + pformat(e.args)
         _set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
-        return exit_error()
+        return exit_error(e)
     except api.exceptions.IridaResourceError as e:
         logging.error("Could not access IRIDA resource")
         logging.error("Errors: " + pformat(e.args))
         full_error = "Could not access IRIDA resource Errors: " + pformat(e.args)
         _set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
-        return exit_error()
+        return exit_error(e)
     except api.exceptions.FileError as e:
         logging.error("Could not upload file to IRIDA")
         logging.error("Errors: " + pformat(e.args))
         full_error = "Could not upload file to IRIDA. Errors: " + pformat(e.args)
         _set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
-        return exit_error()
+        return exit_error(e)
     logging.info("*** Upload Complete ***")
 
     # Set progress file to complete
@@ -231,21 +230,21 @@ def _set_and_write_directory_status(directory_status, status, message=None, run_
         progress.write_directory_status(directory_status)
 
 
-def exit_error():
+def exit_error(error):
     """
     Returns an failed run exit code which ends the process when returned
-    :return: 1
+    :return: ExitReturn with EXIT_CODE_ERROR
     """
     logging_end_block()
-    return EXIT_CODE_ERROR
+    return exit_return.ExitReturn(exit_return.EXIT_CODE_ERROR, error)
 
 
 def exit_success():
     """
     Returns an success run exit code which ends the process when returned
-    :return: 0
+    :return: ExitReturn with EXIT_CODE_SUCCESS
     """
-    return EXIT_CODE_SUCCESS
+    return exit_return.ExitReturn(exit_return.EXIT_CODE_SUCCESS)
 
 
 def logging_start_block(directory):
