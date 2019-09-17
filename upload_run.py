@@ -7,7 +7,6 @@ import textwrap
 
 import config
 import core
-import global_settings
 from parsers import supported_parsers
 
 # Set up an argument parser. We are using defaults to stay consistent with other software.
@@ -36,7 +35,7 @@ argument_parser.add_argument('-d','--directory',
 # help='Location of sequencing run to upload. Directory must be writable.')
 # Add the version argument
 argument_parser.add_argument('--version',
-                             action='version', version='IRIDA Uploader {}'.format(global_settings.UPLOADER_VERSION))
+                             action='version', version='IRIDA Uploader {}'.format(core.VERSION_NUMBER))
 # Optional argument, for using an alternative config file.
 argument_parser.add_argument('-c', '--config',
                              action='store',

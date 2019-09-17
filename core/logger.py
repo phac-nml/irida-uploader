@@ -2,8 +2,6 @@ from appdirs import user_log_dir
 import os
 import logging.handlers
 
-import global_settings
-
 
 # Normal base logging directory name
 log_directory_name = "irida_uploader"
@@ -44,8 +42,6 @@ console = logging.StreamHandler()
 console.setLevel(logging.INFO)
 console.setFormatter(log_format)
 root_logger.addHandler(console)
-
-global_settings.log_file = user_log_dir(log_directory_name)
 
 # manages the logging directory
 # only one directory can have a logger at a time
@@ -88,3 +84,7 @@ def remove_directory_logger():
     root_logger.removeHandler(directory_logger)
     directory_logger = None
     logging.info("Stopped active logging to run directory")
+
+
+def get_user_log_dir():
+    return user_log_dir(log_directory_name)
