@@ -4,11 +4,12 @@ from pprint import pformat
 
 import api
 import parsers
-import global_settings
 import progress
 from model import DirectoryStatus
 
 from . import api_handler, parsing_handler, logger, exit_return
+
+VERSION_NUMBER = "0.3"
 
 
 def upload_run_single_entry(directory, force_upload=False):
@@ -250,14 +251,14 @@ def exit_success():
 def logging_start_block(directory):
     """
     Logs an information block to the console and file which indicates the start of an upload run.
-    Includes the uploader version number set in the global_settings module
+    Includes the uploader version number set in this module
     :return:
     """
     logger.add_log_to_directory(directory)
     logging.info("==================================================")
     logging.info("---------------STARTING UPLOAD RUN----------------")
-    logging.info("Uploader Version {}".format(global_settings.UPLOADER_VERSION))
-    logging.info("Logging to file in: " + global_settings.log_file)
+    logging.info("Uploader Version {}".format(VERSION_NUMBER))
+    logging.info("Logging to file in: " + logger.get_user_log_dir())
     logging.info("==================================================")
 
 

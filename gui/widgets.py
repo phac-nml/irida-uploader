@@ -1,3 +1,5 @@
+# This file contains custom widgets used by the main and config dialog windows
+
 import logging
 # PyQt needs to be imported like this because for whatever reason they decided not to include a __all__ = [...]
 import PyQt5.QtWidgets as QtWidgets
@@ -11,6 +13,10 @@ from . import colours, tools
 
 
 class ProgressBarHandler:
+    """
+    This class handles a dictionary of progress bars, indexed off of the project/sample list in the sequencing run
+    It simplifies updating the progress bars percentage by allowing us to pass it only the sample and project to update
+    """
     def __init__(self, q_parent=None):
         # Create a dictionary for new progress bars
         self._bar_dict = {}
@@ -149,6 +155,10 @@ class UploadButton(QtWidgets.QPushButton):
 
 
 class SampleTable(QtWidgets.QTableWidget):
+    """
+    This table extends the basic QTableWidget and manages the creation of Progress bars and other widgets in the table
+    The widget is also responsible to handle the message passing of progress data to the Progress bar handler
+    """
     # X index for the table
     TABLE_SAMPLE_NAME = 0
     TABLE_FILE_1 = 1
