@@ -41,7 +41,6 @@ class TestGetDirectoryStatus(unittest.TestCase):
         self.assertEqual(res.status, DirectoryStatus.INVALID)
         self.assertIsNotNone(res.message)
 
-
     def test_new_directory_with_info_file(self):
         directory = path.join(path_to_module, "new_dir_with_info_file")
 

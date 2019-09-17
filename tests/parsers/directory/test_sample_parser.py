@@ -213,7 +213,6 @@ class TestParseSampleList(unittest.TestCase):
         file_path_2 = path.join(path_to_module,
                                 "fake_dir_data", "file_2.fastq.gz")
 
-
         sample_dict_list = [OrderedDict([
             ('Sample_Name', 'my-sample-1'),
             ('Project_ID', '75'),

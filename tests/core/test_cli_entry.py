@@ -215,7 +215,6 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.prepare_and_validate_for_upload.side_effect = [None]
         mock_api_handler.upload_sequencing_run.side_effect = [None]
 
-
         cli_entry.upload_run_single_entry(directory)
 
         # Check that run status was found

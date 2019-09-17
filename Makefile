@@ -62,6 +62,10 @@ integrationtestsdev: clean requirements preintegration
 	export IRIDA_UPLOADER_TEST='True'
 	xvfb-run --auto-servernum --server-num=1 python3 start_integration_tests.py development
 
+pep8: clean requirements
+	source .virtualenv/bin/activate
+	pycodestyle --show-source --exclude=".git","bin",".idea","docs",".github","site",".virtualenv" --ignore="E501" .
+
 docs: requirements
 	source .virtualenv/bin/activate
 	mkdocs build

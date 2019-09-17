@@ -1,8 +1,8 @@
-"""
-This will eventually handle the message passing from the api layer
-Right now it is just a dummy function that prints
-"""
 def send_message(message):
+    """
+    This will eventually handle the message passing from the api layer
+    Right now it is just a dummy function that prints
+    """
     print(message)
     return
 

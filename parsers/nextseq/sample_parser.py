@@ -144,7 +144,8 @@ def _parse_sample_list(sample_sheet_file):
                 )
             )
         project_data_dir = path.join(base_data_dir, project_directory)
-        data_dir_file_list = next(walk(project_data_dir))[2]  # Create a file list of the data directory, only hit the os once
+        # Create a file list of the data directory, only hit the os once
+        data_dir_file_list = next(walk(project_data_dir))[2]
 
         properties_dict = _parse_out_sequence_file(sample)
         file_pattern = "{sample_name}_S(\\S+)_R(\\d+)_(\\S*)\\.fastq.*$".format(
@@ -291,10 +292,10 @@ def _parse_samples(sample_sheet_file):
         del new_sample_dict['description']
 
         sample = model.Sample(
-                            sample_name=new_sample_name,
-                            description=new_sample_desc,
-                            sample_number=sample_number + 1,
-                            samp_dict=new_sample_dict)
+            sample_name=new_sample_name,
+            description=new_sample_desc,
+            sample_number=sample_number + 1,
+            samp_dict=new_sample_dict)
         sample_list.append(sample)
 
     return sample_list

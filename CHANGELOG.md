@@ -1,6 +1,11 @@
 Changes
 =======
 
+Beta 0.3.1
+----------
+Developer changes:
+* Added pep8 testing with `make pep8`
+
 Beta 0.3
 --------
 Added functionality:
