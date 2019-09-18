@@ -55,6 +55,12 @@ Running the IRIDA integration tests can be done with the command:
 
 Tests will be logged to `~/.cache/irida_uploader_test/log/irida-uploader.log`
 
+#### PEP8
+
+You can run pep8 tests with:
+
+    $ make pep8
+
 Documentation
 ------------------------------
 You can [ReadTheDocs](https://irida-uploader.readthedocs.io/en/latest/) here.

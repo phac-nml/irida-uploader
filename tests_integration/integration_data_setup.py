@@ -126,7 +126,7 @@ class SetupIridaData:
         self.driver.find_element_by_id("passwordTF").clear()
         self.driver.find_element_by_id("passwordTF").send_keys(self.password)
         with self.wait_for_page_load(timeout=10):
-                self.driver.find_element_by_id("submitBtn").click()
+            self.driver.find_element_by_id("submitBtn").click()
 
     def set_new_admin_pw(self):
         self.driver.find_element_by_id("password").clear()

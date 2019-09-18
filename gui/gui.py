@@ -1,6 +1,7 @@
 import logging
 # PyQt needs to be imported like this because for whatever reason they decided not to include a __all__ = [...]
 import PyQt5.QtWidgets as QtWidgets
+import PyQt5.QtGui as QtGui
 
 from config import config
 from model import DirectoryStatus
@@ -8,13 +9,27 @@ from model import DirectoryStatus
 from .config import ConfigDialog
 from . import tools, widgets, colours, threads
 
+import os
+
 
 class MainDialog(QtWidgets.QDialog):
+    """
+    The programs main interactive window.
+
+    Includes directory selection, automatic parsing, sample/project preview and error reporting.
+
+    The user will be warned when a run is invalid, has already been uploaded, or errors happen during upload.
+    """
     def __init__(self):
         super().__init__()
         logging.debug("GUI: Setting up MainDialog")
 
         self.config_dlg = ConfigDialog(parent=self)
+
+        # set window title and icon
+        self.setWindowTitle("IRIDA Uploader")
+        icon_path = os.path.join(os.path.dirname(__file__), 'images/icon.ico')
+        self.setWindowIcon(QtGui.QIcon(icon_path))
 
         # Initialize threads from the tools file
         self._status_thread = threads.StatusThread()
@@ -408,7 +423,7 @@ class MainDialog(QtWidgets.QDialog):
         fills the info line with message
         shows the info button (continue button)
         :param message: string to display to the user
-        :return: 
+        :return:
         """
         self._info_line.setText(message)
         self._info_line.show()
@@ -428,7 +443,7 @@ class MainDialog(QtWidgets.QDialog):
         """
         disables the use of the info (continue) button
         Useful in the case of an invalid run that should never be parsed
-        :return: 
+        :return:
         """
         self._info_btn.hide()
 
@@ -437,7 +452,7 @@ class MainDialog(QtWidgets.QDialog):
         Shows errors from a previous run attempt
         unhides a textbox and fills it with a string
         :param errors: string of errors to display to user
-        :return: 
+        :return:
         """
         self._prev_errors.show()
         self._prev_errors.appendPlainText(str(errors))
@@ -445,7 +460,7 @@ class MainDialog(QtWidgets.QDialog):
     def _reset_previous_error(self):
         """
         blanks out and hides the previous error box
-        :return: 
+        :return:
         """
         self._prev_errors.clear()
         self._prev_errors.hide()
@@ -455,7 +470,7 @@ class MainDialog(QtWidgets.QDialog):
         Shows errors from a current parse attempt
         unhides a textbox and fills it with a string
         :param errors: string of errors to display to user
-        :return: 
+        :return:
         """
         self._curr_errors.show()
         self._curr_errors.appendPlainText(str(errors))
@@ -463,7 +478,7 @@ class MainDialog(QtWidgets.QDialog):
     def _reset_current_error(self):
         """
         blanks out and hides the current error box
-        :return: 
+        :return:
         """
         self._curr_errors.clear()
         self._curr_errors.hide()

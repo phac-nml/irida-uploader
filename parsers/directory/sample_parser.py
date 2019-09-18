@@ -47,7 +47,7 @@ def build_sequencing_run_from_samples(sample_sheet_file):
             sq = model.SequenceFile(properties_dict=None, file_list=[file_f])
 
         # create sample
-        sample_obj = model.Sample(sample_name=sample_name, sample_number=sample_number+1)
+        sample_obj = model.Sample(sample_name=sample_name, sample_number=sample_number + 1)
 
         # add sequence file to sample
         sample_obj.sequence_file = deepcopy(sq)
@@ -97,15 +97,15 @@ def _parse_sample_list(sample_sheet_file):
             has_single_end_read = True
 
         # Check if file names are in the files we found in the directory
-        if (sample_dict['File_Forward'] not in data_dir_file_list and
-           sample_dict['File_Forward'] not in data_dir_file_list_full_path):
+        if ((sample_dict['File_Forward'] not in data_dir_file_list) and (
+                sample_dict['File_Forward'] not in data_dir_file_list_full_path)):
             raise exceptions.SampleSheetError(
                 ("Your sample sheet is malformed. {} Does not match any file in the directory {}"
                  "".format(sample_dict['File_Forward'], data_dir)),
                 sample_sheet_file
             )
-        if ((paired_end_read and sample_dict['File_Reverse'] not in data_dir_file_list) and
-           (paired_end_read and sample_dict['File_Reverse'] not in data_dir_file_list_full_path)):
+        if ((paired_end_read and sample_dict['File_Reverse'] not in data_dir_file_list) and (
+                paired_end_read and sample_dict['File_Reverse'] not in data_dir_file_list_full_path)):
             raise exceptions.SampleSheetError(
                 ("Your sample sheet is malformed. {} Does not match any file in the directory {}"
                  "".format(sample_dict['File_Reverse'], data_dir)),
@@ -196,7 +196,7 @@ def _parse_samples(sample_sheet_file):
             value = line[index].strip()
 
             # Keys other than 'File_Reverse' cannot be empty
-            if len(value) is 0: # no value
+            if len(value) is 0:  # no value
                 if key != 'File_Reverse':
                     raise exceptions.SampleSheetError(
                         ("Your sample sheet is malformed. {} in the [Data] section cannot be empty."
@@ -236,7 +236,8 @@ def get_csv_reader(sample_sheet_file):
         # open and read file in binary then send it to be parsed by csv's reader
         csv_reader = reader(csv_lines)
     else:
-        raise exceptions.SampleSheetError("Sample sheet cannot be parsed as a CSV file because it's not a regular file.",
-                                          sample_sheet_file)
+        raise exceptions.SampleSheetError(
+            "Sample sheet cannot be parsed as a CSV file because it's not a regular file.",
+            sample_sheet_file)
 
     return csv_reader

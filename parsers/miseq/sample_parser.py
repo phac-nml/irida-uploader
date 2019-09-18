@@ -294,10 +294,10 @@ def _parse_samples(sample_sheet_file):
         del new_sample_dict['description']
 
         sample = model.Sample(
-                            sample_name=new_sample_name,
-                            description=new_sample_desc,
-                            sample_number=sample_number + 1,
-                            samp_dict=new_sample_dict)
+            sample_name=new_sample_name,
+            description=new_sample_desc,
+            sample_number=sample_number + 1,
+            samp_dict=new_sample_dict)
         sample_list.append(sample)
 
     return sample_list
@@ -353,7 +353,8 @@ def get_csv_reader(sample_sheet_file):
         # open and read file in binary then send it to be parsed by csv's reader
         csv_reader = reader(csv_lines)
     else:
-        raise exceptions.SampleSheetError("Sample sheet cannot be parsed as a CSV file because it's not a regular file.",
-                                          sample_sheet_file)
+        raise exceptions.SampleSheetError(
+            "Sample sheet cannot be parsed as a CSV file because it's not a regular file.",
+            sample_sheet_file)
 
     return csv_reader

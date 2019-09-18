@@ -15,8 +15,8 @@ def set_config_file(config_file):
     """
     Public function to allow other modules to change the config file
     This does not load the settings into the config parser
-    :param config_file: 
-    :return: 
+    :param config_file:
+    :return:
     """
     global _user_config_file
     _user_config_file = config_file
@@ -25,7 +25,7 @@ def set_config_file(config_file):
 def _init_config_parser():
     """
     Creates the RawConfigParser object, adds the fields and fills with default/empty values
-    :return: 
+    :return:
     """
     global _conf_parser
     # Create a new config parser
@@ -93,7 +93,7 @@ def _load_config_from_file():
 
     try:
         _conf_parser.read(_user_config_file)
-    except:
+    except Exception:
         logging.warning("Error occurred when trying to load config file")
         logging.error("Config file {} is not valid.".format(_user_config_file))
         exit(1)

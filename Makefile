@@ -3,6 +3,7 @@ IRIDA_VERSION?=master
 
 all: clean requirements
 gui: clean requirementsgui
+guidev: clean requirementsguidev
 
 clean:
 	rm -rf .cache
@@ -29,6 +30,13 @@ requirementsgui:
 	pip3 install -r requirements.txt
 	pip3 install -r requirementsgui.txt
 
+requirementsguidev:
+	python3 -m venv .virtualenv
+	source .virtualenv/bin/activate
+	pip3 install --upgrade wheel
+	pip3 install -r requirements.txt
+	pip3 install -r requirementsguidev.txt
+
 windowsgui: clean requirementsgui
 	source .virtualenv/bin/activate
 	python -m nsist windows-gui-installer.cfg
@@ -53,6 +61,10 @@ integrationtestsdev: clean requirements preintegration
 	source .virtualenv/bin/activate
 	export IRIDA_UPLOADER_TEST='True'
 	xvfb-run --auto-servernum --server-num=1 python3 start_integration_tests.py development
+
+pep8: clean requirements
+	source .virtualenv/bin/activate
+	pycodestyle --show-source --exclude=".git","bin",".idea","docs",".github","site",".virtualenv" --ignore="E501" .
 
 docs: requirements
 	source .virtualenv/bin/activate

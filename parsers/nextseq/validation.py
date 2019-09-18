@@ -76,7 +76,7 @@ def validate_sample_sheet(sample_sheet_file):
                     missing_str = missing_str + data_header + ", "
 
             missing_str = missing_str[:-2]  # remove last ", "
-            v_res.add_error(exceptions.SampleSheetError("Missing required data header(s): " +
-                            missing_str, sample_sheet_file))
+            v_res.add_error(exceptions.SampleSheetError("Missing required data header(s): " + missing_str,
+                                                        sample_sheet_file))
 
     return v_res

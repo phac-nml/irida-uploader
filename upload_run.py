@@ -7,7 +7,6 @@ import textwrap
 
 import config
 import core
-import global_settings
 from parsers import supported_parsers
 
 # Set up an argument parser. We are using defaults to stay consistent with other software.
@@ -16,7 +15,7 @@ argument_parser = argparse.ArgumentParser(
     formatter_class=argparse.RawDescriptionHelpFormatter,
     description=textwrap.dedent('''
     This program parses sequencing runs and uploads them to IRIDA.
-    
+
     required arguments:
       --d DIRECTORY, --directory DIRECTORY
                             Location of sequencing run to upload.
@@ -29,14 +28,14 @@ argument_parser = argparse.ArgumentParser(
 # a optional argument, with the required set to True. We have to suppress the help on the argument, and add it's help
 # information to the formatted description text of the parser for the argument to be shown as required when --help
 # is used.
-argument_parser.add_argument('-d','--directory',
+argument_parser.add_argument('-d', '--directory',
                              action='store',
                              required=True,
                              help=argparse.SUPPRESS)
 # help='Location of sequencing run to upload. Directory must be writable.')
 # Add the version argument
 argument_parser.add_argument('--version',
-                             action='version', version='IRIDA Uploader {}'.format(global_settings.UPLOADER_VERSION))
+                             action='version', version='IRIDA Uploader {}'.format(core.VERSION_NUMBER))
 # Optional argument, for using an alternative config file.
 argument_parser.add_argument('-c', '--config',
                              action='store',

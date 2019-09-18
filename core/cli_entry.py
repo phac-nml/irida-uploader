@@ -4,11 +4,12 @@ from pprint import pformat
 
 import api
 import parsers
-import global_settings
 import progress
 from model import DirectoryStatus
 
-from . import api_handler, parsing_handler, logger
+from . import api_handler, parsing_handler, logger, exit_return
+
+VERSION_NUMBER = "0.3"
 
 
 def upload_run_single_entry(directory, force_upload=False):
@@ -81,7 +82,7 @@ def batch_upload_single_entry(batch_directory, force_upload=False):
     for directory_status in upload_list:
         logging.info("Starting upload for {}".format(directory_status.directory))
         result = _validate_and_upload(directory_status)
-        if result.exit_code == ExitReturn.EXIT_CODE_ERROR:
+        if result.exit_code == exit_return.EXIT_CODE_ERROR:
             error_list.append(directory_status.directory)
 
     logging.info("Uploads completed with {} error(s)".format(len(error_list)))
@@ -236,7 +237,7 @@ def exit_error(error):
     :return: ExitReturn with EXIT_CODE_ERROR
     """
     logging_end_block()
-    return ExitReturn(ExitReturn.EXIT_CODE_ERROR, error)
+    return exit_return.ExitReturn(exit_return.EXIT_CODE_ERROR, error)
 
 
 def exit_success():
@@ -244,20 +245,20 @@ def exit_success():
     Returns an success run exit code which ends the process when returned
     :return: ExitReturn with EXIT_CODE_SUCCESS
     """
-    return ExitReturn(ExitReturn.EXIT_CODE_SUCCESS)
+    return exit_return.ExitReturn(exit_return.EXIT_CODE_SUCCESS)
 
 
 def logging_start_block(directory):
     """
     Logs an information block to the console and file which indicates the start of an upload run.
-    Includes the uploader version number set in the global_settings module
+    Includes the uploader version number set in this module
     :return:
     """
     logger.add_log_to_directory(directory)
     logging.info("==================================================")
     logging.info("---------------STARTING UPLOAD RUN----------------")
-    logging.info("Uploader Version {}".format(global_settings.UPLOADER_VERSION))
-    logging.info("Logging to file in: " + global_settings.log_file)
+    logging.info("Uploader Version {}".format(VERSION_NUMBER))
+    logging.info("Logging to file in: " + logger.get_user_log_dir())
     logging.info("==================================================")
 
 
@@ -270,29 +271,3 @@ def logging_end_block():
     logging.info("----------------ENDING UPLOAD RUN-----------------")
     logging.info("==================================================")
     logger.remove_directory_logger()
-
-
-class ExitReturn:
-    """
-    When the program exits it returns this class.
-    Contains an exit code (0 or 1)
-    if exiting with error, an Exception object will be included
-    """
-    EXIT_CODE_ERROR = 1
-    EXIT_CODE_SUCCESS = 0
-
-    def __init__(self, exit_code, error=None):
-        self._exit_code = exit_code
-        if type(error) is str:
-            # If a string is given as the error, wrap in an exception.
-            # todo: when reworking exceptions, this will likely be something that could be improved
-            error = Exception(error)
-        self._error = error
-
-    @property
-    def exit_code(self):
-        return self._exit_code
-
-    @property
-    def error(self):
-        return self._error

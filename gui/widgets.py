@@ -1,3 +1,5 @@
+# This file contains custom widgets used by the main and config dialog windows
+
 import logging
 # PyQt needs to be imported like this because for whatever reason they decided not to include a __all__ = [...]
 import PyQt5.QtWidgets as QtWidgets
@@ -11,6 +13,10 @@ from . import colours, tools
 
 
 class ProgressBarHandler:
+    """
+    This class handles a dictionary of progress bars, indexed off of the project/sample list in the sequencing run
+    It simplifies updating the progress bars percentage by allowing us to pass it only the sample and project to update
+    """
     def __init__(self, q_parent=None):
         # Create a dictionary for new progress bars
         self._bar_dict = {}
@@ -149,6 +155,10 @@ class UploadButton(QtWidgets.QPushButton):
 
 
 class SampleTable(QtWidgets.QTableWidget):
+    """
+    This table extends the basic QTableWidget and manages the creation of Progress bars and other widgets in the table
+    The widget is also responsible to handle the message passing of progress data to the Progress bar handler
+    """
     # X index for the table
     TABLE_SAMPLE_NAME = 0
     TABLE_FILE_1 = 1
@@ -200,12 +210,12 @@ class SampleTable(QtWidgets.QTableWidget):
             for sample in sample_list:
                 files = sample.sequence_file.file_list
                 self.setItem(y_index, self.TABLE_SAMPLE_NAME,
-                                    QtWidgets.QTableWidgetItem(sample.sample_name))
+                             QtWidgets.QTableWidgetItem(sample.sample_name))
                 self.setItem(y_index, self.TABLE_FILE_1,
-                                    QtWidgets.QTableWidgetItem(os.path.basename(files[0])))
+                             QtWidgets.QTableWidgetItem(os.path.basename(files[0])))
                 if len(files) == 2:
                     self.setItem(y_index, self.TABLE_FILE_2,
-                                        QtWidgets.QTableWidgetItem(os.path.basename(files[1])))
+                                 QtWidgets.QTableWidgetItem(os.path.basename(files[1])))
                 self.setItem(y_index, self.TABLE_PROJECT, QtWidgets.QTableWidgetItem(project.id))
 
                 new_progress_bar = self._progress_bars.add_bar(sample=sample.sample_name,
