@@ -1,11 +1,6 @@
 Changes
 =======
 
-Beta 0.3.1
-----------
-Developer changes:
-* Added pep8 testing with `make pep8`
-
 Beta 0.3
 --------
 Added functionality:
@@ -20,6 +15,9 @@ Bug Fixes:
 
 API Changes:
 * Added 400, 401, 403, and 500 to http errors we explicitly have exceptions for. (Other errors still generate generic exceptions that are handled the same way.)
+
+Developer changes:
+* Added pep8 testing with `make pep8`
 
 Beta 0.2.1
 ----------
