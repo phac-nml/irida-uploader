@@ -10,7 +10,7 @@ If you are having problems uploading, please verify your file structure is corre
 ```
 <In this example, the run is has sequence data for project 22 and project 23
 .
-├── CompletedJobInfo.xml
+├── SampleSheet.md
 ├── Data
 │   └── Intensities
 │       └── BaseCalls
