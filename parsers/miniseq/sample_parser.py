@@ -295,11 +295,13 @@ def _parse_samples(sample_sheet_file):
 
         new_sample_dict = deepcopy(sample_dict)
         new_sample_name = new_sample_dict['sampleName']
-        # Some versions of the illumina *seq software has description fields, and others do not
+        # Some versions of the illumina *seq software has Description fields, and others do not
         # If they do, we need to include the description field here (or else we end up with duplication of fields)
         # If they don't we give it a blank description
         new_sample_desc = ''
         if 'Description' in new_sample_dict:
+            new_sample_desc = new_sample_dict['Description']
+        if 'description' in new_sample_dict:
             new_sample_desc = new_sample_dict['description']
 
         sample = model.Sample(

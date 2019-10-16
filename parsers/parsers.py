@@ -6,6 +6,7 @@ supported_parsers = [
     'miseq',
     'miniseq',
     'nextseq',
+    'iseq',
     'directory',
 ]
 
@@ -43,8 +44,8 @@ class Parser:
         if parser_type == "miseq":
             logging.debug("Creating miseq parser")
             return miseq.Parser()
-        if parser_type == "miniseq":
-            logging.debug("Creating miniseq parser")
+        if parser_type == "miniseq" or parser_type == "iseq":
+            logging.debug("Creating miniseq/iseq parser")
             return miniseq.Parser()
         if parser_type == "nextseq":
             logging.debug("Creating nextseq parser")
