@@ -45,7 +45,7 @@ To run integration tests your will need some additional software.
 
 You will also need to download and install chromedriver http://chromedriver.chromium.org/downloads
 
-You will need to allow the IRIDA instance to the mysql database needed for the tests
+You will need to grant the IRIDA instance access to the mysql database needed for the tests
 
     $ mysql -e "CREATE USER 'test'@'localhost' IDENTIFIED BY 'test'; GRANT ALL ON irida_uploader_test.* to 'test'@'localhost';"
 
