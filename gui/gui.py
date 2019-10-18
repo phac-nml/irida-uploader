@@ -176,17 +176,18 @@ class MainDialog(QtWidgets.QDialog):
         :return:
         """
         if self._uploading:
-            reply = QtWidgets.QMessageBox.warning(self, "Uploading, cannot exit!",
-                                                  "The program is currently uploading and cannot exit at this time.",
-                                                  QtWidgets.QMessageBox.Ok)
-        else:
-            reply = QtWidgets.QMessageBox.question(self, 'Exit Uploader?', "Are you sure you want to exit the program?",
+            reply = QtWidgets.QMessageBox.question(self, 'Exit Uploader?',
+                                                   "Data is still being uploaded! "
+                                                   "Are you sure you want to exit the program?",
                                                    QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
-
-        if reply != QtWidgets.QMessageBox.Yes:
-            event.ignore()
         else:
             event.accept()
+            return
+
+        if reply == QtWidgets.QMessageBox.Yes:
+            event.accept()
+        else:
+            event.ignore()
 
     #################
     #    Buttons    #

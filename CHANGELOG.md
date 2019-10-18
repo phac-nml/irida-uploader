@@ -4,8 +4,7 @@ Changes
 Beta 0.3.1
 ----------
 Added functionality:
-* Added message box to confirm if user wants to exit gui.
-* Gui now cannot be closed while uploading data.
+* Added message box to confirm if user wants to exit gui while data is being uploaded.
 
 Bug Fixes:
 * Fixed python script not being called from `irida-uploader.sh` when called from outside of the install directory
