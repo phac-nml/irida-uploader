@@ -60,7 +60,7 @@ class TestConfig(unittest.TestCase):
         # make sure the attempt to create a file happens
         mock_create_new_config_file.assert_called_with()
         # It will attempt to use the file that was just created
-        mock_load_config_from_file.assert_called_once()
+        mock_load_config_from_file.assert_called_with()
 
     @patch("config.config._init_config_parser")
     @patch("config.config._load_config_from_file")
