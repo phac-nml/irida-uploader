@@ -3,6 +3,9 @@ Changes
 
 Beta 0.3.1
 ----------
+Added functionality:
+* Added crash log file `crash.log` to the log directory in cases where an error causes an unrecoverable error 
+
 Bug Fixes:
 * Fixed python script not being called from `irida-uploader.sh` when called from outside of the install directory
 * Integration Development tests now test java 11 instead of java 8
