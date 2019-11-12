@@ -7,6 +7,7 @@ Bug Fixes:
 * Fixed python script not being called from `irida-uploader.sh` when called from outside of the install directory
 * Integration Development tests now test java 11 instead of java 8
 * Fixed hard crash in some cases when IRIDA failed to respond to the HTTP request
+* Uploader no longer exits after creating a new config file (fixes issue where GUI would exit without explanation)
 
 Beta 0.3
 --------
