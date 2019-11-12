@@ -180,14 +180,12 @@ class MainDialog(QtWidgets.QDialog):
                                                    "Data is still being uploaded! "
                                                    "Are you sure you want to exit the program?",
                                                    QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+            if reply == QtWidgets.QMessageBox.Yes:
+                event.accept()
+            else:
+                event.ignore()
         else:
             event.accept()
-            return
-
-        if reply == QtWidgets.QMessageBox.Yes:
-            event.accept()
-        else:
-            event.ignore()
 
     #################
     #    Buttons    #
