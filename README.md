@@ -11,7 +11,7 @@ Download / Installation
 
 Installation instructions can be found in our documentation.
 
-[ReadTheDocs](https://irida-uploader.readthedocs.io/en/latest/)
+[ReadTheDocs](https://irida-uploader.readthedocs.io/en/stable/)
 
 Creating the Windows installer from source code
 ------------------------------
@@ -63,7 +63,7 @@ You can run pep8 tests with:
 
 Documentation
 ------------------------------
-You can [ReadTheDocs](https://irida-uploader.readthedocs.io/en/latest/) here.
+You can [ReadTheDocs](https://irida-uploader.readthedocs.io/en/stable/) here.
 
 Alternatively, documentation is built locally using `mkdocs`. 
 
