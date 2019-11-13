@@ -492,3 +492,39 @@ class TestParseOutSequenceFile(unittest.TestCase):
 
         self.assertEqual(sample.get_uploadable_dict(), uploadable_dict)
         self.assertEqual(res, sequence_file_dict)
+
+
+class TestBuildISeqRun(unittest.TestCase):
+    """
+    Test building the an iseq run from a sample sheet with a csv reader
+    """
+
+    def setUp(self):
+        print("\nStarting " + self.__module__ + ": " + self._testMethodName)
+
+    def test_build_valid_with_description_field(self):
+        """
+        When given a valid directory, ensure a valid SequencingRun is built with Projects, Samples, ect
+        :return:
+        """
+
+        sheet_file = path.join(path_to_module, "iseq_with_desc_field",
+                               "SampleSheet.csv")
+        meta_data = sample_parser.parse_metadata(sheet_file)
+
+        sequencing_run = sample_parser.build_sequencing_run_from_samples(sheet_file, meta_data)
+
+        # Returns a SequencingRun
+        self.assertEqual(type(sequencing_run), model.SequencingRun)
+        # Includes a single project
+        self.assertEqual(len(sequencing_run.project_list), 1)
+        # is of type Project
+        self.assertEqual(type(sequencing_run.project_list[0]), model.Project)
+        # Project has 3 samples
+        self.assertEqual(len(sequencing_run.project_list[0].sample_list), 3)
+        # samples are of type Sample
+        self.assertEqual(type(sequencing_run.project_list[0].sample_list[0]), model.Sample)
+        # samples have correct description
+        self.assertEqual(sequencing_run.project_list[0].sample_list[0].description, "desc1")
+        # samples have SequenceFile
+        self.assertEqual(type(sequencing_run.project_list[0].sample_list[0].sequence_file), model.SequenceFile)
