@@ -171,7 +171,7 @@ class MainDialog(QtWidgets.QDialog):
         """
         Override closeEvent to give warning before closing the application.
 
-        If uploads are currently running, user will not be allowed to exit the program
+        If uploads are currently running, user will prompted before exiting the program
         :param event:
         :return:
         """
