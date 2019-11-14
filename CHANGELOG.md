@@ -4,11 +4,13 @@ Changes
 Beta 0.3.1
 ----------
 Added functionality:
+* Added support for iSeq, use parser `iseq` to use.
 * Added message box to confirm if user wants to exit gui while data is being uploaded.
 
 Bug Fixes:
 * Fixed python script not being called from `irida-uploader.sh` when called from outside of the install directory
 * Integration Development tests now test java 11 instead of java 8
+* Fixed bug that caused `miniseq` parser to fail when parsing `iseq` runs
 
 Beta 0.3
 --------
