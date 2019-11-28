@@ -34,9 +34,9 @@ class TestConfig(unittest.TestCase):
     def test_basic_setup_all_functions_called(self, mock_path_exists, mock_create_new_config_file,
                                               mock_load_config_from_file, mock_init_config_parser):
 
-        # Set the config file to False so that the funtion will check if a default file is set
+        # Set the config file to True so that it thinks there is a config file
         config.set_config_file(True)
-        # If a new file is created, no exit will happen
+        # start up config setup
         config.setup()
         # First init happens
         mock_init_config_parser.assert_called_with()
@@ -51,17 +51,16 @@ class TestConfig(unittest.TestCase):
     def test_create_new_file_if_none_exist(self, mock_path_exists, mock_create_new_config_file,
                                            mock_load_config_from_file):
 
-        # Set the config file to False so that the funtion will check if a default file is set
+        # Set the config file to False so that the function will check if a default file is set
         config.set_config_file(False)
         # When it checks for a default path, return False so it will attempt to create a new file
         mock_path_exists.side_effect = [False]
-        # If a new file is created, it will try to exit
-        with self.assertRaises(SystemExit):
-            config.setup()
+        # try setting up config to trigger creating a new file
+        config.setup()
         # make sure the attempt to create a file happens
         mock_create_new_config_file.assert_called_with()
-        # make sure it doesn't try to load from file since it has exited
-        mock_load_config_from_file.assert_not_called()
+        # It will attempt to use the file that was just created
+        mock_load_config_from_file.assert_called_with()
 
     @patch("config.config._init_config_parser")
     @patch("config.config._load_config_from_file")

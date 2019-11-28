@@ -92,7 +92,7 @@ We currently support the following:
 
 `miseq` : [Miseq](parsers/miseq.md)
 
-`miniseq` : [MiniSeq](parsers/miniseq.md)
+`miniseq` / `iseq` : [MiniSeq / iSeq](parsers/miniseq.md)
 
 `nextseq` : [NextSeq](parsers/nextseq.md)
 
