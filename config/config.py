@@ -57,17 +57,17 @@ def _create_new_config_file():
     global _user_config_file
     if _user_config_file is not None:
         logging.error("Trying to create new config file when config file as already been set. Exiting")
-        exit(1)
+        return
 
     _user_config_file = _default_user_config_file_path
 
     # Create path to file if it doesn't exit yet
     if not os.path.exists(os.path.dirname(_user_config_file)):
         os.makedirs(os.path.dirname(_user_config_file))
-    # exit if the file already exists
+    # return if the file already exists
     if os.path.exists(_user_config_file):
         logging.error("File already exits, cannot create a new file")
-        exit(1)
+        return
 
     # init the config parser with default values
     global _conf_parser
@@ -159,7 +159,7 @@ def setup():
     elif not os.path.exists(_default_user_config_file_path):
         logging.info("No config file found, creating a new file {}".format(_default_user_config_file_path))
         _create_new_config_file()
-        exit(1)
+
     # Use the default file as the user config file
     else:
         logging.info("Using default config file {}".format(_default_user_config_file_path))
