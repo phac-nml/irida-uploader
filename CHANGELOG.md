@@ -14,6 +14,7 @@ Bug Fixes:
 * Fixed bug that caused `miniseq` parser to fail when parsing `iseq` runs
 * Fixed hard crash in some cases when IRIDA failed to respond to the HTTP request
 * Uploader no longer exits after creating a new config file (fixes issue where GUI would exit without explanation)
+* Fixed very rare hard crash in case where IRIDA stops replying mid url existence verification
 
 Beta 0.3
 --------

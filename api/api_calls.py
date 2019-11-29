@@ -194,6 +194,11 @@ class ApiCalls(object):
                           "".format(url, str(e)))
             raise exceptions.IridaConnectionError("Could not connect to IRIDA, URL '{}' responded with: {}"
                                                   "".format(url, str(e)))
+        except Exception as e:
+            logging.error("Could not connect to IRIDA, non URLError Exception occurred. URL '{}' Error: {}"
+                          "".format(url, str(e)))
+            raise exceptions.IridaConnectionError("Could not connect to IRIDA, non URLError Exception occurred. "
+                                                  "URL '{}' Error: {}".format(url, str(e)))
 
         if response.status_code == HTTPStatus.OK:
             return True
