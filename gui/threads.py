@@ -102,6 +102,12 @@ class ParseThread(QtCore.QThread):
             logging.error(full_error)
             self._error = e.message
             self._run = None
+        except Exception as e:
+            # Some other error occurred
+            full_error = "GUI: ERROR! An error occurred while parsing: {}".format(str(e))
+            logging.error(full_error)
+            self._error = "ERROR! An error occurred while parsing: {}".format(str(e))
+            self._run = None
 
         pass
 

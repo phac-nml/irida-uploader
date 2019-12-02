@@ -21,20 +21,33 @@ def get_crash_log_file_path():
     return log_file_path
 
 
+def except_hook(error_exctype, error_value, error_traceback):
+    # This function is used to override the default __excepthook__ so that we can write our crash log to file
+
+    # keep existing functionality of __excepthook__
+    sys.__excepthook__(error_exctype, error_value, error_traceback)
+
+    # get a formatted string with out traceback and print it to our crash log file
+    tb = ''.join(traceback.format_tb(error_traceback))
+    f = open(get_crash_log_file_path(), "a+")
+    f.write(tb)
+
+    # after an exception like this, exit with error
+    sys.exit(1)
+
+
 def main():
     """
     Entry point for GUI
     :return:
     """
-    try:
-        app = QtWidgets.QApplication(["IRIDA Uploader"])
-        dlg = gui.MainDialog()
-        dlg.show()
-        sys.exit(app.exec_())
-    except Exception:
-        # log full stack trace here
-        traceback.print_exc(file=open(get_crash_log_file_path(), "a"))
+    app = QtWidgets.QApplication(["IRIDA Uploader"])
+    dlg = gui.MainDialog()
+    dlg.show()
+    sys.exit(app.exec_())
 
 
 if __name__ == '__main__':
+    # override except hook for custom crash log
+    sys.excepthook = except_hook
     main()
