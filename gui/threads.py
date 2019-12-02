@@ -90,6 +90,18 @@ class ParseThread(QtCore.QThread):
                 full_error = full_error + str(err) + "\n"
             self._error = full_error
             self._run = None
+        except exceptions.SampleSheetError as e:
+            # SampleSheet was not valid for some reason
+            error_msg = "GUI: ERROR! Errors occurred during parsing with message: {}".format(e.message)
+            logging.error(error_msg)
+            self._error = "Errors occurred during parsing `{}` with message: {}".format(e.errors, e.message)
+            self._run = None
+        except exceptions.SequenceFileError as e:
+            # Sequence Files were invalid for some reason
+            full_error = "GUI: ERROR! An error occurred while parsing: {}".format(e.message)
+            logging.error(full_error)
+            self._error = e.message
+            self._run = None
 
         pass
 
