@@ -15,6 +15,7 @@ Bug Fixes:
 * Fixed hard crash in some cases when IRIDA failed to respond to the HTTP request
 * Uploader no longer exits after creating a new config file (fixes issue where GUI would exit without explanation)
 * Fixed very rare hard crash in case where IRIDA stops replying mid url existence verification
+* Fix issue were some parsing errors were not properly handled by GUI causing crashes
 
 Beta 0.3
 --------
