@@ -6,6 +6,7 @@ Beta 0.3.1
 Added functionality:
 * Added support for iSeq, use parser `iseq` to use.
 * Added message box to confirm if user wants to exit gui while data is being uploaded.
+* Added crash log file `crash.log` to the log directory in cases where an error causes an unrecoverable error 
 
 Bug Fixes:
 * Fixed python script not being called from `irida-uploader.sh` when called from outside of the install directory
@@ -13,6 +14,8 @@ Bug Fixes:
 * Fixed bug that caused `miniseq` parser to fail when parsing `iseq` runs
 * Fixed hard crash in some cases when IRIDA failed to respond to the HTTP request
 * Uploader no longer exits after creating a new config file (fixes issue where GUI would exit without explanation)
+* Fixed very rare hard crash in case where IRIDA stops replying mid url existence verification
+* Fix issue were some parsing errors were not properly handled by GUI causing crashes
 
 Beta 0.3
 --------
