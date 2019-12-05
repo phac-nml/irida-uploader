@@ -8,14 +8,18 @@
 * Directory Parsing
 * Batch Uploads
 * Can be used with cron/windows task scheduler for automated uploads
+* GUI
 
 ## Upcoming Features
 * File upload checksum validation
 * Post-processing tasks
-* GUI
 * Pause and resume uploads
 
 # Getting Started
+
+## GUI Tutorial
+
+You can find a tutorial and walkthrough on the phac-nml github https://github.com/phac-nml/irida-uploader-tutorial
 
 ## Download / Install / Setup
 
@@ -92,7 +96,7 @@ We currently support the following:
 
 `miseq` : [Miseq](parsers/miseq.md)
 
-`miniseq` : [MiniSeq](parsers/miniseq.md)
+`miniseq` / `iseq` : [MiniSeq / iSeq](parsers/miniseq.md)
 
 `nextseq` : [NextSeq](parsers/nextseq.md)
 

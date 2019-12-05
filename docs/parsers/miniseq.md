@@ -1,6 +1,6 @@
 ## File Structure
 
-The file structure for a miniseq run should be correct by default, but if you are having problems uploading, please verify your file structure is correct.
+The file structure for a miniseq / iseq run should be correct by default, but if you are having problems uploading, please verify your file structure is correct.
 
 ```
 .
@@ -21,12 +21,12 @@ The file structure for a miniseq run should be correct by default, but if you ar
 
 Example files can be found: `/example_sample_sheets/miniseq_run/`
 
-## Preparing your miniseq sample sheet
+## Preparing your miniseq / iseq sample sheet
 Before using the uploader, you must prepare your sequencing run with IRIDA-specific project IDs. You must do this manually after a run completes by editing `SampleSheet.csv` with Microsoft Excel or Windows Notepad.
 
 Simply add the `Sample_Project` column to the `[Data]` header, and add the IRIDA project number.
 
-An example, completed `SampleSheet.csv` with the `Sample_Project` column filled in looks like:
+An example, completed miniseq `SampleSheet.csv` with the `Sample_Project` column filled in looks like:
 
 ```
 [Header]
@@ -50,3 +50,5 @@ sample1-3003,sample1,ATCGAAA,N801,ATCGAAA,S801,1
 sample2-3003,sample2,ATCGAAA,N801,ATCGAAA,S801,1
 sample3-3003,sample3,ATCGAAA,N801,ATCGAAA,S801,1
 ```
+
+Note: An iseq run will look almost the same, but a `Description` field under `[DATA]` may also be present. This is expected and the parser should function normally with the field there.

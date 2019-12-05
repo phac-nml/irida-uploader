@@ -2,7 +2,7 @@ IRIDA Uploader
 ==============
 
 [![Build Status](https://travis-ci.org/phac-nml/irida-uploader.svg?branch=development)](https://travis-ci.org/phac-nml/irida-uploader)
-[![Documentation Status](https://readthedocs.org/projects/irida-uploader/badge/?version=latest)](https://irida-uploader.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/irida-uploader/badge/?version=stable)](https://irida-uploader.readthedocs.io/en/stable/?badge=stable)
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io/recipes/irida-uploader/README.html)
 
 
@@ -11,7 +11,14 @@ Download / Installation
 
 Installation instructions can be found in our documentation.
 
-[ReadTheDocs](https://irida-uploader.readthedocs.io/en/latest/)
+[ReadTheDocs](https://irida-uploader.readthedocs.io/en/stable/)
+
+Tutorial
+--------
+
+You can find a walkthrough and tutorial on the phac-nml github
+
+https://github.com/phac-nml/irida-uploader-tutorial
 
 Creating the Windows installer from source code
 ------------------------------
@@ -45,7 +52,7 @@ To run integration tests your will need some additional software.
 
 You will also need to download and install chromedriver http://chromedriver.chromium.org/downloads
 
-You will need to allow the IRIDA instance to the mysql database needed for the tests
+You will need to grant the IRIDA instance access to the mysql database needed for the tests
 
     $ mysql -e "CREATE USER 'test'@'localhost' IDENTIFIED BY 'test'; GRANT ALL ON irida_uploader_test.* to 'test'@'localhost';"
 
@@ -63,7 +70,7 @@ You can run pep8 tests with:
 
 Documentation
 ------------------------------
-You can [ReadTheDocs](https://irida-uploader.readthedocs.io/en/latest/) here.
+You can [ReadTheDocs](https://irida-uploader.readthedocs.io/en/stable/) here.
 
 Alternatively, documentation is built locally using `mkdocs`. 
 

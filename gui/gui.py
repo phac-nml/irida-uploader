@@ -40,6 +40,7 @@ class MainDialog(QtWidgets.QDialog):
         self._run_dir = ""
         self._force_state = False
         self._config_file = ""
+        self._uploading = False
 
         # Setup gui objects
         self._init_objects()
@@ -165,6 +166,26 @@ class MainDialog(QtWidgets.QDialog):
         layout.addWidget(self._console)
 
         return layout
+
+    def closeEvent(self, event):
+        """
+        Override closeEvent to give warning before closing the application.
+
+        If uploads are currently running, user will prompted before exiting the program
+        :param event:
+        :return:
+        """
+        if self._uploading:
+            reply = QtWidgets.QMessageBox.question(self, 'Exit Uploader?',
+                                                   "Data is still being uploaded! "
+                                                   "Are you sure you want to exit the program?",
+                                                   QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+            if reply == QtWidgets.QMessageBox.Yes:
+                event.accept()
+            else:
+                event.ignore()
+        else:
+            event.accept()
 
     #################
     #    Buttons    #
@@ -295,6 +316,7 @@ class MainDialog(QtWidgets.QDialog):
         # Lock Gui
         self._lock_gui()
         self._upload_button.set_uploading()
+        self._uploading = True
         # start upload
         self._upload_thread.set_vars(self._run_dir, self._force_state)
         self._upload_thread.start()
@@ -401,6 +423,8 @@ class MainDialog(QtWidgets.QDialog):
         Unblocks the UI elements,
         :return:
         """
+        self._uploading = False
+
         logging.debug("GUI: _thread_finished_upload called")
         if not self._upload_thread.is_success():
             error = self._upload_thread.get_exit_error()
