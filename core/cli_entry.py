@@ -9,7 +9,7 @@ from model import DirectoryStatus
 
 from . import api_handler, parsing_handler, logger, exit_return
 
-VERSION_NUMBER = "0.3"
+VERSION_NUMBER = "0.3.1"
 
 
 def upload_run_single_entry(directory, force_upload=False):

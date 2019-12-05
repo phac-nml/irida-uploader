@@ -11,4 +11,5 @@ else
     exit 1
 fi
 
-python upload_run.py "$@"
+python ${ROOT_DIR}/upload_run.py "$@"
+

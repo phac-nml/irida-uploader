@@ -68,3 +68,6 @@ Alternatively, the client_id / client_secret may be incorrect
 An invalid parser name was given, Double check your config file has a valid parser in the parser field
 
     AssertionError: Bad parser creation, invalid parser_type given: miseqa
+
+## Unrecoverable Errors
+In the case that an unrecoverable error occurs and uploader crashes, the error will be logged to `crash.log` in your default logging directory.

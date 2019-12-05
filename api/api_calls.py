@@ -194,6 +194,11 @@ class ApiCalls(object):
                           "".format(url, str(e)))
             raise exceptions.IridaConnectionError("Could not connect to IRIDA, URL '{}' responded with: {}"
                                                   "".format(url, str(e)))
+        except Exception as e:
+            logging.error("Could not connect to IRIDA, non URLError Exception occurred. URL '{}' Error: {}"
+                          "".format(url, str(e)))
+            raise exceptions.IridaConnectionError("Could not connect to IRIDA, non URLError Exception occurred. "
+                                                  "URL '{}' Error: {}".format(url, str(e)))
 
         if response.status_code == HTTPStatus.OK:
             return True
@@ -671,7 +676,16 @@ class ApiCalls(object):
         logging.debug("data:" + str(data_pkg))
         logging.debug("headers: " + str(headers_pkg))
 
-        response = self._session.post(url, data=data_pkg, headers=headers_pkg)
+        try:
+            response = self._session.post(url, data=data_pkg, headers=headers_pkg)
+        except ConnectionError as e:
+            # This could be anything from disconnection during post to IRIDA crashing
+            logging.error("ConnectionError occurred while transferring data: " + str(e))
+            raise exceptions.IridaConnectionError(e)
+        except Exception as e:
+            # Any other exception, like a library not handling the response properly could be caught here
+            logging.error("Exception occured while transferring data: " + str(e))
+            raise exceptions.IridaConnectionError(e)
 
         logging.debug("api_calls: send_sequence_files: response: " + response.text)
         if self._stop_upload:
