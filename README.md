@@ -13,6 +13,13 @@ Installation instructions can be found in our documentation.
 
 [ReadTheDocs](https://irida-uploader.readthedocs.io/en/stable/)
 
+Tutorial
+--------
+
+You can find a walkthrough and tutorial on the phac-nml github
+
+https://github.com/phac-nml/irida-uploader-tutorial
+
 Creating the Windows installer from source code
 ------------------------------
 
