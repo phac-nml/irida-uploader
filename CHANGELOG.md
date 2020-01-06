@@ -1,6 +1,11 @@
 Changes
 =======
 
+Beta 0.3.2
+----------
+Added functionality:
+* Default config file can now be overridden across a system by adding a config.conf file to the source directory. Specifying config file from command line trumps the override file.
+
 Beta 0.3.1
 ----------
 Added functionality:
