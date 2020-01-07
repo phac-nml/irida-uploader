@@ -11,7 +11,7 @@ import traceback
 
 def get_crash_log_file_path():
     # Normal base logging directory name
-    log_directory_name = "irida_uploader"
+    log_directory_name = "irida-uploader"
     # Use systems default logging path, and append our named directory
     log_file_path = os.path.join(user_log_dir(log_directory_name), 'crash.log')
     # Create the directory if it doesn't exist
