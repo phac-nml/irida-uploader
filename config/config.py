@@ -11,7 +11,7 @@ _user_config_file = None
 _default_user_config_file_path = os.path.join(user_config_dir("irida-uploader"), "config.conf")
 
 # set an override config file in the source code directory, if it exists it will be used instead of getting it from user
-_override_config_file_path = os.path.realpath( os.path.join(os.path.dirname(
+_override_config_file_path = os.path.realpath(os.path.join(os.path.dirname(
     os.path.abspath(__file__)), os.path.pardir, "config.conf"))
 
 
