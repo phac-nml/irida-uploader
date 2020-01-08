@@ -53,8 +53,9 @@ class TestConfig(unittest.TestCase):
 
         # Set the config file to False so that the function will check if a default file is set
         config.set_config_file(False)
-        # When it checks for a default path, return False so it will attempt to create a new file
-        mock_path_exists.side_effect = [False]
+        # When it checks for a default path and override path,
+        # return False for bothso it will attempt to create a new file
+        mock_path_exists.side_effect = [False, False]
         # try setting up config to trigger creating a new file
         config.setup()
         # make sure the attempt to create a file happens
@@ -69,10 +70,29 @@ class TestConfig(unittest.TestCase):
     def test_dont_create_new_file_if_exists(self, mock_path_exists, mock_create_new_config_file,
                                             mock_load_config_from_file, mock_init_config_parser):
 
-        # Set the config file to False so that the funtion will check if a default file is set
+        # Set the config file to False so that the function will check if a default file is set
         config.set_config_file(False)
-        # When it checks for a default path, return False so it will attempt to create a new file
+        # When it checks for a default path, return True so it will attempt to use that file
         mock_path_exists.side_effect = [True]
+        # If a new file is created, no exit will happen
+        config.setup()
+        # First init happens
+        mock_init_config_parser.assert_called_with()
+        # make sure no attempt to create a file happens
+        mock_create_new_config_file.assert_not_called()
+        # make sure it tries to load from file
+        mock_load_config_from_file.assert_called_with()
+
+    @patch("config.config._init_config_parser")
+    @patch("config.config._load_config_from_file")
+    @patch("config.config._create_new_config_file")
+    @patch("os.path.exists")
+    def test_dont_create_new_file_if_override_file_exists(self, mock_path_exists, mock_create_new_config_file,
+                                                          mock_load_config_from_file, mock_init_config_parser):
+        # Set the config file to False so that the function will check if a default file is set
+        config.set_config_file(False)
+        # When it checks for config files, return True on check for override so it wont attempt to create a new file
+        mock_path_exists.side_effect = [False, True]
         # If a new file is created, no exit will happen
         config.setup()
         # First init happens
