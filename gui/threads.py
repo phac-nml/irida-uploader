@@ -1,4 +1,5 @@
 import logging
+import os
 # PyQt needs to be imported like this because for whatever reason they decided not to include a __all__ = [...]
 import PyQt5.QtCore as QtCore
 
@@ -121,24 +122,43 @@ class UploadThread(QtCore.QThread):
         super().__init__()
         self._run_dir = ""
         self._force_state = False
+        self._read_only = False
         self._exit_return = None
 
-    def set_vars(self, run_dir, force_state):
+    def set_vars(self, run_dir, force_state, read_only):
         """
         Sets the variables in the object to the ones passed in
         :param run_dir:
         :param force_state:
+        :param read_only:
         :return:
         """
         self._run_dir = run_dir
         self._force_state = force_state
+        self._read_only = read_only
 
     def run(self):
         """
         This runs when the threads start call is done
         :return:
         """
-        self._exit_return = cli_entry.upload_run_single_entry(self._run_dir, self._force_state)
+        # Verify directory is readable/writable before upload
+        if self._read_only:
+            # Even in read only the directory still needs to be readable
+            if not os.access(self._run_dir, os.R_OK):  # cannot read the upload directory
+                error_reason = "ERROR! Specified directory is not readable: {} , ".format(self._run_dir)
+                logging.error(error_reason)
+                self._exit_return = exit_return.ExitReturn(exit_return.EXIT_CODE_ERROR, error_reason)
+                return
+        else:
+            if not os.access(self._run_dir, os.W_OK):  # Cannot write to upload directory
+                error_reason = "ERROR! Specified directory is not writable: {} , ".format(self._run_dir) + \
+                               "If this is the correct directory, either make it writable or use read-only mode."
+                logging.error(error_reason)
+                self._exit_return = exit_return.ExitReturn(exit_return.EXIT_CODE_ERROR, error_reason)
+                return
+
+        self._exit_return = cli_entry.upload_run_single_entry(self._run_dir, self._force_state, self._read_only)
         pass
 
     def is_success(self):

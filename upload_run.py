@@ -168,7 +168,6 @@ def main():
     read_only = args.readonly
 
     # Verify directory is readable/writable before upload
-
     if read_only:
         # Even in read only the directory still needs to be readable
         if not os.access(args.directory, os.R_OK):  # cannot read the upload directory

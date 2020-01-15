@@ -103,9 +103,8 @@ def batch_upload_single_entry(batch_directory, force_upload=False, read_only_mod
 
 
 def _set_read_only(bool_read_only):
-    if bool_read_only:
-        logger.set_read_only(True)
-        progress.set_read_only(True)
+    logger.set_read_only(bool_read_only)
+    progress.set_read_only(bool_read_only)
 
 
 def _validate_and_upload(directory_status):

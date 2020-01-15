@@ -90,6 +90,8 @@ class MainDialog(QtWidgets.QDialog):
         self._config_button = QtWidgets.QPushButton(self)
         self._config_button.setText("Configure Settings")
         self._config_button.setFixedWidth(200)
+        # read only
+        self._read_only = QtWidgets.QCheckBox("Upload in Read-Only mode")
         # refresh
         self._refresh_button = QtWidgets.QPushButton(self)
         self._refresh_button.setText("Refresh")
@@ -141,6 +143,7 @@ class MainDialog(QtWidgets.QDialog):
         # Config selection & refresh
         config_layout = QtWidgets.QHBoxLayout()
         config_layout.addWidget(self._config_button)
+        config_layout.addWidget(self._read_only)
         config_layout.addWidget(self._refresh_button)
         layout.addLayout(config_layout)
 
@@ -318,7 +321,7 @@ class MainDialog(QtWidgets.QDialog):
         self._upload_button.set_uploading()
         self._uploading = True
         # start upload
-        self._upload_thread.set_vars(self._run_dir, self._force_state)
+        self._upload_thread.set_vars(self._run_dir, self._force_state, self._read_only.isChecked())
         self._upload_thread.start()
 
     ##########################
