@@ -21,6 +21,14 @@ RUN_ID_FIELD = "Run ID"
 IRIDA_INSTANCE_FIELD = "IRIDA Instance"
 MESSAGE_FIELD = "Message"
 
+# default writes status file to directory
+read_only_mode = False
+
+
+def set_read_only(bool_read_only):
+    global read_only_mode
+    read_only_mode = bool_read_only
+
 
 def get_directory_status(directory, required_file_list):
     """
@@ -33,7 +41,7 @@ def get_directory_status(directory, required_file_list):
     """
     result = DirectoryStatus(directory)
 
-    if not os.access(directory, os.W_OK):
+    if not os.access(directory, os.R_OK):
         result.status = DirectoryStatus.INVALID
         result.message = 'Directory cannot be accessed. Please check permissions'
         return result
@@ -90,6 +98,11 @@ def write_directory_status(directory_status, run_id=None):
         along with the irida instance the run is uploaded to.
     :return: None
     """
+
+    # Do not write directory status file if running in read only mode
+    global read_only_mode
+    if read_only_mode:
+        return
 
     if not os.access(directory_status.directory, os.W_OK):  # Cannot access upload directory
         raise exceptions.DirectoryError("Cannot access directory", directory_status.directory)

@@ -12,7 +12,7 @@ from . import api_handler, parsing_handler, logger, exit_return
 VERSION_NUMBER = "0.3.2"
 
 
-def upload_run_single_entry(directory, force_upload=False):
+def upload_run_single_entry(directory, force_upload=False, read_only_mode=False):
     """
     This function acts as a single point of entry for uploading a directory
 
@@ -20,8 +20,12 @@ def upload_run_single_entry(directory, force_upload=False):
 
     :param directory: Directory of the sequencing run to upload
     :param force_upload: When set to true, the upload status file will be ignored and file will attempt to be uploaded
+    :param read_only_mode: When set to True, the status file and log file will not be written to the run directory
     :return: ExitReturn
     """
+
+    _set_read_only(read_only_mode)
+
     directory_status = parsing_handler.get_run_status(directory)
     # Check if a run is invalid, an invalid run cannot be uploaded.
     if directory_status.status_equals(DirectoryStatus.INVALID):
@@ -44,7 +48,7 @@ def upload_run_single_entry(directory, force_upload=False):
     return _validate_and_upload(directory_status)
 
 
-def batch_upload_single_entry(batch_directory, force_upload=False):
+def batch_upload_single_entry(batch_directory, force_upload=False, read_only_mode=False):
     """
     This function acts as a single point of entry for batch uploading run directories
 
@@ -54,8 +58,12 @@ def batch_upload_single_entry(batch_directory, force_upload=False):
 
     :param batch_directory: Directory containing sequencing run directories to upload
     :param force_upload: When set to true, the upload status file will be ignored and file will attempt to be uploaded
+    :param read_only_mode: When set to True, the status file and log file will not be written to the run directory
     :return: ExitReturn
     """
+
+    _set_read_only(read_only_mode)
+
     logging.debug("batch_upload_single_entry:Starting {} with force={}".format(batch_directory, force_upload))
     # get all potential directories to upload
     directory_status_list = parsing_handler.get_run_status_list(batch_directory)
@@ -92,6 +100,12 @@ def batch_upload_single_entry(batch_directory, force_upload=False):
 
     logging.info("Batch upload complete, Exiting!")
     return exit_success()
+
+
+def _set_read_only(bool_read_only):
+    if bool_read_only:
+        logger.set_read_only(True)
+        progress.set_read_only(True)
 
 
 def _validate_and_upload(directory_status):

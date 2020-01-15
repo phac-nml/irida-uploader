@@ -35,8 +35,8 @@ class Parser:
         """
 
         # Checks if we can access to the given directory, return empty and log a warning if we cannot.
-        if not os.access(directory, os.W_OK):
-            raise exceptions.DirectoryError("The directory is not writeable, "
+        if not os.access(directory, os.R_OK):
+            raise exceptions.DirectoryError("The directory is not readable, "
                                             "can not upload samples from this directory {}".format(directory),
                                             directory)
 
@@ -86,7 +86,7 @@ class Parser:
         logging.info("Looking for sample sheet in {}".format(directory))
 
         # Checks if we can access to the given directory, return empty and log a warning if we cannot.
-        if not os.access(directory, os.W_OK):
+        if not os.access(directory, os.R_OK):
             logging.error(("The directory is not accessible, can not parse samples from this directory {}"
                            "".format(directory), directory))
             raise exceptions.DirectoryError("The directory is not accessible, "

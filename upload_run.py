@@ -53,6 +53,10 @@ argument_parser.add_argument('-b', '--batch',
                                   'and upload in batch. '
                                   'The list of runs is generated at start time '
                                   '(Runs added to directory mid upload will not be uploaded).')
+# Optional argument, Upload in Read Only mode, does not write status or log file to run directory
+argument_parser.add_argument('-r', '--readonly',
+                             action='store_true',  # This line makes it not parse a variable
+                             help='Upload in Read Only mode, does not write status or log file to run directory, ')
 
 # Optional arguments for overriding config file settings
 # Explanation:
@@ -161,36 +165,48 @@ def main():
     # Setup config options
     _config_uploader(args)
 
-    # Verify directory is writable before upload
-    if not os.access(args.directory, os.W_OK):  # Cannot access upload directory
-        print("ERROR! Specified directory is not writable: {}".format(args.directory))
-        return 1
+    read_only = args.readonly
+
+    # Verify directory is readable/writable before upload
+
+    if read_only:
+        # Even in read only the directory still needs to be readable
+        if not os.access(args.directory, os.R_OK):  # cannot read the upload directory
+            print("ERROR! Specified directory is not readable: {}".format(args.directory))
+            return 1
+    else:
+        if not os.access(args.directory, os.W_OK):  # Cannot write to upload directory
+            print("ERROR! Specified directory is not writable: {}".format(args.directory))
+            print("If this is the correct directory, either make it writable or use read-only mode.")
+            return 1
 
     # Start Upload
     if args.batch:
-        return upload_batch(args.directory, args.force)
+        return upload_batch(args.directory, args.force, args.readonly)
     else:
-        return upload(args.directory, args.force)
+        return upload(args.directory, args.force, args.readonly)
 
 
-def upload(run_directory, force_upload):
+def upload(run_directory, force_upload, read_only):
     """
     start upload on a single run directory
     :param run_directory:
     :param force_upload:
+    :param read_only:
     :return: exit code 0 or 1
     """
-    return core.cli_entry.upload_run_single_entry(run_directory, force_upload).exit_code
+    return core.cli_entry.upload_run_single_entry(run_directory, force_upload, read_only).exit_code
 
 
-def upload_batch(batch_directory, force_upload):
+def upload_batch(batch_directory, force_upload, read_only):
     """
     Start uploading runs in the batch directory
     :param batch_directory:
     :param force_upload:
+    :param read_only:
     :return: exit code 0 or 1
     """
-    return core.cli_entry.batch_upload_single_entry(batch_directory, force_upload).exit_code
+    return core.cli_entry.batch_upload_single_entry(batch_directory, force_upload, read_only).exit_code
 
 
 # This is called when the program is run for the first time

@@ -47,6 +47,14 @@ root_logger.addHandler(console)
 # only one directory can have a logger at a time
 directory_logger = None
 
+# Default writes to directory given
+read_only_mode = False
+
+
+def set_read_only(bool_read_only):
+    global read_only_mode
+    read_only_mode = bool_read_only
+
 
 def add_log_to_directory(directory):
     """
@@ -55,6 +63,12 @@ def add_log_to_directory(directory):
     :param directory: directory to create a logger in
     :return: None
     """
+
+    # Do not write log to directory if running in read only mode
+    global read_only_mode
+    if read_only_mode:
+        return
+
     global directory_logger
 
     # If there is already a directory logger in place, throw an exception
