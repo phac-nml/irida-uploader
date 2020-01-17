@@ -1,6 +1,12 @@
 Changes
 =======
 
+Beta 0.3.3
+----------
+Added functionality:
+* Added `--readonly` / `-r` option to command line. This mode uploads without writing status and log files to the sequencing run directory.
+* Added read-only checkbox to GUI's main page. Does the same as the command line option.
+
 Beta 0.3.2
 ----------
 Added functionality:
