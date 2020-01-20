@@ -157,11 +157,11 @@ Full debug logs are written to your system default logging directory
 
 #### Linux
 
-`/home/<user>/.cache/irida_uploader/log/`
+`/home/<user>/.cache/irida-uploader/log/`
 
 #### Windows
 
-`C:\Users\<username>\AppData\Local\irida_uploader\irida_uploader\Logs`
+`C:\Users\<username>\AppData\Local\irida-uploader\irida-uploader\Logs`
 
 # Problems?
 

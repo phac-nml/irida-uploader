@@ -4,7 +4,7 @@ import logging.handlers
 
 
 # Normal base logging directory name
-log_directory_name = "irida_uploader"
+log_directory_name = "irida-uploader"
 # When running tests, the Makefile creates an environment variable IRIDA_UPLOADER_TEST to 'True'
 # If it exists then we are running a test and should be logging to the test logs directory
 if os.environ.get('IRIDA_UPLOADER_TEST'):
