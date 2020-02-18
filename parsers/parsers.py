@@ -4,6 +4,8 @@ from . import directory, miseq, miniseq, nextseq
 
 supported_parsers = [
     'miseq',
+    'miseq_v26',
+    'miseq_v31',
     'miniseq',
     'nextseq',
     'iseq',
@@ -41,11 +43,11 @@ class Parser:
         if parser_type == "directory":
             logging.debug("Creating directory parser")
             return directory.Parser()
-        if parser_type == "miseq":
-            logging.debug("Creating miseq parser")
+        if parser_type in ['miseq', 'miseq_v26']:
+            logging.debug("Creating miseq (v26) parser")
             return miseq.Parser()
-        if parser_type == "miniseq" or parser_type == "iseq":
-            logging.debug("Creating miniseq/iseq parser")
+        if parser_type in ['miniseq', 'iseq', 'miseq_v31']:
+            logging.debug("Creating miniseq/iseq/miseq_v31 parser")
             return miniseq.Parser()
         if parser_type == "nextseq":
             logging.debug("Creating nextseq parser")
