@@ -22,8 +22,8 @@ matrix:
         - echo $JAVA_HOME
         - sudo add-apt-repository ppa:openjdk-r/ppa -y
         - sudo apt-get update
-        - sudo apt-get install openjdk-8-jdk -y
-        - export JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
+        - sudo apt-get install openjdk-11-jdk -y
+        - export JAVA_HOME="/usr/lib/jvm/java-11-openjdk-amd64"
         - export PATH=${JAVA_HOME}/bin:$PATH
         - java -version
         - echo $JAVA_HOME
