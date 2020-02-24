@@ -95,7 +95,7 @@ Multithreaded can also be configured system wide to be used in the GUI.
 
 Because this is an experimental feature, no option is present in the GUI to enable multithreading and must be configured in the config file location as listed in an above section.
 
-Add the following lines to the config file to enable multithreading.
+To enable multithreading, modify the following lines in the config file.
 
 ```
 multithreading = True
