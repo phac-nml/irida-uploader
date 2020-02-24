@@ -9,6 +9,11 @@ Added functionality:
   * Also added `miseq_v26` to specify parsing for the older miseq control software.
   * The `miseq` parser still specifies the Miseq Control Software Version 2.6
 
+Beta feature:
+* Experimental: Multithreaded uploads
+    * Can be used with `--multithreading` from the command line, or by modifying the config file for GUI
+    * Because this is an experimental feature, no option is available in the GUI, more details availabl in the documentation
+
 Beta 0.3.2
 ----------
 Added functionality:

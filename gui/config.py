@@ -1,6 +1,5 @@
 import logging
 # PyQt needs to be imported like this because for whatever reason they decided not to include a __all__ = [...]
-import PyQt5.QtCore as QtCore
 import PyQt5.QtWidgets as QtWidgets
 
 from config import config
@@ -38,12 +37,6 @@ class ConfigDialog(QtWidgets.QDialog):
         self._base_url = QtWidgets.QLineEdit()
         self._parser_label = QtWidgets.QLabel("Parser")
         self._parser = QtWidgets.QComboBox()
-        self._multithreading_label = QtWidgets.QLabel("Enable Multithreaded Upload")
-        self._multithreading = QtWidgets.QCheckBox()
-        self._threads_label = QtWidgets.QLabel("Upload Thread Count")
-        self._threads = QtWidgets.QSpinBox()
-        self._threads.setMinimum(2)
-        self._threads.setMaximum(8)
         self._parser.addItems(supported_parsers)
 
         self._btn_check_settings = QtWidgets.QPushButton("Save and Test Settings")
@@ -58,7 +51,6 @@ class ConfigDialog(QtWidgets.QDialog):
         self._btn_check_settings.clicked.connect(self._check_connection_to_irida)
         self._btn_accept.clicked.connect(self._accept_and_exit)
         self._btn_cancel.clicked.connect(self._cancel_and_exit)
-        self._multithreading.stateChanged.connect(self._multithreading_state_changed)
 
         # Set Layout and Geometry
         self.setLayout(self._layout())
@@ -105,15 +97,6 @@ class ConfigDialog(QtWidgets.QDialog):
         parser_layout.addWidget(self._parser_label)
         parser_layout.addWidget(self._parser)
         layout.addLayout(parser_layout)
-        # Threading
-        multithreading_layout = QtWidgets.QHBoxLayout()
-        multithreading_layout.addWidget(self._multithreading_label)
-        multithreading_layout.addWidget(self._multithreading)
-        layout.addLayout(multithreading_layout)
-        threading_layout = QtWidgets.QHBoxLayout()
-        threading_layout.addWidget(self._threads_label)
-        threading_layout.addWidget(self._threads)
-        layout.addLayout(threading_layout)
         # Buttons
         status_layout = QtWidgets.QHBoxLayout()
         status_layout.addWidget(self._btn_check_settings)
@@ -142,19 +125,6 @@ class ConfigDialog(QtWidgets.QDialog):
         """
         self.close()
 
-    def _multithreading_state_changed(self, state):
-        """
-        Hides and shows the thread option depending on the state of the multithreading checkbox
-        :param state:
-        :return:
-        """
-        if state == QtCore.Qt.Unchecked:
-            self._threads_label.hide()
-            self._threads.hide()
-        else:
-            self._threads_label.show()
-            self._threads.show()
-
     def _get_settings_from_file(self):
         """
         Loads the config settings from file and fills the widgets
@@ -168,11 +138,6 @@ class ConfigDialog(QtWidgets.QDialog):
         self._base_url.setText(config.read_config_option('base_url'))
         index = self._parser.findText(config.read_config_option('parser'))
         self._parser.setCurrentIndex(index)
-        multithreading_config = config.read_config_option('multithreading', bool, False)
-        multithreading_state = QtCore.Qt.Checked if multithreading_config is True else QtCore.Qt.Unchecked
-        self._multithreading.setCheckState(multithreading_state)
-        self._multithreading_state_changed(multithreading_state)
-        self._threads.setValue(int(config.read_config_option('threads')))
 
     def _write_settings_to_file(self):
         """
@@ -184,9 +149,7 @@ class ConfigDialog(QtWidgets.QDialog):
                                   username=self._username.text(),
                                   password=self._password.text(),
                                   base_url=self._base_url.text(),
-                                  parser=self._parser.currentText(),
-                                  multithreading=self._multithreading.isChecked(),
-                                  threads=self._threads.text())
+                                  parser=self._parser.currentText())
         config.write_config_options_to_file()
 
     def _contact_irida(self):

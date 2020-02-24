@@ -54,7 +54,6 @@ argument_parser.add_argument('-b', '--batch',
                                   'The list of runs is generated at start time '
                                   '(Runs added to directory mid upload will not be uploaded).')
 
-
 # Optional arguments for overriding config file settings
 # Explanation:
 #   nargs='?', const=True, default=False,
@@ -81,11 +80,13 @@ argument_parser.add_argument('-cr', '--config_parser', action='store', nargs='?'
                                   'Supported parsers: ' + str(supported_parsers))
 argument_parser.add_argument('-m', '--multithreading',
                              action='store_true',  # This line makes it not parse a variable
-                             help='Uploader will multithread the upload for faster upload times. '
+                             help='!!EXPERIMENTAL FEATURE!! '
+                                  'Advanced User Feature. Upload will be spread across multiple threads. '
                                   'If the config file is set to False, this will override it to True')
-argument_parser.add_argument('-t', '--threads',
-                             action='store',
-                             help='The number of threads to use when multithreading is enabled, Default=4')
+argument_parser.add_argument('-t', '--threads', action='store',
+                             help='!!EXPERIMENTAL FEATURE!! To be used with the -m argument. '
+                                  'The number of threads to use when multithreading is enabled. '
+                                  'Minimum threads = 2, Recommended maximum threads = 8')
 
 
 def _set_config_override(args):
@@ -142,10 +143,19 @@ def _set_config_override(args):
 
     if args.multithreading is True:
         multithreading = True
+        if args.threads is not None:
+            try:
+                threads = int(args.threads)
+            except ValueError:
+                print("ERROR! The threads argument must be an integer")
+                exit(1)
+            if threads < 2:
+                print("ERROR! You must use at least 2 threads when multithreading. Exiting.")
+                exit(1)
+        else:
+            threads = 4
     else:
         multithreading = False
-    if args.threads is not None:
-        threads = int(args.threads)
 
     config.set_config_options(client_id=client_id,
                               client_secret=client_secret,

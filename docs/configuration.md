@@ -81,6 +81,29 @@ This can be done as given parameters `--option parameter` or via user prompt `--
                         a parameter to prompt for input.
 ```
 
+##Admin Option Multithreaded Upload
+
+####Note: This is an experimental feature
+
+The IRIDA Uploader can upload using multiple threads on the command line with the following option
+```bash
+--multithreading --threads 2
+```
+(more details in the `--help` command)
+
+Multithreaded can also be configured system wide to be used in the GUI.
+
+Because this is an experimental feature, no option is present in the GUI to enable multithreading and must be configured in the config file location as listed in an above section.
+
+Add the following lines to the config file to enable multithreading.
+
+```
+multithreading = True
+threads = 4
+```
+
+When using this feature, we recommend between 2 and 4 threads, with a maximum of 8 threads.
+
 ###Admin Config Override
 
 In some workflows it makes sense to have a single irida user account uploading for any user signed in on the sequencer machine. In this case the config override can be used to avoid having to enter the credentials for each new user.
