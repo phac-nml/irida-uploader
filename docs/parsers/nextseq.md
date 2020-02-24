@@ -1,3 +1,5 @@
+# NextSeq
+
 ## File Structure
 
 The file structure for a NextSeq run will need `bcl2fastq` run first to produce usable fastq files.

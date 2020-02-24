@@ -1,3 +1,5 @@
+# Directory Upload
+
 ## File Structure
 
 To upload using the directory parser, Organize your files according to the following

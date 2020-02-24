@@ -1,3 +1,5 @@
+# MiniSeq / iSeq
+
 ## File Structure
 
 The file structure for a miniseq / iseq run should be correct by default, but if you are having problems uploading, please verify your file structure is correct.
