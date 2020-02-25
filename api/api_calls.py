@@ -575,7 +575,7 @@ class ApiCalls(object):
                     bytes_read = 0
                     while data and not self._stop_upload:
                         bytes_read += len(data)
-                        progress_percent = round(bytes_read/total_file_size*100, 2)
+                        progress_percent = round(bytes_read / total_file_size * 100, 2)
                         progress.send_progress(progress.ProgressData(sample=sample_name,
                                                                      project=project_id,
                                                                      file=filename,
