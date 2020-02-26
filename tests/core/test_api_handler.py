@@ -162,8 +162,9 @@ class TestUploadSequencingRun(unittest.TestCase):
         global sequencing_run
         sequencing_run = None
 
+    @patch("core.api_handler.config.read_config_option")
     @patch("core.api_handler._get_api_instance")
-    def test_valid_all_functions_called(self, mock_api_instance):
+    def test_valid_all_functions_called(self, mock_api_instance, mock_config):
         """
         Makes sure that all functions are called when a valid sequencing run in given
         :return:
@@ -183,6 +184,10 @@ class TestUploadSequencingRun(unittest.TestCase):
         stub_api_instance.set_seq_run_complete.side_effect = [True]
 
         mock_api_instance.side_effect = [stub_api_instance]
+
+        # respond False to multithreading config query
+        mock_config = unittest.mock.MagicMock()
+        mock_config.read_config_option.side_effect = [False]
 
         api_handler.upload_sequencing_run(sequencing_run)
 
