@@ -42,7 +42,7 @@ Running Tests
 
 Running the unittests can be done with the command:
 
-    $ make unittest
+    $ make unittests
 
 #### IRIDA Integration
 

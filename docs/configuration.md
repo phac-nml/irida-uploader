@@ -80,3 +80,23 @@ This can be done as given parameters `--option parameter` or via user prompt `--
                         Override "parser" in config file. Can be used without
                         a parameter to prompt for input.
 ```
+
+###Admin Config Override
+
+In some workflows it makes sense to have a single irida user account uploading for any user signed in on the sequencer machine. In this case the config override can be used to avoid having to enter the credentials for each new user.
+
+You can add your config file to the source code directory and the uploader will prioritize it over the default user config file.
+
+Note: Specifying the config file with the `--config` option takes priority over the override config file.
+
+#### Windows file location
+
+First, when installing the uploader, make sure to install for all users.
+
+The config file can be placed in the install directories `pkgs` folder. The default is:
+
+`C:\Program Files (x86)\IRIDA Sequence Uploader GUI\pkgs`
+
+#### Linux file location
+
+The config file can be placed into the root directory of the source code: `irida-uploader/`

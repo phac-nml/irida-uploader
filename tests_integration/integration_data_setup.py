@@ -116,7 +116,9 @@ class SetupIridaData:
                 sleep(10)
 
     def start_driver(self):
-        self.driver = webdriver.Chrome()
+        options = webdriver.ChromeOptions()
+        options.headless = True
+        self.driver = webdriver.Chrome(options=options)
         self.driver.implicitly_wait(30)
 
     def login(self):

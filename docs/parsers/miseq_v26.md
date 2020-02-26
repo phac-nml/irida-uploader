@@ -1,3 +1,5 @@
+# MiSeq (Software Control Version 2.6)
+
 ## File Structure
 
 The file structure for a miseq run should be correct by default, but if you are having problems uploading, please verify your file structure is correct.

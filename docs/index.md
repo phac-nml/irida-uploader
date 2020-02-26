@@ -94,9 +94,14 @@ We currently support the following:
 
 `directory` : [Generic Directory](parsers/directory.md)
 
-`miseq` : [Miseq](parsers/miseq.md)
+`miseq` / `miseq_v26` : [Miseq (Control Software Version 2.6)](parsers/miseq_v26.md)
 
-`miniseq` / `iseq` : [MiniSeq / iSeq](parsers/miniseq.md)
+`miseq_v31` : [Miseq (Control Software Version 3.1)](parsers/miseq_v31.md)
+
+`miniseq` : [MiniSeq](parsers/miniseq.md)
+
+`iseq` : [iSeq](parsers/miniseq.md)
+
 
 `nextseq` : [NextSeq](parsers/nextseq.md)
 
@@ -157,11 +162,11 @@ Full debug logs are written to your system default logging directory
 
 #### Linux
 
-`/home/<user>/.cache/irida_uploader/log/`
+`/home/<user>/.cache/irida-uploader/log/`
 
 #### Windows
 
-`C:\Users\<username>\AppData\Local\irida_uploader\irida_uploader\Logs`
+`C:\Users\<username>\AppData\Local\irida-uploader\irida-uploader\Logs`
 
 # Problems?
 

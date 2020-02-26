@@ -1,6 +1,22 @@
 Changes
 =======
 
+Beta 0.3.3
+----------
+Added functionality:
+* Added support for Miseq Control Software Version 3.1
+  * Use parser `miseq_v31`, behaves the same as miniseq and iseq parser.
+  * Also added `miseq_v26` to specify parsing for the older miseq control software.
+  * The `miseq` parser still specifies the Miseq Control Software Version 2.6
+
+Beta 0.3.2
+----------
+Added functionality:
+* Default config file can now be overridden across a system by adding a config.conf file to the source directory. Specifying config file from command line trumps the override file.
+
+Changes:
+* Logging directory has been changed from `irida_uploader` to `irida-uploader` to match config directory naming.
+
 Beta 0.3.1
 ----------
 Added functionality:
