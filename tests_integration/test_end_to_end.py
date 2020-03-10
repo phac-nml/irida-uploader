@@ -27,7 +27,8 @@ CLEANUP_DIRECTORY_LIST = [
     path.join(path_to_module, "fake_ngs_data_no_completed_file"),
     path.join(path_to_module, "fake_batch_data", "run_1"),
     path.join(path_to_module, "fake_batch_data", "run_2"),
-    path.join(path_to_module, "fake_batch_data", "run_3")
+    path.join(path_to_module, "fake_batch_data", "run_3"),
+    path.join(path_to_module, "fake_ngs_data_multithreading")
 ]
 
 
@@ -63,7 +64,7 @@ class TestEndToEnd(unittest.TestCase):
 
     @staticmethod
     def write_to_config_file(
-            client_id, client_secret, username, password, base_url, parser, multithreading=None, threads=None):
+            client_id, client_secret, username, password, base_url, parser, multithreading=False, threads=0):
         """
         Write to out sample configuration file so that the IRIDA instance will be accessed
         :param client_id:
@@ -271,7 +272,7 @@ class TestEndToEnd(unittest.TestCase):
 
     def test_valid_miseq_multithreading_upload(self):
         """
-        Test a valid miseq directory for upload from end to end
+        Test a valid miseq directory for upload with 3 threads
         :return:
         """
         # Set our sample config file to use miseq parser and the correct irida credentials
@@ -281,7 +282,9 @@ class TestEndToEnd(unittest.TestCase):
             username=tests_integration.username,
             password=tests_integration.password,
             base_url=tests_integration.base_url,
-            parser="miseq"
+            parser="miseq",
+            multithreading=True,
+            threads=3
         )
 
         # instance an api
@@ -305,7 +308,7 @@ class TestEndToEnd(unittest.TestCase):
         project_id = "1"
 
         # Do the upload
-        upload_result = upload_run_single_entry(path.join(path_to_module, "fake_ngs_data"))
+        upload_result = upload_run_single_entry(path.join(path_to_module, "fake_ngs_data_multithreading"))
 
         # Make sure the upload was a success
         self.assertEqual(upload_result.exit_code, 0)
@@ -318,8 +321,8 @@ class TestEndToEnd(unittest.TestCase):
         sample_3_found = False
 
         for sample in sample_list:
-            if sample.sample_name in ["01-1111", "02-2222", "03-3333"]:
-                if sample.sample_name == "01-1111":
+            if sample.sample_name in ["01-111m", "02-222m", "03-333m"]:
+                if sample.sample_name == "01-111m":
                     sample_1_found = True
                     sequence_files = test_api.get_sequence_files(project_id, sample.sample_name)
                     self.assertEqual(len(sequence_files), 2)
@@ -328,11 +331,11 @@ class TestEndToEnd(unittest.TestCase):
                         sequence_files[1]['fileName']
                     ]
                     expected_sequence_file_names = [
-                        '01-1111_S1_L001_R1_001.fastq.gz',
-                        '01-1111_S1_L001_R2_001.fastq.gz'
+                        '01-111m_S1_L001_R1_001.fastq.gz',
+                        '01-111m_S1_L001_R2_001.fastq.gz'
                     ]
                     self.assertEqual(res_sequence_file_names.sort(), expected_sequence_file_names.sort())
-                elif sample.sample_name == "02-2222":
+                elif sample.sample_name == "02-222m":
                     sample_2_found = True
                     sequence_files = test_api.get_sequence_files(project_id, sample.sample_name)
                     self.assertEqual(len(sequence_files), 2)
@@ -341,11 +344,11 @@ class TestEndToEnd(unittest.TestCase):
                         sequence_files[1]['fileName']
                     ]
                     expected_sequence_file_names = [
-                        '02-2222_S1_L001_R1_001.fastq.gz',
-                        '02-2222_S1_L001_R2_001.fastq.gz'
+                        '02-222m_S1_L001_R1_001.fastq.gz',
+                        '02-222m_S1_L001_R2_001.fastq.gz'
                     ]
                     self.assertEqual(res_sequence_file_names.sort(), expected_sequence_file_names.sort())
-                elif sample.sample_name == "03-3333":
+                elif sample.sample_name == "03-333m":
                     sample_3_found = True
                     sequence_files = test_api.get_sequence_files(project_id, sample.sample_name)
                     self.assertEqual(len(sequence_files), 2)
@@ -354,8 +357,8 @@ class TestEndToEnd(unittest.TestCase):
                         sequence_files[1]['fileName']
                     ]
                     expected_sequence_file_names = [
-                        '03-3333_S1_L001_R1_001.fastq.gz',
-                        '03-3333_S1_L001_R2_001.fastq.gz'
+                        '03-333m_S1_L001_R1_001.fastq.gz',
+                        '03-333m_S1_L001_R2_001.fastq.gz'
                     ]
                     self.assertEqual(res_sequence_file_names.sort(), expected_sequence_file_names.sort())
 

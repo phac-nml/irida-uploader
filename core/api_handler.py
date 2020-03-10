@@ -176,8 +176,10 @@ def _run_upload_handler(api_instance, sequencing_run, run_id):
     :return:
     """
     multithreading_config = config.read_config_option('multithreading', bool, False)
-    if multithreading_config is not None and multithreading_config is True:
-        return _run_upload_threadpool(api_instance, sequencing_run, run_id)
+    threads_config = config.read_config_option('threads')
+    if multithreading_config is not None and multithreading_config is True and \
+            threads_config is not None and int(threads_config) > 1:
+        return _run_upload_threadpool(api_instance, sequencing_run, run_id, int(threads_config))
     else:
         return _run_upload_basic(api_instance, sequencing_run, run_id)
 
@@ -202,24 +204,25 @@ def _run_upload_basic(api_instance, sequencing_run, run_id):
                                              upload_id=run_id)
 
 
-def _run_upload_threadpool(api_instance, sequencing_run, run_id):
+def _run_upload_threadpool(api_instance, sequencing_run, run_id, max_threads):
     """
     Starts a threading pool with thread count defined in config. Threadpool then uploads samples simultaneously
     :param api_instance: api instance should have already been initialized
     :param sequencing_run: sequencing run to upload
     :param run_id: run id to use for upload
+    :param max_threads: number of threads to use
     :return:
     """
 
-    def _run_upload(data_tup, sequence_run_id):
+    def _run_upload(data_dict, sequence_run_id):
         """
         Do the data upload
-        :param data_tup: tuple containing the project and sample
+        :param data_dict: dictionary containing the "project" and "sample"
         :param sequence_run_id: run id to upload with
         :return:
         """
-        project_data = data_tup[0]
-        sample_data = data_tup[1]
+        project_data = data_dict["project"]
+        sample_data = data_dict["sample"]
         logging.debug("Processing queue item for project {} sample {}".format(project_data.id,
                                                                               sample_data.sample_name))
 
@@ -228,15 +231,11 @@ def _run_upload_threadpool(api_instance, sequencing_run, run_id):
                                          project_id=project_data.id,
                                          upload_id=sequence_run_id)
 
-    # Maximum number of uploads that can be running at once
-    max_threads = int(config.read_config_option("threads"))
-
     # Put all the project/samples into a single list so the thread pool can assign them easier
     all_samples = []
     for project in sequencing_run.project_list:
         for sample in project.sample_list:
-            sample_tuple = (project, sample)
-            all_samples.append(sample_tuple)
+            all_samples.append({"project": project, "sample": sample})
 
     logging.info("Starting Multithreaded upload of {} samples with {} threads".format(len(all_samples), max_threads))
 
@@ -246,7 +245,7 @@ def _run_upload_threadpool(api_instance, sequencing_run, run_id):
     # Create a executor for our thread pool
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_threads) as executor:
         # future_to_upload is a list of future uploads (this starts the threads)
-        future_to_upload = {executor.submit(_run_upload, tup, run_id): tup for tup in all_samples}
+        future_to_upload = {executor.submit(_run_upload, data, run_id): data for data in all_samples}
         # as uploads/futures finish, they will be be handled here
         for future in concurrent.futures.as_completed(future_to_upload):
             try:
