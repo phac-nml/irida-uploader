@@ -6,12 +6,12 @@ gui: clean requirementsgui
 guidev: clean requirementsguidev
 
 clean:
-	rm -rf .cache
+	rm -rf __app__/.cache
 	rm -rf .virtualenv
 	rm -rf build
 	find -name "*pyc" -delete
-	rm -rf tests_integration/repos/
-	rm -rf tests_integration/tmp
+	rm -rf __app__/tests_integration/repos/
+	rm -rf __app__/tests_integration/tmp
 
 requirements:
 	python3 -m venv .virtualenv
@@ -44,7 +44,7 @@ windowsgui: clean requirementsgui
 unittests: clean requirements
 	source .virtualenv/bin/activate
 	export IRIDA_UPLOADER_TEST='True'
-	python3 -m unittest discover -s tests -t .
+	python3 -m unittest discover -s tests -t __app__
 
 preintegration:
 	mkdir tests_integration/tmp
