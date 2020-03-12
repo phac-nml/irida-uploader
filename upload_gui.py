@@ -6,7 +6,7 @@ from appdirs import user_log_dir
 import os
 import traceback
 
-import __app__.gui as gui
+import iridauploader.gui as gui
 
 
 def get_crash_log_file_path():
