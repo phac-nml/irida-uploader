@@ -1,6 +1,15 @@
 Changes
 =======
 
+Beta 0.4.0
+----------
+Developer changes:
+* Files structure changed
+  * Moved all application code into a `__app__` directory.
+  * Changed all import statements from using relative imports to use absolute imports with the root of `__app__`
+* Added PyPi support via `setup.py`
+  * the IRIDA Uploaders modules can now be imported via `pip`
+
 Beta 0.3.3
 ----------
 Added functionality:
