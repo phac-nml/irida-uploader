@@ -1,8 +1,8 @@
 import unittest
 
-from .integration_data_setup import SetupIridaData
-from .test_api_integration import TestApiIntegration
-from .test_end_to_end import TestEndToEnd
+from __app__.tests_integration.integration_data_setup import SetupIridaData
+from __app__.tests_integration.test_api_integration import TestApiIntegration
+from __app__.tests_integration.test_end_to_end import TestEndToEnd
 
 # Modules level variables that can/will be changed when the setup starts
 base_url = "http://localhost:8080/api"

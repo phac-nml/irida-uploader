@@ -47,10 +47,10 @@ unittests: clean requirements
 	python3 -m unittest discover -s tests -t __app__
 
 preintegration:
-	mkdir tests_integration/tmp
-	mkdir tests_integration/tmp/output-files
-	mkdir tests_integration/tmp/reference-files
-	mkdir tests_integration/tmp/sequence-files
+	mkdir __app__/tests_integration/tmp
+	mkdir __app__/tests_integration/tmp/output-files
+	mkdir __app__/tests_integration/tmp/reference-files
+	mkdir __app__/tests_integration/tmp/sequence-files
 
 integrationtests: clean requirements preintegration
 	source .virtualenv/bin/activate

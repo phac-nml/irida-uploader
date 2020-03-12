@@ -2,14 +2,14 @@ import unittest
 from os import path
 import os
 
-from tests_integration import tests_integration
+from __app__.tests_integration import tests_integration
 
-import config
-import api
-import model
-import progress
+import __app__.config as config
+import __app__.api as api
+import __app__.model as model
+import __app__.progress as progress
 
-from core.cli_entry import upload_run_single_entry, batch_upload_single_entry
+from __app__.core.cli_entry import upload_run_single_entry, batch_upload_single_entry
 
 
 path_to_module = path.dirname(__file__)

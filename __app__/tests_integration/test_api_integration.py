@@ -1,10 +1,10 @@
 import unittest
 from os import path
 
-from tests_integration import tests_integration
+from __app__.tests_integration import tests_integration
 
-import api
-import model
+import __app__.api as api
+import __app__.model as model
 
 
 path_to_module = path.dirname(__file__)
