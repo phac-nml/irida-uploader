@@ -9,6 +9,7 @@ clean:
 	rm -rf iridauploader/.cache
 	rm -rf .virtualenv
 	rm -rf build
+	rm -rf dist
 	find -name "*pyc" -delete
 	rm -rf iridauploader/tests_integration/repos/
 	rm -rf iridauploader/tests_integration/tmp
@@ -36,6 +37,9 @@ requirementsguidev:
 	pip3 install --upgrade wheel
 	pip3 install -r requirements.txt
 	pip3 install -r requirementsguidev.txt
+
+wheel: clean
+	python3 setup.py sdist bdist_wheel
 
 windowsgui: clean requirementsgui
 	source .virtualenv/bin/activate
