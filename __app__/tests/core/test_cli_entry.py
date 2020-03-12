@@ -3,10 +3,10 @@ from unittest.mock import patch, MagicMock, Mock, call
 from os import path
 import os
 
-from core import cli_entry, logger, exit_return
-from model import DirectoryStatus
-from parsers.exceptions import DirectoryError
-from api.exceptions import FileError, IridaResourceError, IridaConnectionError
+from __app__.core import cli_entry, logger, exit_return
+from __app__.model import DirectoryStatus
+from __app__.parsers.exceptions import DirectoryError
+from __app__.api.exceptions import FileError, IridaResourceError, IridaConnectionError
 
 path_to_module = path.abspath(path.dirname(__file__))
 if len(path_to_module) == 0:
@@ -36,9 +36,9 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         if logger.directory_logger:
             logger.remove_directory_logger()
 
-    @patch("core.cli_entry.progress")
-    @patch("core.cli_entry.api_handler")
-    @patch("core.cli_entry.parsing_handler")
+    @patch("__app__.core.cli_entry.progress")
+    @patch("__app__.core.cli_entry.api_handler")
+    @patch("__app__.core.cli_entry.parsing_handler")
     def test_valid_all_functions_called(self, mock_parsing_handler, mock_api_handler, mock_progress):
         """
         Makes sure that all functions are called when a valid directory in given
@@ -81,9 +81,9 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         # api should try to upload
         mock_api_handler.upload_sequencing_run.assert_called_with("Fake Sequencing Run")
 
-    @patch("core.cli_entry.progress")
-    @patch("core.cli_entry.api_handler")
-    @patch("core.cli_entry.parsing_handler")
+    @patch("__app__.core.cli_entry.progress")
+    @patch("__app__.core.cli_entry.api_handler")
+    @patch("__app__.core.cli_entry.parsing_handler")
     def test_log_file_created(self, mock_parsing_handler, mock_api_handler, mock_progress):
         """
         Makes sure that all functions are called when a valid directory in given
@@ -103,9 +103,9 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         # Make sure log file is created
         self.assertTrue(path.exists(log_file))
 
-    @patch("core.cli_entry.progress")
-    @patch("core.cli_entry.api_handler")
-    @patch("core.cli_entry.parsing_handler")
+    @patch("__app__.core.cli_entry.progress")
+    @patch("__app__.core.cli_entry.api_handler")
+    @patch("__app__.core.cli_entry.parsing_handler")
     def test_invalid_at_api_sequencing_run(self, mock_parsing_handler, mock_api_handler, mock_progress):
         """
         Makes sure that all functions are called when a invalid directory in given
@@ -152,9 +152,9 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         # make sure the upload is NOT done, as validation is invalid
         mock_api_handler.upload_sequencing_run.assert_not_called()
 
-    @patch("core.cli_entry.progress")
-    @patch("core.cli_entry.api_handler")
-    @patch("core.cli_entry.parsing_handler")
+    @patch("__app__.core.cli_entry.progress")
+    @patch("__app__.core.cli_entry.api_handler")
+    @patch("__app__.core.cli_entry.parsing_handler")
     def test_invalid_before_parsing_sequencing_run(self, mock_parsing_handler, mock_api_handler, mock_progress):
         """
         Makes sure that all functions are called when a invalid directory in given
@@ -189,9 +189,9 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.prepare_and_validate_for_upload.assert_not_called()
         mock_api_handler.upload_sequencing_run.assert_not_called()
 
-    @patch("core.cli_entry.progress")
-    @patch("core.cli_entry.api_handler")
-    @patch("core.cli_entry.parsing_handler")
+    @patch("__app__.core.cli_entry.progress")
+    @patch("__app__.core.cli_entry.api_handler")
+    @patch("__app__.core.cli_entry.parsing_handler")
     def test_invalid_at_parsing_sequencing_run(self, mock_parsing_handler, mock_api_handler, mock_progress):
         """
         Makes sure that all functions are called when a invalid directory in given
@@ -226,9 +226,9 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.prepare_and_validate_for_upload.assert_not_called()
         mock_api_handler.upload_sequencing_run.assert_not_called()
 
-    @patch("core.cli_entry.progress")
-    @patch("core.cli_entry.api_handler")
-    @patch("core.cli_entry.parsing_handler")
+    @patch("__app__.core.cli_entry.progress")
+    @patch("__app__.core.cli_entry.api_handler")
+    @patch("__app__.core.cli_entry.parsing_handler")
     def test_valid_force_upload(self, mock_parsing_handler, mock_api_handler, mock_progress):
         """
         Makes sure that all functions are called when a valid directory in given
@@ -272,9 +272,9 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         # api should try to upload
         mock_api_handler.upload_sequencing_run.assert_called_with("Fake Sequencing Run")
 
-    @patch("core.cli_entry.progress")
-    @patch("core.cli_entry.api_handler")
-    @patch("core.cli_entry.parsing_handler")
+    @patch("__app__.core.cli_entry.progress")
+    @patch("__app__.core.cli_entry.api_handler")
+    @patch("__app__.core.cli_entry.parsing_handler")
     def test_valid_new_status_file_upload(self, mock_parsing_handler, mock_api_handler, mock_progress):
         """
         Makes sure that all functions are called when a valid directory in given
@@ -317,9 +317,9 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         # api should try to upload
         mock_api_handler.upload_sequencing_run.assert_called_with("Fake Sequencing Run")
 
-    @patch("core.cli_entry.progress")
-    @patch("core.cli_entry.api_handler")
-    @patch("core.cli_entry.parsing_handler")
+    @patch("__app__.core.cli_entry.progress")
+    @patch("__app__.core.cli_entry.api_handler")
+    @patch("__app__.core.cli_entry.parsing_handler")
     def test_valid_already_uploaded(self, mock_parsing_handler, mock_api_handler, mock_progress):
         """
         Makes sure that all functions are called when a valid directory in given
@@ -360,9 +360,9 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         # make sure the upload is NOT done, as validation is invalid
         mock_api_handler.upload_sequencing_run.assert_not_called()
 
-    @patch("core.cli_entry.progress")
-    @patch("core.cli_entry.api_handler")
-    @patch("core.cli_entry.parsing_handler")
+    @patch("__app__.core.cli_entry.progress")
+    @patch("__app__.core.cli_entry.api_handler")
+    @patch("__app__.core.cli_entry.parsing_handler")
     def test_valid_connection_error_during_upload(self, mock_parsing_handler, mock_api_handler, mock_progress):
         """
         Makes sure no crash occurs and program exits with error when IridaConnectionError occurs during upload
@@ -408,9 +408,9 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         # api should try to upload
         mock_api_handler.upload_sequencing_run.assert_called_with("Fake Sequencing Run")
 
-    @patch("core.cli_entry.progress")
-    @patch("core.cli_entry.api_handler")
-    @patch("core.cli_entry.parsing_handler")
+    @patch("__app__.core.cli_entry.progress")
+    @patch("__app__.core.cli_entry.api_handler")
+    @patch("__app__.core.cli_entry.parsing_handler")
     def test_valid_resourse_error_during_upload(self, mock_parsing_handler, mock_api_handler, mock_progress):
         """
         Makes sure no crash occurs and program exits with error when IridaResourceError occurs during upload
@@ -456,9 +456,9 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         # api should try to upload
         mock_api_handler.upload_sequencing_run.assert_called_with("Fake Sequencing Run")
 
-    @patch("core.cli_entry.progress")
-    @patch("core.cli_entry.api_handler")
-    @patch("core.cli_entry.parsing_handler")
+    @patch("__app__.core.cli_entry.progress")
+    @patch("__app__.core.cli_entry.api_handler")
+    @patch("__app__.core.cli_entry.parsing_handler")
     def test_valid_file_error_during_upload(self, mock_parsing_handler, mock_api_handler, mock_progress):
         """
         Makes sure no crash occurs and program exits with error when FileError occurs during upload
@@ -513,8 +513,8 @@ class TestBatchUploadSingleEntry(unittest.TestCase):
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)
 
-    @patch("core.cli_entry._validate_and_upload")
-    @patch("core.cli_entry.parsing_handler")
+    @patch("__app__.core.cli_entry._validate_and_upload")
+    @patch("__app__.core.cli_entry.parsing_handler")
     def test_valid(self, mock_parsing_handler, mock_validate_and_upload):
         """
         Makes sure that _validate_and_upload is only called on a new run
@@ -549,8 +549,8 @@ class TestBatchUploadSingleEntry(unittest.TestCase):
         # validate calls only happen once
         mock_validate_and_upload.assert_called_once_with(stub_directory_status_valid)
 
-    @patch("core.cli_entry._validate_and_upload")
-    @patch("core.cli_entry.parsing_handler")
+    @patch("__app__.core.cli_entry._validate_and_upload")
+    @patch("__app__.core.cli_entry.parsing_handler")
     def test_valid_force(self, mock_parsing_handler, mock_validate_and_upload):
         """
         Makes sure that _validate_and_upload is called on all runs except invalid

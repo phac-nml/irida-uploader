@@ -2,8 +2,8 @@ import unittest
 from os import path
 import os
 
-import progress
-from model import DirectoryStatus
+import __app__.progress as progress
+from __app__.model import DirectoryStatus
 
 path_to_module = path.abspath(path.dirname(__file__))
 if len(path_to_module) == 0:

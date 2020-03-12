@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch
 import os
 
-import config
+import __app__.config as config
 
 path_to_module = os.path.abspath(os.path.dirname(__file__))
 if len(path_to_module) == 0:
@@ -27,9 +27,9 @@ class TestConfig(unittest.TestCase):
         config.config._conf_parser = None
         config.config._user_config_file = None
 
-    @patch("config.config._init_config_parser")
-    @patch("config.config._load_config_from_file")
-    @patch("config.config._create_new_config_file")
+    @patch("__app__.config.config._init_config_parser")
+    @patch("__app__.config.config._load_config_from_file")
+    @patch("__app__.config.config._create_new_config_file")
     @patch("os.path.exists")
     def test_basic_setup_all_functions_called(self, mock_path_exists, mock_create_new_config_file,
                                               mock_load_config_from_file, mock_init_config_parser):
@@ -45,8 +45,8 @@ class TestConfig(unittest.TestCase):
         # make sure it tries to load from file
         mock_load_config_from_file.assert_called_with()
 
-    @patch("config.config._load_config_from_file")
-    @patch("config.config._create_new_config_file")
+    @patch("__app__.config.config._load_config_from_file")
+    @patch("__app__.config.config._create_new_config_file")
     @patch("os.path.exists")
     def test_create_new_file_if_none_exist(self, mock_path_exists, mock_create_new_config_file,
                                            mock_load_config_from_file):
@@ -63,9 +63,9 @@ class TestConfig(unittest.TestCase):
         # It will attempt to use the file that was just created
         mock_load_config_from_file.assert_called_with()
 
-    @patch("config.config._init_config_parser")
-    @patch("config.config._load_config_from_file")
-    @patch("config.config._create_new_config_file")
+    @patch("__app__.config.config._init_config_parser")
+    @patch("__app__.config.config._load_config_from_file")
+    @patch("__app__.config.config._create_new_config_file")
     @patch("os.path.exists")
     def test_dont_create_new_file_if_exists(self, mock_path_exists, mock_create_new_config_file,
                                             mock_load_config_from_file, mock_init_config_parser):
@@ -83,9 +83,9 @@ class TestConfig(unittest.TestCase):
         # make sure it tries to load from file
         mock_load_config_from_file.assert_called_with()
 
-    @patch("config.config._init_config_parser")
-    @patch("config.config._load_config_from_file")
-    @patch("config.config._create_new_config_file")
+    @patch("__app__.config.config._init_config_parser")
+    @patch("__app__.config.config._load_config_from_file")
+    @patch("__app__.config.config._create_new_config_file")
     @patch("os.path.exists")
     def test_dont_create_new_file_if_override_file_exists(self, mock_path_exists, mock_create_new_config_file,
                                                           mock_load_config_from_file, mock_init_config_parser):

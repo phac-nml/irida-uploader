@@ -3,8 +3,8 @@ from unittest.mock import patch
 from csv import reader
 from io import StringIO
 
-from parsers.directory.validation import validate_sample_sheet
-from parsers.exceptions import SampleSheetError
+from __app__.parsers.directory.validation import validate_sample_sheet
+from __app__.parsers.exceptions import SampleSheetError
 
 
 class TestValidation(unittest.TestCase):
@@ -15,7 +15,7 @@ class TestValidation(unittest.TestCase):
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)
 
-    @patch("parsers.directory.validation.get_csv_reader")
+    @patch("__app__.parsers.directory.validation.get_csv_reader")
     def test_validate_sample_sheet_no_data_header(self, mock_csv_reader):
         """
         Given a sample sheet with no header, make sure the correct errors are included in the response
@@ -48,7 +48,7 @@ class TestValidation(unittest.TestCase):
         self.assertEqual(type(res.error_list[0]), SampleSheetError)
         self.assertEqual(type(res.error_list[1]), SampleSheetError)
 
-    @patch("parsers.directory.validation.get_csv_reader")
+    @patch("__app__.parsers.directory.validation.get_csv_reader")
     def test_validate_sample_sheet_no_data(self, mock_csv_reader):
         """
         Given a sample sheet with no data, make sure the correct errors are included in the response
@@ -73,7 +73,7 @@ class TestValidation(unittest.TestCase):
         # Error type should be SampleSheetError
         self.assertEqual(type(res.error_list[0]), SampleSheetError)
 
-    @patch("parsers.directory.validation.get_csv_reader")
+    @patch("__app__.parsers.directory.validation.get_csv_reader")
     def test_validate_sample_sheet_valid(self, mock_csv_reader):
         """
         Given a valid sample sheet, make sure the response shows as valid

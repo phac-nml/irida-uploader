@@ -2,8 +2,8 @@ import unittest
 from unittest.mock import patch
 from os import path
 
-import parsers
-from core import parsing_handler
+import __app__.parsers as parsers
+from __app__.core import parsing_handler
 
 path_to_module = path.abspath(path.dirname(__file__))
 if len(path_to_module) == 0:
@@ -18,7 +18,7 @@ class TestGetParserFromConfig(unittest.TestCase):
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)
 
-    @patch("core.parsing_handler.config.read_config_option")
+    @patch("__app__.core.parsing_handler.config.read_config_option")
     def test_get_miseq_parser(self, mock_read_config_option):
         # force the handler to grab 'miseq' when it tries to call config
         mock_read_config_option.side_effect = ["miseq"]
@@ -27,7 +27,7 @@ class TestGetParserFromConfig(unittest.TestCase):
         # verify we grabbed the right parser
         self.assertEqual(type(res), parsers.parsers.miseq.Parser)
 
-    @patch("core.parsing_handler.config.read_config_option")
+    @patch("__app__.core.parsing_handler.config.read_config_option")
     def test_get_directory_parser(self, mock_read_config_option):
         # force the handler to grab 'directory' when it tries to call config
         mock_read_config_option.side_effect = ["directory"]
@@ -45,8 +45,8 @@ class TestParseAndValidate(unittest.TestCase):
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)
 
-    @patch("core.parsing_handler.model_validator.validate_sequencing_run")
-    @patch("core.parsing_handler.get_parser_from_config")
+    @patch("__app__.core.parsing_handler.model_validator.validate_sequencing_run")
+    @patch("__app__.core.parsing_handler.get_parser_from_config")
     def test_all_functions_called(self, mock_get_parser, mock_validate):
         """
         Makes sure that all relevant functions are called so that it will parse and validate fully
@@ -72,8 +72,8 @@ class TestParseAndValidate(unittest.TestCase):
         mock_validate.assert_called_once_with("mock_sequencing_run")
         self.assertEqual(res, "mock_sequencing_run")
 
-    @patch("core.parsing_handler.model_validator.validate_sequencing_run")
-    @patch("core.parsing_handler.get_parser_from_config")
+    @patch("__app__.core.parsing_handler.model_validator.validate_sequencing_run")
+    @patch("__app__.core.parsing_handler.get_parser_from_config")
     def test_invalid_sequencing_run(self, mock_get_parser, mock_validate):
         """
         Check that an exception is thrown when a given SequencingRun is given

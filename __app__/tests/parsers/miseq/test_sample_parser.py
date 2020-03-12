@@ -4,9 +4,9 @@ from os import path
 from csv import reader
 from io import StringIO
 
-import parsers.miseq.sample_parser as sample_parser
-from parsers.exceptions import SampleSheetError, SequenceFileError
-import model
+import __app__.parsers.miseq.sample_parser as sample_parser
+from __app__.parsers.exceptions import SampleSheetError, SequenceFileError
+import __app__.model as model
 
 path_to_module = path.abspath(path.dirname(__file__))
 if len(path_to_module) == 0:
@@ -21,7 +21,7 @@ class TestParseMetadata(unittest.TestCase):
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)
 
-    @patch("parsers.miseq.sample_parser.get_csv_reader")
+    @patch("__app__.parsers.miseq.sample_parser.get_csv_reader")
     def test_parse_metadata_paired_valid(self, mock_csv_reader):
         """
         When given a valid directory, ensure valid metadata is built
@@ -90,7 +90,7 @@ class TestParseMetadata(unittest.TestCase):
         self.assertEqual(metadata['description'], "12-34")
         self.assertEqual(metadata['chemistry'], "Yes")
 
-    @patch("parsers.miseq.sample_parser.get_csv_reader")
+    @patch("__app__.parsers.miseq.sample_parser.get_csv_reader")
     def test_parse_metadata_single_valid(self, mock_csv_reader):
         """
         When given a valid directory, ensure valid metadata is built

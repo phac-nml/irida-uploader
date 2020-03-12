@@ -2,11 +2,11 @@ import unittest
 from unittest.mock import patch
 from os import path
 
-from core import api_handler
+from __app__.core import api_handler
 
-from parsers.miseq.parser import Parser
-from api.exceptions import IridaResourceError
-from model.exceptions import ModelValidationError
+from __app__.parsers.miseq.parser import Parser
+from __app__.api.exceptions import IridaResourceError
+from __app__.model.exceptions import ModelValidationError
 
 path_to_module = path.abspath(path.dirname(__file__))
 if len(path_to_module) == 0:
@@ -33,7 +33,7 @@ class TestPrepareAndValidateForUpload(unittest.TestCase):
         global sequencing_run
         sequencing_run = None
 
-    @patch("core.api_handler._get_api_instance")
+    @patch("__app__.core.api_handler._get_api_instance")
     def test_valid_all_functions_called(self, mock_api_instance):
         """
         Makes sure that all functions are called when a valid sequencing run in given
@@ -58,7 +58,7 @@ class TestPrepareAndValidateForUpload(unittest.TestCase):
         ])
         self.assertTrue(res.is_valid())
 
-    @patch("core.api_handler._get_api_instance")
+    @patch("__app__.core.api_handler._get_api_instance")
     def test_invalid_validation_project_does_not_exist(self, mock_api_instance):
         """
         Makes sure the returned validation result includes all types of invalid properties in the sequencing run
@@ -82,7 +82,7 @@ class TestPrepareAndValidateForUpload(unittest.TestCase):
         self.assertEqual(res.error_count(), 1)
         self.assertEqual(type(res.error_list[0]), IridaResourceError)
 
-    @patch("core.api_handler._get_api_instance")
+    @patch("__app__.core.api_handler._get_api_instance")
     def test_valid_send_sample(self, mock_api_instance):
         """
         Makes sure we try to send a sample to IRIDA if it doesn't exist
@@ -110,7 +110,7 @@ class TestPrepareAndValidateForUpload(unittest.TestCase):
 
         self.assertTrue(res.is_valid())
 
-    @patch("core.api_handler._get_api_instance")
+    @patch("__app__.core.api_handler._get_api_instance")
     def test_invalid_could_not_send_sample(self, mock_api_instance):
         """
         Makes sure we try to send a sample to IRIDA if it doesn't exist,
@@ -162,7 +162,7 @@ class TestUploadSequencingRun(unittest.TestCase):
         global sequencing_run
         sequencing_run = None
 
-    @patch("core.api_handler._get_api_instance")
+    @patch("__app__.core.api_handler._get_api_instance")
     def test_valid_all_functions_called(self, mock_api_instance):
         """
         Makes sure that all functions are called when a valid sequencing run in given
@@ -196,7 +196,7 @@ class TestUploadSequencingRun(unittest.TestCase):
         ])
         stub_api_instance.set_seq_run_complete.assert_called_once_with(mock_sequence_run_id)
 
-    @patch("core.api_handler._get_api_instance")
+    @patch("__app__.core.api_handler._get_api_instance")
     def test_invalid_error_raised(self, mock_api_instance):
         """
         Makes sure that the sequencing run is set to error when an exception is thrown
@@ -235,8 +235,8 @@ class TestSendProject(unittest.TestCase):
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)
 
-    @patch("core.api_handler.model_validator")
-    @patch("core.api_handler._get_api_instance")
+    @patch("__app__.core.api_handler.model_validator")
+    @patch("__app__.core.api_handler._get_api_instance")
     def test_all_functions_called(self, mock_api_instance, mock_model_validator):
         """
         Makes sure that all relevant functions are called when sending a project
@@ -260,8 +260,8 @@ class TestSendProject(unittest.TestCase):
         stub_api_instance.send_project.assert_called_once_with(mock_project)
         mock_model_validator.validate_send_project.assert_called_once_with(mock_project)
 
-    @patch("core.api_handler.model_validator")
-    @patch("core.api_handler._get_api_instance")
+    @patch("__app__.core.api_handler.model_validator")
+    @patch("__app__.core.api_handler._get_api_instance")
     def test_can_not_send_project(self, mock_api_instance, mock_model_validator):
         """
         Makes sure that an IridaResourceError is thrown when the api is unable to upload
@@ -283,8 +283,8 @@ class TestSendProject(unittest.TestCase):
 
         mock_model_validator.validate_send_project.assert_called_once_with(mock_project)
 
-    @patch("core.api_handler.model_validator")
-    @patch("core.api_handler._get_api_instance")
+    @patch("__app__.core.api_handler.model_validator")
+    @patch("__app__.core.api_handler._get_api_instance")
     def test_project_invalid(self, mock_api_instance, mock_model_validator):
         """
         Makes sure that an IridaResourceError is thrown when an invalid project is

@@ -1,9 +1,9 @@
 import unittest
 from os import path
 
-from parsers.miseq.parser import Parser
-from parsers.exceptions import DirectoryError, ValidationError, SampleSheetError
-import model
+from __app__.parsers.miseq.parser import Parser
+from __app__.parsers.exceptions import DirectoryError, ValidationError, SampleSheetError
+import __app__.model as model
 
 path_to_module = path.abspath(path.dirname(__file__))
 if len(path_to_module) == 0:

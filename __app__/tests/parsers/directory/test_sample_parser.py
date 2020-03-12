@@ -3,10 +3,10 @@ from collections import OrderedDict
 from os import path
 from unittest.mock import patch
 
-import parsers.directory
-import parsers.directory.sample_parser as sample_parser
-from parsers.exceptions import SampleSheetError
-import model
+import __app__.parsers as parsers
+import __app__.parsers.directory.sample_parser as sample_parser
+from __app__.parsers.exceptions import SampleSheetError
+import __app__.model as model
 
 path_to_module = path.abspath(path.dirname(__file__))
 if len(path_to_module) == 0:
@@ -199,7 +199,7 @@ class TestParseSampleList(unittest.TestCase):
         self.assertEqual(res[0]["File_Forward"], file_path_1)
         self.assertEqual(res[0]["File_Reverse"], file_path_2)
 
-    @patch("parsers.directory.sample_parser._parse_samples")
+    @patch("__app__.parsers.directory.sample_parser._parse_samples")
     def test_valid_full_file_path(self, mock_parse_samples):
         """
         Given a valid sample sheet with full file paths, parse correctly
