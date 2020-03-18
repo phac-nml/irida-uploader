@@ -10,6 +10,7 @@ clean:
 	rm -rf .virtualenv
 	rm -rf build
 	rm -rf dist
+	rm -rf iridauploader.egg-info/
 	find -name "*pyc" -delete
 	rm -rf iridauploader/tests_integration/repos/
 	rm -rf iridauploader/tests_integration/tmp

@@ -178,6 +178,20 @@ Create an issue on our [GitHub Issues Board](https://github.com/phac-nml/irida-u
 
 # Developers
 
+The modules of the IRIDA Uploader can be used through pip/pypi
+
+`pip install iridauploader`
+
+Example to get you started:
+
+```python
+import iridauploader.api as api
+import iridauploader.parsers as parsers
+
+api_instance = api.ApiCalls(client_id, client_secret, base_url, username, password, max_wait_time)
+parser_instance = parsers.Parser.factory("miseq")
+```
+
 Want to create a parser for a sequencer that we don't yet support or have an idea for an IRIDA related project?
 
 [Requirements for new parsers](developers/parsers.md)
