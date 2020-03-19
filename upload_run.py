@@ -5,9 +5,9 @@ import getpass
 import os
 import textwrap
 
-import config
-import core
-from parsers import supported_parsers
+import iridauploader.config as config
+import iridauploader.core as core
+from iridauploader.parsers import supported_parsers
 
 # Set up an argument parser. We are using defaults to stay consistent with other software.
 # description gets added to the usage statements

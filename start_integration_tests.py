@@ -10,7 +10,7 @@ This will start a xvfb instance to run the tests inside
 
 import argparse
 
-import tests_integration.tests_integration as tests_integration
+import iridauploader.tests_integration.tests_integration as tests_integration
 
 # parse a single argument that determines which IRIDA branch we are testing against
 argument_parser = argparse.ArgumentParser(description='This program parses sequencing runs and uploads them to IRIDA.')

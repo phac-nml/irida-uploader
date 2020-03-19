@@ -4,6 +4,8 @@
 *.bak
 docs/_build/*
 build/
+dist/
+*.egg-info/
 .virtualenv
 .cache
 .idea/

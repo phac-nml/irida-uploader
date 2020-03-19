@@ -11,4 +11,4 @@ else
     exit 1
 fi
 
-python upload_gui.py
+python ${ROOT_DIR}/upload_gui.py
