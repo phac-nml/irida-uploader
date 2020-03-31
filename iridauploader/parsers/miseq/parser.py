@@ -5,6 +5,7 @@ import iridauploader.model as model
 import iridauploader.progress as progress
 
 from iridauploader.parsers import exceptions
+from iridauploader.parsers import common
 from iridauploader.parsers.miseq import sample_parser, validation
 
 
@@ -25,28 +26,6 @@ class Parser:
         ]
 
     @staticmethod
-    def _find_directory_list(directory):
-        """Find and return all directories in the specified directory.
-
-        Arguments:
-        directory -- the directory to find directories in
-
-        Returns: a list of directories including current directory
-        """
-
-        # Checks if we can access to the given directory, return empty and log a warning if we cannot.
-        if not os.access(directory, os.W_OK):
-            raise exceptions.DirectoryError("The directory is not writeable, "
-                                            "can not upload samples from this directory {}".format(directory),
-                                            directory)
-
-        dir_list = next(os.walk(directory))[1]  # Gets the list of directories in the directory
-        full_dir_list = []
-        for d in dir_list:
-            full_dir_list.append(os.path.join(directory, d))
-        return full_dir_list
-
-    @staticmethod
     def find_runs(directory):
         """
         find a list of run directories in the directory given
@@ -57,7 +36,7 @@ class Parser:
         logging.info("Looking for runs in {}".format(directory))
 
         runs = []
-        directory_list = Parser._find_directory_list(directory)
+        directory_list = common.find_directory_list(directory)
         for d in directory_list:
             runs.append(progress.get_directory_status(d, Parser.get_required_file_list()))
 
