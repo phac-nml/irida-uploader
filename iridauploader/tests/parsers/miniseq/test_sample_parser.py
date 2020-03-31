@@ -6,6 +6,7 @@ from io import StringIO
 
 import iridauploader.parsers.miniseq.sample_parser as sample_parser
 from iridauploader.parsers.exceptions import SampleSheetError, SequenceFileError
+from iridauploader.parsers import common
 import iridauploader.model as model
 
 path_to_module = path.abspath(path.dirname(__file__))
@@ -21,7 +22,7 @@ class TestParseMetadata(unittest.TestCase):
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)
 
-    @patch("iridauploader.parsers.miniseq.sample_parser.get_csv_reader")
+    @patch("iridauploader.parsers.common.get_csv_reader")
     def test_parse_metadata_paired_valid(self, mock_csv_reader):
         """
         When given a valid directory, ensure valid metadata is built
@@ -81,7 +82,7 @@ class TestParseMetadata(unittest.TestCase):
         self.assertEqual(metadata['description'], "12-34")
         self.assertEqual(metadata['chemistry'], "Yes")
 
-    @patch("iridauploader.parsers.miniseq.sample_parser.get_csv_reader")
+    @patch("iridauploader.parsers.common.get_csv_reader")
     def test_parse_metadata_single_valid(self, mock_csv_reader):
         """
         When given a valid directory, ensure valid metadata is built
@@ -222,7 +223,7 @@ class TestGetCsvReader(unittest.TestCase):
         sheet_file = path.join(path_to_module, "fake_ngs_data",
                                "SampleSheet.csv")
 
-        lines = sample_parser.get_csv_reader(sheet_file)
+        lines = common.get_csv_reader(sheet_file)
 
         correct_lines = [
             ['[Header]'],
@@ -260,7 +261,7 @@ class TestGetCsvReader(unittest.TestCase):
                                "Alignment_1")
 
         with self.assertRaises(SampleSheetError):
-            sample_parser.get_csv_reader(sheet_file)
+            common.get_csv_reader(sheet_file)
 
 
 class TestValidatePfList(unittest.TestCase):

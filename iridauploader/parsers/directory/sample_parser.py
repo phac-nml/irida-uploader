@@ -1,11 +1,11 @@
 from os import path, walk
-from csv import reader
 from collections import OrderedDict
 from copy import deepcopy
 import logging
 
 import iridauploader.model as model
 from iridauploader.parsers import exceptions
+from iridauploader.parsers import common
 
 
 def build_sequencing_run_from_samples(sample_sheet_file):
@@ -143,7 +143,7 @@ def _parse_samples(sample_sheet_file):
 
     logging.info("Reading data from sample sheet {}".format(sample_sheet_file))
 
-    csv_reader = get_csv_reader(sample_sheet_file)
+    csv_reader = common.get_csv_reader(sample_sheet_file)
     # start with an ordered dictionary so that keys are ordered in the same
     # way that they are inserted.
     sample_dict = OrderedDict()
@@ -209,35 +209,3 @@ def _parse_samples(sample_sheet_file):
         sample_dict_list.append(deepcopy(sample_dict))
 
     return sample_dict_list
-
-
-def get_csv_reader(sample_sheet_file):
-
-    """
-    tries to create a csv.reader object which will be used to
-        parse through the lines in SampleSheet.csv
-    raises an error if:
-            sample_sheet_file is not an existing file
-            sample_sheet_file contains null byte(s)
-
-    arguments:
-            data_dir -- the directory that has SampleSheet.csv in it
-
-    returns a csv.reader object
-    """
-
-    if path.isfile(sample_sheet_file):
-        csv_file = open(sample_sheet_file, "r")
-        # strip any trailing newline characters from the end of the line
-        # including Windows newline characters (\r\n)
-        csv_lines = [x.rstrip('\n') for x in csv_file]
-        csv_lines = [x.rstrip('\r') for x in csv_lines]
-
-        # open and read file in binary then send it to be parsed by csv's reader
-        csv_reader = reader(csv_lines)
-    else:
-        raise exceptions.SampleSheetError(
-            "Sample sheet cannot be parsed as a CSV file because it's not a regular file.",
-            sample_sheet_file)
-
-    return csv_reader

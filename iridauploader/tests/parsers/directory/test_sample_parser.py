@@ -123,7 +123,7 @@ class TestGetCsvReader(unittest.TestCase):
         sheet_file = path.join(path_to_module, "fake_dir_data",
                                "test_csv_reader.csv")
 
-        lines = sample_parser.get_csv_reader(sheet_file)
+        lines = parsers.common.get_csv_reader(sheet_file)
         # This is a sample of what the miseq sample sheet looks like, but it also makes a good
         # example for what we want our csv reader to be able to parse.
         correct_lines = [
@@ -165,7 +165,7 @@ class TestGetCsvReader(unittest.TestCase):
         sheet_file = path.join(path_to_module, "fake_dir_data")
 
         with self.assertRaises(SampleSheetError):
-            sample_parser.get_csv_reader(sheet_file)
+            parsers.common.get_csv_reader(sheet_file)
 
 
 class TestParseSampleList(unittest.TestCase):
