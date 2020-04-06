@@ -608,6 +608,9 @@ class ApiCalls(object):
         encoder = self._get_multipart_encoder(sequence_file, upload_id)
         # create callback monitor for file progressk
         monitor = MultipartEncoderMonitor(encoder, self._send_file_callback)
+        # override max byte read size
+        monitor._read = monitor.read
+        monitor.read = lambda size: monitor._read(1024*1024)
         # return the monitor/encoder object
         return monitor
 

@@ -10,6 +10,7 @@ Developer changes:
 * Added PyPi support via `setup.py`
   * the IRIDA Uploaders modules can now be imported via `pip`
 * Swapped multipart file encoder to now use `requests-toolkit` to enable file streaming, leading to faster / more consitant uploads
+* Changed byte send size of httplib to 1024\*1024, raising max upload speed from ~40Mbps to >200Mbps (upper bound not found yet)
 * Gui file progress widget no longer knows about single vs paired end sequence files, only progress per sample
 
 Bug Fixes:
