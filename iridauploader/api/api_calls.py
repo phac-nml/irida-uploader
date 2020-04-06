@@ -609,6 +609,8 @@ class ApiCalls(object):
         # create callback monitor for file progressk
         monitor = MultipartEncoderMonitor(encoder, self._send_file_callback)
         # override max byte read size
+        # This lambda overrides httplibs hard coded 8192 byte read size
+        # More details: https://github.com/requests/toolbelt/issues/75#issuecomment-237189952
         monitor._read = monitor.read
         monitor.read = lambda size: monitor._read(1024 * 1024)
         # return the monitor/encoder object
