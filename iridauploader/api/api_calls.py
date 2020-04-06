@@ -598,6 +598,7 @@ class ApiCalls(object):
             project=self._current_upload_project_id,
             progress=progress_percent
         ))
+        print("Progress: ", progress_percent, "% Uploaded     \r", end="")
 
     def _get_sequence_data_pkg(self, sequence_file, upload_id):
         """
