@@ -610,7 +610,7 @@ class ApiCalls(object):
         monitor = MultipartEncoderMonitor(encoder, self._send_file_callback)
         # override max byte read size
         monitor._read = monitor.read
-        monitor.read = lambda size: monitor._read(1024*1024)
+        monitor.read = lambda size: monitor._read(1024 * 1024)
         # return the monitor/encoder object
         return monitor
 
