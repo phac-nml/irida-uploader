@@ -564,7 +564,7 @@ class ApiCalls(object):
         # Get the data encoder
         data_pkg = self._get_sequence_data_pkg(sequence_file, upload_id)
         # Generate headers from the data encoder
-        headers_pkg={'Content-Type': data_pkg.content_type}
+        headers_pkg = {'Content-Type': data_pkg.content_type}
 
         logging.debug("Sending files to [{}]".format(url))
         logging.debug("headers: " + str(headers_pkg))
