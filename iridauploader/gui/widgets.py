@@ -42,16 +42,15 @@ class ProgressBarHandler:
         """
         return self._bar_dict[self._get_key(sample, project)]
 
-    def add_bar(self, sample, project, paired_end_run=False):
+    def add_bar(self, sample, project):
         """
         Create a new progress bar given a sample and project id
         :param sample: sample name
         :param project: project id
-        :param paired_end_run: Boolean, if this sample uses paired end files
         :return: QUploadProgressBar
         """
         key = self._get_key(sample, project)
-        bar = self.QUploadProgressBar(parent=self._q_parent, paired_end_run=paired_end_run)
+        bar = self.QUploadProgressBar(parent=self._q_parent)
         self._bar_dict[key] = bar
         return bar
 
@@ -88,26 +87,18 @@ class ProgressBarHandler:
             )
         )
 
-        def __init__(self, parent=None, paired_end_run=False):
+        def __init__(self, parent=None):
             super().__init__()
             QtWidgets.QProgressBar.__init__(self, parent)
             self.setStyleSheet(self.DEFAULT_STYLE)
-            self._paired_end_run = paired_end_run
 
         def setValue(self, value):
             """
             Sets the value of of the progress bar
-            If its a paired end read, it will progress to 50% for the first file, and the remaining 50% for the second
             :param value: int or float
             :return: None
             """
-            if self._paired_end_run:  # 2 files being uploaded
-                if self.value() < 50:  # First file uploading
-                    QtWidgets.QProgressBar.setValue(self, int(0.5 * value))
-                else:  # Second file uploading
-                    QtWidgets.QProgressBar.setValue(self, int(50 + (0.5 * value)))
-            else:  # 1 file being uploaded
-                QtWidgets.QProgressBar.setValue(self, value)
+            QtWidgets.QProgressBar.setValue(self, value)
 
             # upload is complete, set the style
             if QtWidgets.QProgressBar.value(self) == 100:
@@ -219,8 +210,7 @@ class SampleTable(QtWidgets.QTableWidget):
                 self.setItem(y_index, self.TABLE_PROJECT, QtWidgets.QTableWidgetItem(project.id))
 
                 new_progress_bar = self._progress_bars.add_bar(sample=sample.sample_name,
-                                                               project=str(project.id),
-                                                               paired_end_run=(len(files) == 2))
+                                                               project=str(project.id))
                 self.setCellWidget(y_index, self.TABLE_PROGRESS, new_progress_bar)
 
                 y_index = y_index + 1

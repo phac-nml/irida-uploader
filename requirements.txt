@@ -9,3 +9,4 @@ cerberus
 pynsist==2.3
 argparse
 selenium
+requests-toolbelt
