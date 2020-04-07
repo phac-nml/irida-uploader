@@ -36,26 +36,28 @@ def get_csv_reader(sample_sheet_file):
 
     return csv_reader
 
+
 def find_directory_list(directory):
-        """Find and return all directories in the specified directory.
+    """Find and return all directories in the specified directory.
 
-        Arguments:
-        directory -- the directory to find directories in
+    Arguments:
+    directory -- the directory to find directories in
 
-        Returns: a list of directories including current directory
-        """
+    Returns: a list of directories including current directory
+    """
 
-        # Checks if we can access to the given directory, return empty and log a warning if we cannot.
-        if not os.access(directory, os.W_OK):
-            raise exceptions.DirectoryError("The directory is not writeable, "
-                                            "can not upload samples from this directory {}".format(directory),
-                                            directory)
+    # Checks if we can access to the given directory, return empty and log a warning if we cannot.
+    if not os.access(directory, os.W_OK):
+        raise exceptions.DirectoryError("The directory is not writeable, "
+                                        "can not upload samples from this directory {}".format(directory),
+                                        directory)
 
-        dir_list = next(os.walk(directory))[1]  # Gets the list of directories in the directory
-        full_dir_list = []
-        for d in dir_list:
-            full_dir_list.append(os.path.join(directory, d))
-        return full_dir_list
+    dir_list = next(os.walk(directory))[1]  # Gets the list of directories in the directory
+    full_dir_list = []
+    for d in dir_list:
+        full_dir_list.append(os.path.join(directory, d))
+    return full_dir_list
+
 
 def build_sequencing_run_from_samples(sample_list, metadata):
     """
@@ -84,6 +86,7 @@ def build_sequencing_run_from_samples(sample_list, metadata):
     sequence_run = model.SequencingRun(metadata, project_list)
     logging.debug("SequencingRun built")
     return sequence_run
+
 
 def get_file_list(directory):
     """

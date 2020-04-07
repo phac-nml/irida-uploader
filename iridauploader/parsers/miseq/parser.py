@@ -114,7 +114,7 @@ class Parser:
         Throws a ValidationError with a valadation result attached if it cannot make a sequencing run
 
         :param sample_sheet: Sample Sheet File
-        :param run_data_directory: Optional: Directory (including run directory) to data files. 
+        :param run_data_directory: Optional: Directory (including run directory) to data files.
                                    Can be provided for bypassing os calls when developing on cloud systems
         :param run_data_directory_file_list: Optional: List of files in data directory.
                                              Can be provided for bypassing os calls when developing on cloud systems
@@ -125,7 +125,7 @@ class Parser:
         if run_data_directory is None:
             run_data_directory = Parser.get_full_data_directory(sample_sheet)
         if run_data_directory_file_list is None:
-            run_data_directory_file_list = common.get_file_list(run_data_directory) 
+            run_data_directory_file_list = common.get_file_list(run_data_directory)
 
         # Try to get the sample sheet, validate that the sample sheet is valid
         validation_result = validation.validate_sample_sheet(sample_sheet)
