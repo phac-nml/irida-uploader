@@ -26,6 +26,30 @@ class Parser:
         ]
 
     @staticmethod
+    def get_relative_data_directory():
+        """
+        Returns path to the sequence file directory, relative to the Sample Sheet
+
+        This is not used in the application but is useful for scripting and cloud deployment
+
+        :return: a string which represents the concatenated path components, as per os.path.join
+        """
+        data_dir = os.path.join("Data", "Intensities", "BaseCalls")
+        return data_dir
+
+    @staticmethod
+    def get_full_data_directory(sample_sheet):
+        """
+        Returns the path to where the sequence data files can be found, including the sample_sheet directory
+
+        :param sample_sheet: Sample sheet acts as the starting point for the data directory
+        :return: a string which represents the concatenated path components, as per os.path.join
+        """
+        sample_sheet_dir = os.path.dirname(sample_sheet)
+        data_dir = os.path.join(sample_sheet_dir, Parser.get_relative_data_directory())
+        return data_dir
+
+    @staticmethod
     def find_runs(directory):
         """
         find a list of run directories in the directory given
@@ -72,7 +96,7 @@ class Parser:
                                             "can not parse samples from this directory {}".format(directory), directory)
 
         sample_sheet_file_name = Parser.SAMPLE_SHEET_FILE_NAME
-        file_list = next(os.walk(directory))[2]  # Gets the list of files in the directory
+        file_list = common.get_file_list(directory)  # Gets the list of files in the directory
         if sample_sheet_file_name not in file_list:
             logging.error("No sample sheet file in the MiSeq format found")
             raise exceptions.DirectoryError("The directory {} has no sample sheet file in the MiSeq format"
@@ -83,15 +107,25 @@ class Parser:
             return os.path.join(directory, sample_sheet_file_name)
 
     @staticmethod
-    def get_sequencing_run(sample_sheet):
+    def get_sequencing_run(sample_sheet, run_data_directory=None, run_data_directory_file_list=None):
         """
         Does local validation on the integrety of the run directory / sample sheet
 
         Throws a ValidationError with a valadation result attached if it cannot make a sequencing run
 
-        :param sample_sheet:
+        :param sample_sheet: Sample Sheet File
+        :param run_data_directory: Optional: Directory (including run directory) to data files. 
+                                   Can be provided for bypassing os calls when developing on cloud systems
+        :param run_data_directory_file_list: Optional: List of files in data directory.
+                                             Can be provided for bypassing os calls when developing on cloud systems
         :return: SequencingRun
         """
+
+        # get data directory and file list
+        if run_data_directory is None:
+            run_data_directory = Parser.get_full_data_directory(sample_sheet)
+        if run_data_directory_file_list is None:
+            run_data_directory_file_list = common.get_file_list(run_data_directory) 
 
         # Try to get the sample sheet, validate that the sample sheet is valid
         validation_result = validation.validate_sample_sheet(sample_sheet)
@@ -110,7 +144,8 @@ class Parser:
 
         # Try to build sequencing run from sample sheet & meta data, raise validation error if errors occur
         try:
-            sequencing_run = sample_parser.build_sequencing_run_from_samples(sample_sheet, run_metadata)
+            sample_list = sample_parser.parse_sample_list(sample_sheet, run_data_directory, run_data_directory_file_list)
+            sequencing_run = common.build_sequencing_run_from_samples(sample_list, run_metadata)
         except exceptions.SequenceFileError as error:
             validation_result.add_error(error)
             logging.error("Errors occurred while building sequence run from sample sheet")

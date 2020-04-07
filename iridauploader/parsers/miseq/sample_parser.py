@@ -1,5 +1,5 @@
 import re
-from os import path, walk
+from os import path
 from collections import OrderedDict
 from copy import deepcopy
 import logging
@@ -90,47 +90,16 @@ def parse_metadata(sample_sheet_file):
     return metadata_dict
 
 
-def build_sequencing_run_from_samples(sample_sheet_file, metadata):
+def parse_sample_list(sample_sheet_file, run_data_directory, run_data_directory_file_list):
     """
-    Create a SequencingRun object with full project/sample/sequence_file structure
+    Creates a list of Sample Objects
 
-    :param sample_sheet_file:
-    :param metadata:
-    :return: SequencingRun
-    """
-    sample_list = _parse_sample_list(sample_sheet_file)
-
-    logging.debug("Building SequencingRun from parsed data")
-
-    # create list of projects and add samples to appropriate project
-    project_list = []
-    for sample in sample_list:
-        project = None
-        for p in project_list:
-            if sample.get('sample_project') == p.id:
-                project = p
-        if project is None:
-            project = model.Project(id=sample.get('sample_project'))
-            project_list.append(project)
-
-        project.add_sample(sample)
-
-    sequence_run = model.SequencingRun(metadata, project_list)
-    logging.debug("SequencingRun built")
-    return sequence_run
-
-
-def _parse_sample_list(sample_sheet_file):
-    """
-    Creates a list of all samples in the sample_sheet_file, with accompanying data/metadata
-
-    :param sample_sheet_file:
-    :return: list of samples
+    :param sample_sheet_file: Sample Sheet file
+    :param run_data_directory: Data directory including run directory (e.g. my_run/Data/Intensities/BaseCalls)
+    :param run_data_directory_file_list: The list of all files in the data directory
+    :return: list of Sample objects
     """
     sample_list = _parse_samples(sample_sheet_file)
-    sample_sheet_dir = path.dirname(sample_sheet_file)
-    data_dir = path.join(sample_sheet_dir, "Data", "Intensities", "BaseCalls")
-    data_dir_file_list = next(walk(data_dir))[2]  # Create a file list of the data directory, only hit the os once
 
     for sample in sample_list:
         properties_dict = _parse_out_sequence_file(sample)
@@ -140,7 +109,7 @@ def _parse_sample_list(sample_sheet_file):
             sample_name=re.escape(sample.sample_name), sample_number=sample.sample_number)
         logging.info("Looking for files with pattern {}".format(file_pattern))
         regex = re.compile(file_pattern)
-        pf_list = list(filter(regex.search, data_dir_file_list))
+        pf_list = list(filter(regex.search, run_data_directory_file_list))
         if not pf_list:
             # OK. So we didn't find any files using the **correct** file name
             # definition according to Illumina. Let's try again with our deprecated
@@ -150,7 +119,7 @@ def _parse_sample_list(sample_sheet_file):
             logging.info("Looking for files with pattern {}".format(file_pattern))
 
             regex = re.compile(file_pattern)
-            pf_list = list(filter(regex.search, data_dir_file_list))
+            pf_list = list(filter(regex.search, run_data_directory_file_list))
 
             if not pf_list:
                 # we **still** didn't find anything. It's pretty likely, then that
@@ -161,18 +130,18 @@ def _parse_sample_list(sample_sheet_file):
                      ".fastq.gz for the sample in your sample sheet with name {} in the directory {}. "
                      "This usually happens when the Illumina MiSeq Reporter tool "
                      "does not generate any FastQ data.").format(
-                        sample.sample_name, data_dir))
+                        sample.sample_name, run_data_directory))
 
         # List of files may be invalid if directory searching in has been modified by user
         if not _validate_pf_list(pf_list):
             raise exceptions.SequenceFileError(
                 ("The following file list {} found in the directory {} is invalid. "
                  "Please verify the folder containing the sequence files matches the SampleSheet file").format(
-                    pf_list, data_dir))
+                    pf_list, run_data_directory))
 
         # Add the dir to each file to create the full path
         for i in range(len(pf_list)):
-            pf_list[i] = path.join(data_dir, pf_list[i])
+            pf_list[i] = path.join(run_data_directory, pf_list[i])
 
         sq = model.SequenceFile(file_list=pf_list, properties_dict=properties_dict)
         sample.sequence_file = deepcopy(sq)
