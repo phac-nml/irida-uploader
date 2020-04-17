@@ -95,6 +95,9 @@ def get_file_list(directory):
     :param data_directory: directory to search for files
     :return: list of file names in data directory
     """
+    # verify that directory exists
+    if not os.path.exists(directory):
+        raise exceptions.DirectoryError("Could not list files, as directory does not exist.", directory)
     # Create a file list of the directory, only hit the os once
     file_list = next(os.walk(directory))[2]
     return file_list

@@ -183,7 +183,7 @@ class TestGetSequencingRun(unittest.TestCase):
         self.assertEqual(type(validation_result), model.ValidationResult)
 
         for error in validation_result.error_list:
-            self.assertEqual(type(error), SampleSheetError)
+            self.assertEqual(type(error), DirectoryError)
 
     def test_valid_run(self):
         """

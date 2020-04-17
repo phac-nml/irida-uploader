@@ -122,10 +122,17 @@ class Parser:
         """
 
         # get data directory and file list
-        if run_data_directory is None:
-            run_data_directory = Parser.get_full_data_directory(sample_sheet)
-        if run_data_directory_file_list is None:
-            run_data_directory_file_list = common.get_file_list(run_data_directory)
+        validation_result = model.ValidationResult()
+
+        try:
+            if run_data_directory is None:
+                run_data_directory = Parser.get_full_data_directory(sample_sheet)
+            if run_data_directory_file_list is None:
+                run_data_directory_file_list = common.get_file_list(run_data_directory)
+        except exceptions.DirectoryError as error:
+            validation_result.add_error(error)
+            logging.error("Errors occurred while parsing files")
+            raise exceptions.ValidationError("Errors occurred while parsing files", validation_result)
 
         # Try to get the sample sheet, validate that the sample sheet is valid
         validation_result = validation.validate_sample_sheet(sample_sheet)
