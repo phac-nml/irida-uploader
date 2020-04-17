@@ -42,6 +42,9 @@ class Parser:
         """
         Returns the path to where the sequence data files can be found, including the sample_sheet directory
 
+        Note, this hits the os, and as such is not to be used with cloud solutions.
+        For cloud solutions, use get_relative_data_directory() and solve the actual path for your cloud environment
+
         :param sample_sheet: Sample sheet acts as the starting point for the data directory
         :return: a string which represents the concatenated path components, as per os.path.join
         """
