@@ -9,6 +9,7 @@ from os import path
 from rauth import OAuth2Service
 from requests import ConnectionError
 from requests.adapters import HTTPAdapter
+from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 from urllib.parse import urljoin, urlparse
 from urllib.error import URLError
 
@@ -46,13 +47,15 @@ class ApiCalls(object):
         self.max_wait_time = max_wait_time
         self.http_max_retries = http_max_retries
 
-        self._stop_upload = False
-
         self._session_lock = threading.Lock()
         self._session_set_externally = False
         self._create_session()
         self.cached_projects = None
         self.cached_samples = {}
+
+        # these two are used when sending signals to the progress module
+        self._current_upload_project_id = None
+        self._current_upload_sample_name = None
 
     @property
     def _session(self):
@@ -512,18 +515,6 @@ class ApiCalls(object):
 
         return json_res
 
-    # Todo: Rename to kill_connections(self), to be done when working on threading
-    def _kill_connections(self):
-        """Terminate any currently running uploads.
-
-        This method simply sets a flag to instruct any in-progress generators called
-        by `_send_sequence_files` below to stop generating data and raise an exception
-        that will set the run to an error state on the server.
-        """
-
-        self._stop_upload = True
-        self._session.close()
-
     def send_sequence_files(self, sequence_file, sample_name, project_id, upload_id):
         """
         post request to send sequence files found in given sample argument
@@ -537,112 +528,12 @@ class ApiCalls(object):
         returns result of post request.
         """
 
-        boundary = "B0undary"
-        read_size = 32768
-        self._stop_upload = False
+        # update which files are being sent
+        self._current_upload_project_id = project_id
+        self._current_upload_sample_name = sample_name
 
-        def _send_file(filename, parameter_name):
-            """This function is a generator that yields a multipart form-data
-            entry for the specified file. This function will yield `read_size`
-            bytes of the specified file name at a time as the generator is called.
-            This function will also terminate generating data when the field
-            `self._stop_upload` is set.
-
-            Args:
-                filename: the file to read and yield in `read_size` chunks to
-                          the server.
-                parameter_name: the form field name to send to the server.
-            """
-
-            # Send the boundary header section for the file
-            logging.debug("Sending the boundary header section for {}".format(filename))
-            yield (("\r\n--{boundary}\r\n"
-                   "Content-Disposition: form-data; name=\"{parameter_name}\"; filename=\"{filename}\"\r\n\r\n").format(
-                boundary=boundary, parameter_name=parameter_name, filename=filename.replace("\\", "/"))).encode()
-
-            # Get total file size for progress
-            total_file_size = path.getsize(filename)
-
-            # Send the contents of the file, read_size bytes at a time until
-            # we've either read the entire file, or we've been instructed to
-            # stop the upload by the UI
-            logging.info("Starting to send file {}".format(filename))
-            try:
-                with open(filename, "rb", read_size) as fastq_file:
-                    data = fastq_file.read(read_size)
-                    # Command line progress info printing
-                    # Todo: once message passing is in place, this might find its home in that module
-                    bytes_read = 0
-                    while data and not self._stop_upload:
-                        bytes_read += len(data)
-                        progress_percent = round(bytes_read / total_file_size * 100, 2)
-                        print("Progress: ", progress_percent,
-                              "% Uploaded     \r", end="")
-                        progress.send_progress(progress.ProgressData(sample=sample_name,
-                                                                     project=project_id,
-                                                                     file=filename,
-                                                                     progress=progress_percent))
-                        yield data
-                        data = fastq_file.read(read_size)
-                    print()  # end cap to the dots we printed above
-                    logging.info("Finished sending file {}".format(filename))
-                    if self._stop_upload:
-                        logging.info("Halting upload on user request.")
-            except IOError:
-                logging.error("Could not open file: {}".format(filename))
-                raise exceptions.FileError("Could not open file: {}".format(filename))
-
-        def _send_parameters(parameter_name, parameters):
-            """This function is a generator that yields a multipart form-data
-            entry with additional file metadata.
-
-            Args:
-                parameter_name: the form field name to use to send to the server.
-                parameters: a JSON encoded object with the metadata for the file.
-            """
-
-            logging.debug("Going to send parameters for {}".format(parameter_name))
-            yield (("\r\n--{boundary}\r\nContent-Disposition: form-data; name=\"{parameter_name}\"\r\n"
-                   "Content-Type: application/json\r\n\r\n{parameters}\r\n").format(
-                boundary=boundary, parameter_name=parameter_name, parameters=parameters)).encode()
-
-        def _finish_request():
-            """This function is a generator that yields the terminal boundary
-            entry for a multipart form-data upload."""
-
-            yield ("--{boundary}--".format(boundary=boundary)).encode()
-
-        def _sample_upload_generator(sequence_file_up):
-            """This function accepts the sequence_file and composes a series of generators
-            that are used to send the file contents and metadata for the sample.
-
-            Args:
-                sequence_file_up: the sequence_file to send to the server
-            """
-
-            file_metadata = sequence_file_up.properties_dict
-            file_metadata["miseqRunId"] = str(upload_id)
-            file_metadata_json = json.dumps(file_metadata)
-
-            if sequence_file_up.is_paired_end():
-                # Compose a collection of generators to send both files of a paired-end
-                # file set and the corresponding metadata
-                logging.debug("api_calls._sample_upload_generator: is paired end read")
-                return itertools.chain(
-                    _send_file(filename=sequence_file_up.file_list[0], parameter_name="file1"),
-                    _send_file(filename=sequence_file_up.file_list[1], parameter_name="file2"),
-                    _send_parameters(parameter_name="parameters1", parameters=file_metadata_json),
-                    _send_parameters(parameter_name="parameters2", parameters=file_metadata_json),
-                    _finish_request())
-            else:
-                # Compose a generator to send the single file from a single-end
-                # file set and the corresponding metadata.
-                logging.debug("api_calls._sample_upload_generator: is single end read")
-                return itertools.chain(
-                    _send_file(filename=sequence_file_up.file_list[0], parameter_name="file"),
-                    _send_parameters(parameter_name="parameters", parameters=file_metadata_json),
-                    _finish_request())
-
+        # Get the url's needed to send sequence files
+        # Verify the project exists
         try:
             project_url = self._get_link(self.base_url, "projects")
             samples_url = self._get_link(project_url, "project/samples",
@@ -652,7 +543,7 @@ class ApiCalls(object):
                                          })
         except StopIteration:
             raise exceptions.IridaResourceError("The given project ID doesn't exist", project_id)
-
+        # verify the sample exists
         try:
             seq_url = self._get_link(samples_url, "sample/sequenceFiles",
                                      target_dict={
@@ -662,7 +553,7 @@ class ApiCalls(object):
         except StopIteration:
             logging.error("The given sample '{}' does not exist on that project".format(sample_name))
             raise exceptions.IridaResourceError("The given sample ID does not exist on that project", sample_name)
-
+        # get paired or single end url
         if sequence_file.is_paired_end():
             logging.debug("api_calls: sending paired-end file")
             url = self._get_link(seq_url, "sample/sequenceFiles/pairs")
@@ -670,10 +561,12 @@ class ApiCalls(object):
             logging.debug("api_calls: sending single-end file")
             url = seq_url
 
+        # Get the data encoder
+        data_pkg = self._get_sequence_data_pkg(sequence_file, upload_id)
+        # Generate headers from the data encoder
+        headers_pkg = {'Content-Type': data_pkg.content_type}
+
         logging.debug("Sending files to [{}]".format(url))
-        data_pkg = _sample_upload_generator(sequence_file)
-        headers_pkg = {"Content-Type": "multipart/form-data; boundary={}".format(boundary)}
-        logging.debug("data:" + str(data_pkg))
         logging.debug("headers: " + str(headers_pkg))
 
         try:
@@ -687,12 +580,6 @@ class ApiCalls(object):
             logging.error("Exception occured while transferring data: " + str(e))
             raise exceptions.IridaConnectionError(e)
 
-        logging.debug("api_calls: send_sequence_files: response: " + response.text)
-        if self._stop_upload:
-            logging.info("Upload was halted on user request")
-            logging.debug("Raising exception so that server upload status is set to error state.")
-            raise exceptions.IridaUploadCanceledException("Upload halted on user request.")
-
         if response.status_code == HTTPStatus.CREATED:
             json_res = json.loads(response.text)
         else:
@@ -700,6 +587,80 @@ class ApiCalls(object):
             raise self._get_irida_exception(response)
 
         return json_res
+
+    def _send_file_callback(self, monitor):
+        """
+        Sends data to the progress module to update file percentages
+        """
+        progress_percent = round(monitor.bytes_read / monitor.len * 100, 2)
+        progress.send_progress(progress.ProgressData(
+            sample=self._current_upload_sample_name,
+            project=self._current_upload_project_id,
+            progress=progress_percent
+        ))
+        print("Progress: ", progress_percent, "% Uploaded     \r", end="")
+
+    def _get_sequence_data_pkg(self, sequence_file, upload_id):
+        """
+        Creates the data encoder, and attaches a monitor for callback functionality
+        """
+        # build data encoder
+        encoder = self._get_multipart_encoder(sequence_file, upload_id)
+        # create callback monitor for file progressk
+        monitor = MultipartEncoderMonitor(encoder, self._send_file_callback)
+        # override max byte read size
+        # This lambda overrides httplibs hard coded 8192 byte read size
+        # More details: https://github.com/requests/toolbelt/issues/75#issuecomment-237189952
+        monitor._read = monitor.read
+        monitor.read = lambda size: monitor._read(1024 * 1024)
+        # return the monitor/encoder object
+        return monitor
+
+    def _get_multipart_encoder(self, sequence_file, upload_id):
+        """
+        Creates a multipart file encoder to be used for streaming files to IRIDA
+        """
+
+        logging.debug("building multipart encoder")
+
+        boundary = "B0undary"
+
+        if sequence_file.is_paired_end():
+            # Get file names of sequence files
+            file_name_a = sequence_file.file_list[0]
+            file_name_b = sequence_file.file_list[1]
+
+            file_metadata = sequence_file.properties_dict
+            file_metadata["miseqRunId"] = str(upload_id)
+            file_metadata_json = json.dumps(file_metadata)
+
+            m_encoder = MultipartEncoder(
+                fields={
+                    'file1': (file_name_a.replace("\\", "/"), open(file_name_a, 'rb')),
+                    'file2': (file_name_b.replace("\\", "/"), open(file_name_b, 'rb')),
+                    'parameters1': (None, str(file_metadata_json), 'application/json'),
+                    'parameters2': (None, str(file_metadata_json), 'application/json')
+                },
+                boundary=boundary
+            )
+
+            return m_encoder
+        else:
+            file_name = sequence_file.file_list[0]
+
+            file_metadata = sequence_file.properties_dict
+            file_metadata["miseqRunId"] = str(upload_id)
+            file_metadata_json = json.dumps(file_metadata)
+
+            m_encoder = MultipartEncoder(
+                fields={
+                    'file': (file_name.replace("\\", "/"), open(file_name, 'rb')),
+                    'parameters': (None, str(file_metadata_json), 'application/json'),
+                },
+                boundary=boundary
+            )
+
+            return m_encoder
 
     def create_seq_run(self, metadata):
         """

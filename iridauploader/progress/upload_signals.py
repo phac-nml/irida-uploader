@@ -15,10 +15,9 @@ class ProgressData:
     """
     A class to wrap upload progress data with standardised getters/setters
     """
-    def __init__(self, sample, project, file, progress):
+    def __init__(self, sample, project, progress):
         self._sample = sample
         self._project = project
-        self._file = file
         self._progress = progress
 
     @property
@@ -28,10 +27,6 @@ class ProgressData:
     @property
     def project(self):
         return self._project
-
-    @property
-    def file(self):
-        return self._file
 
     @property
     def progress(self):
