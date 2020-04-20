@@ -4,6 +4,8 @@
 *.bak
 docs/_build/*
 build/
+dist/
+*.egg-info/
 .virtualenv
 .cache
 .idea/
@@ -13,3 +15,5 @@ site/
 tests_integration/repos/
 irida-uploader.log
 irida_uploader_status.info
+.vscode/
+venv/

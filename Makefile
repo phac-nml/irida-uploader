@@ -6,12 +6,14 @@ gui: clean requirementsgui
 guidev: clean requirementsguidev
 
 clean:
-	rm -rf .cache
+	rm -rf iridauploader/.cache
 	rm -rf .virtualenv
 	rm -rf build
+	rm -rf dist
+	rm -rf iridauploader.egg-info/
 	find -name "*pyc" -delete
-	rm -rf tests_integration/repos/
-	rm -rf tests_integration/tmp
+	rm -rf iridauploader/tests_integration/repos/
+	rm -rf iridauploader/tests_integration/tmp
 
 requirements:
 	python3 -m venv .virtualenv
@@ -37,6 +39,9 @@ requirementsguidev:
 	pip3 install -r requirements.txt
 	pip3 install -r requirementsguidev.txt
 
+wheel: clean
+	python3 setup.py sdist bdist_wheel
+
 windowsgui: clean requirementsgui
 	source .virtualenv/bin/activate
 	python -m nsist windows-gui-installer.cfg
@@ -44,13 +49,13 @@ windowsgui: clean requirementsgui
 unittests: clean requirements
 	source .virtualenv/bin/activate
 	export IRIDA_UPLOADER_TEST='True'
-	python3 -m unittest discover -s tests -t .
+	python3 -m unittest discover -s tests -t iridauploader
 
 preintegration:
-	mkdir tests_integration/tmp
-	mkdir tests_integration/tmp/output-files
-	mkdir tests_integration/tmp/reference-files
-	mkdir tests_integration/tmp/sequence-files
+	mkdir iridauploader/tests_integration/tmp
+	mkdir iridauploader/tests_integration/tmp/output-files
+	mkdir iridauploader/tests_integration/tmp/reference-files
+	mkdir iridauploader/tests_integration/tmp/sequence-files
 
 integrationtests: clean requirements preintegration
 	source .virtualenv/bin/activate

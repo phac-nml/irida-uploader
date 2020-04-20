@@ -2,11 +2,11 @@ import sys
 # PyQt needs to be imported like this because for whatever reason they decided not to include a __all__ = [...]
 import PyQt5.QtWidgets as QtWidgets
 
-import gui
-
 from appdirs import user_log_dir
 import os
 import traceback
+
+import iridauploader.gui as gui
 
 
 def get_crash_log_file_path():

@@ -1,6 +1,21 @@
 Changes
 =======
 
+Beta 0.4.1
+----------
+Developer changes:
+* Files structure changed
+  * Moved all application code into a `iridauploader` directory.
+  * Changed all import statements from using relative imports to use absolute imports with the root of `iridauploader`
+* Added PyPi support via `setup.py`
+  * the IRIDA Uploaders modules can now be imported via `pip`
+* Swapped multipart file encoder to now use `requests-toolkit` to enable file streaming, leading to faster / more consitant uploads
+* Changed byte send size of httplib to 1024\*1024, raising max upload speed from ~40Mbps to >200Mbps (upper bound not found yet)
+* Gui file progress widget no longer knows about single vs paired end sequence files, only progress per sample
+
+Bug Fixes:
+* Gui progress widget no longer turns green(complete) at 50% upload with paired end reads in rare cases
+
 Beta 0.3.3
 ----------
 Added functionality:
