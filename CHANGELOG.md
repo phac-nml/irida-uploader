@@ -1,7 +1,7 @@
 Changes
 =======
 
-Beta 0.4.0
+Beta 0.4.1
 ----------
 Developer changes:
 * Files structure changed

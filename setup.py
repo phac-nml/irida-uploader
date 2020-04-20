@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='iridauploader',
-    version='0.4.0',
+    version='0.4.1',
     description='IRIDA uploader: upload NGS data to IRIDA system',
     url='https://https://github.com/phac-nml/irida-uploader',
     author='Jeffrey Thiessen',
@@ -24,6 +24,7 @@ setuptools.setup(
                       'appdirs',
                       'cerberus',
                       'argparse',
+                      'requests-toolbelt',
                       ],
     # https://pypi.org/pypi?%3Aaction=list_classifiers
     classifiers=[
