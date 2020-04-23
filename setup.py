@@ -36,6 +36,6 @@ setuptools.setup(
     # Test cases makes make it incompatible with pre 3.5
     python_requires='>=3.5',
     entry_points={
-        'console_scripts': ['irida-uploader=upload_run:main'],
+        'console_scripts': ['irida-uploader=iridauploader.upload_run:main'],
     },
 )
