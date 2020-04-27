@@ -192,6 +192,17 @@ class TestGetSequencingRun(unittest.TestCase):
         """
         sample_sheet = path.join(path_to_module, "fake_ngs_data", "SampleSheet.csv")
 
-        res = Parser.get_sequencing_run(sample_sheet)
+        sequencing_run = Parser.get_sequencing_run(sample_sheet)
 
-        self.assertEqual(type(res), model.SequencingRun)
+        # Returns a SequencingRun
+        self.assertEqual(type(sequencing_run), model.SequencingRun)
+        # Includes a single project
+        self.assertEqual(len(sequencing_run.project_list), 1)
+        # is of type Project
+        self.assertEqual(type(sequencing_run.project_list[0]), model.Project)
+        # Project has 3 samples
+        self.assertEqual(len(sequencing_run.project_list[0].sample_list), 3)
+        # samples are of type Sample
+        self.assertEqual(type(sequencing_run.project_list[0].sample_list[0]), model.Sample)
+        # samples have SequenceFile
+        self.assertEqual(type(sequencing_run.project_list[0].sample_list[0].sequence_file), model.SequenceFile)
