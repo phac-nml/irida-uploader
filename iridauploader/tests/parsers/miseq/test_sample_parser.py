@@ -200,14 +200,6 @@ class TestParseMetadata(unittest.TestCase):
         self.assertEqual(correct_metadata, meta_data)
 
 
-class TestBuildSequencingRunFromSamples(unittest.TestCase):
-    """
-    Test building the sequencing run from a sample sheet with a csv reader
-    """
-
-    def setUp(self):
-        print("\nStarting " + self.__module__ + ": " + self._testMethodName)
-
 class TestGetCsvReader(unittest.TestCase):
     """
     Test that the csv reader behaves as expected
