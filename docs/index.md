@@ -199,3 +199,5 @@ Want to create a parser for a sequencer that we don't yet support or have an ide
 [Information on the IRIDA python API](developers/api.md)
 
 [Object Model Reference](developers/objects.md)
+
+[Cloud Deployment](developers/cloud.md)
