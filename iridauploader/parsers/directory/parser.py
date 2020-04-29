@@ -2,6 +2,7 @@ import logging
 import os
 
 import iridauploader.progress as progress
+import iridauploader.model as model
 
 from iridauploader.parsers import exceptions
 from iridauploader.parsers import common
@@ -68,7 +69,7 @@ class Parser:
                                             directory)
 
         sample_sheet_file_name = Parser.SAMPLE_SHEET_FILE_NAME
-        file_list = next(os.walk(directory))[2]  # Gets the list of files in the directory
+        file_list = common.get_file_list(directory)
         if sample_sheet_file_name not in file_list:
             logging.error("No sample sheet file in the Directory Upload format found")
             raise exceptions.DirectoryError("The directory {} has no sample sheet file in the Directory Upload format "
@@ -79,7 +80,7 @@ class Parser:
             return os.path.join(directory, sample_sheet_file_name)
 
     @staticmethod
-    def get_sequencing_run(sample_sheet):
+    def get_sequencing_run(sample_sheet, run_data_directory_file_list=None):
         """
         Does local validation on the integrity of the run directory / sample sheet
 
@@ -89,6 +90,18 @@ class Parser:
         :return: SequencingRun
         """
 
+        # get file list
+        validation_result = model.ValidationResult()
+
+        try:
+            if run_data_directory_file_list is None:
+                data_dir = os.path.dirname(sample_sheet)
+                run_data_directory_file_list = common.get_file_list(data_dir)
+        except exceptions.DirectoryError as error:
+            validation_result.add_error(error)
+            logging.error("Errors occurred while parsing files")
+            raise exceptions.ValidationError("Errors occurred while parsing files", validation_result)
+
         # Try to get the sample sheet, validate that the sample sheet is valid
         validation_result = validation.validate_sample_sheet(sample_sheet)
         if not validation_result.is_valid():
@@ -97,7 +110,9 @@ class Parser:
 
         # Try to build sequencing run from sample sheet & meta data, raise validation error if errors occur
         try:
-            sequencing_run = sample_parser.build_sequencing_run_from_samples(sample_sheet)
+            sample_list = sample_parser.parse_sample_list(sample_sheet, run_data_directory_file_list)
+            run_metadata = sample_parser.parse_metadata(sample_list)
+            sequencing_run = common.build_sequencing_run_from_samples(sample_list, run_metadata)
         except exceptions.SequenceFileError as error:
             validation_result.add_error(error)
             logging.error("Errors occurred while building sequence run from sample sheet")

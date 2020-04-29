@@ -182,3 +182,88 @@ class TestGetSequencingRun(unittest.TestCase):
         res = Parser.get_sequencing_run(sample_sheet)
 
         self.assertEqual(type(res), model.SequencingRun)
+
+    def test_build_valid(self):
+        """
+        When given a valid directory, ensure a valid SequencingRun is built with Projects, Samples, ect
+        :return:
+        """
+        sheet_file = path.join(path_to_module, "fake_dir_data",
+                               "SampleList.csv")
+
+        sequencing_run = Parser.get_sequencing_run(sheet_file)
+
+        # Returns a SequencingRun
+        self.assertEqual(type(sequencing_run), model.SequencingRun)
+        # Includes 2 projects
+        self.assertEqual(len(sequencing_run.project_list), 2)
+        # is of type Project
+        self.assertEqual(type(sequencing_run.project_list[0]), model.Project)
+        # Project has 2 samples
+        self.assertEqual(len(sequencing_run.project_list[0].sample_list), 2)
+        # Other Project has 1 sample
+        self.assertEqual(len(sequencing_run.project_list[1].sample_list), 1)
+        # samples are of type Sample
+        self.assertEqual(type(sequencing_run.project_list[0].sample_list[0]), model.Sample)
+        # samples have SequenceFile
+        self.assertEqual(type(sequencing_run.project_list[0].sample_list[0].sequence_file), model.SequenceFile)
+
+    def test_build_valid_extra_line_on_sample_list(self):
+        """
+        Ensure a valid SequencingRun is made when extra lines are present in sample list
+        :return:
+        """
+        sheet_file = path.join(path_to_module, "fake_dir_data",
+                               "SampleList_with_space.csv")
+
+        sequencing_run = Parser.get_sequencing_run(sheet_file)
+
+        # Returns a SequencingRun
+        self.assertEqual(type(sequencing_run), model.SequencingRun)
+        # Includes 2 projects
+        self.assertEqual(len(sequencing_run.project_list), 2)
+        # is of type Project
+        self.assertEqual(type(sequencing_run.project_list[0]), model.Project)
+        # Project has 2 samples
+        self.assertEqual(len(sequencing_run.project_list[0].sample_list), 2)
+        # Other Project has 1 sample
+        self.assertEqual(len(sequencing_run.project_list[1].sample_list), 1)
+        # samples are of type Sample
+        self.assertEqual(type(sequencing_run.project_list[0].sample_list[0]), model.Sample)
+        # samples have SequenceFile
+        self.assertEqual(type(sequencing_run.project_list[0].sample_list[0].sequence_file), model.SequenceFile)
+
+    def test_parse_samples_valid(self):
+        """
+        Verify samples created from parser match expected samples
+        :return:
+        """
+        sheet_file = path.join(path_to_module, "fake_dir_data",
+                               "SampleList.csv")
+
+        sample1 = model.Sample(
+            "my-sample-1",
+            "",
+        )
+
+        sample2 = model.Sample(
+            "my-sample-2",
+            "",
+        )
+
+        sample3 = model.Sample(
+            "my-sample-3",
+            "",
+        )
+
+        res = Parser.get_sequencing_run(sheet_file)
+
+        self.assertEqual(res.metadata, {'layoutType': 'PAIRED_END'})
+        self.assertEqual(res.project_list[0].id, "75")
+        self.assertEqual(res.project_list[1].id, "76")
+        self.assertEqual(res.project_list[0].sample_list[0].sample_name,
+                         sample1.sample_name)
+        self.assertEqual(res.project_list[0].sample_list[1].sample_name,
+                         sample2.sample_name)
+        self.assertEqual(res.project_list[1].sample_list[0].sample_name,
+                         sample3.sample_name)

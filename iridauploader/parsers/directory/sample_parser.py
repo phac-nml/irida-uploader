@@ -8,86 +8,47 @@ from iridauploader.parsers import exceptions
 from iridauploader.parsers import common
 
 
-def build_sequencing_run_from_samples(sample_sheet_file):
+def parse_metadata(sample_list):
     """
-    Create a SequencingRun object with full project/sample/sequence_file structure
+    Determine if samples are paired or single end, and return metadata to match
 
-    :param sample_sheet_file:
-    :return: SequencingRun
+    :param sample_list: List of Sample objects
+    :return: metadata dictionary
     """
-    sample_list = _parse_sample_list(sample_sheet_file)
-
-    logging.debug("Building SequencingRun from parsed data")
-
-    # create list of projects and add samples to appropriate project
-    project_list = []
-    for sample_number, sample in enumerate(sample_list):
-        # get data from data dict
-        sample_name = sample['Sample_Name']
-        project_id = sample['Project_ID']
-        file_f = sample['File_Forward']
-        file_r = sample['File_Reverse']
-
-        project = None
-        # see if project exists
-        for p in project_list:
-            if project_id == p.id:
-                project = p
-        # create project if it doesn't exitt yet
-        if project is None:
-            project = model.Project(id=project_id)
-            project_list.append(project)
-
-        # create sequence file
-        if len(file_r) > 0:
-            # paired end read
-            sq = model.SequenceFile(properties_dict=None, file_list=[file_f, file_r])
-        else:
-            # single end read
-            sq = model.SequenceFile(properties_dict=None, file_list=[file_f])
-
-        # create sample
-        sample_obj = model.Sample(sample_name=sample_name, sample_number=sample_number + 1)
-
-        # add sequence file to sample
-        sample_obj.sequence_file = deepcopy(sq)
-
-        # add sample to project
-        project.add_sample(sample_obj)
-
     # add the layout type to the sequencing run so we know if it is paired or single end
-    if project_list[0].sample_list[0].sequence_file.is_paired_end():
+    if sample_list[0].sequence_file.is_paired_end():
         metadata = {'layoutType': 'PAIRED_END'}
     else:
         metadata = {'layoutType': 'SINGLE_END'}
 
-    sequence_run = model.SequencingRun(metadata=metadata, project_list=project_list)
-    logging.debug("SequencingRun built")
-    return sequence_run
+    return metadata
 
 
-def _parse_sample_list(sample_sheet_file):
+def parse_sample_list(sample_sheet_file, run_data_directory_file_list):
     """
     Creates a list of all sample data in the sample_sheet_file
     Verifies data is valid for uploading
 
     :param sample_sheet_file:
-    :return: list of sample data dicts
+    :param run_data_directory_file_list: list of all files
+    :return: list of Sample objects
     """
-    sample_dict_list = _parse_samples(sample_sheet_file)
+    sample_list = _parse_samples(sample_sheet_file)
 
     data_dir = path.dirname(sample_sheet_file)
-    data_dir_file_list = next(walk(data_dir))[2]  # Create a file list of the data directory, only hit the os once
 
     data_dir_file_list_full_path = []
-    for file_name in data_dir_file_list:
+    for file_name in run_data_directory_file_list:
         data_dir_file_list_full_path.append(path.join(path.abspath(data_dir), file_name))
+
     has_paired_end_read = False
     has_single_end_read = False
 
     logging.info("Verifying data parsed from sample sheet {}".format(sample_sheet_file))
 
-    for sample_dict in sample_dict_list:
+    for sample in sample_list:
+
+        sample_dict =  sample.get_uploadable_dict()
 
         paired_end_read = len(sample_dict['File_Reverse']) > 0
         # keep track if we have both paired and single end reads
@@ -97,14 +58,14 @@ def _parse_sample_list(sample_sheet_file):
             has_single_end_read = True
 
         # Check if file names are in the files we found in the directory
-        if ((sample_dict['File_Forward'] not in data_dir_file_list) and (
+        if ((sample_dict['File_Forward'] not in run_data_directory_file_list) and (
                 sample_dict['File_Forward'] not in data_dir_file_list_full_path)):
             raise exceptions.SampleSheetError(
                 ("Your sample sheet is malformed. {} Does not match any file in the directory {}"
                  "".format(sample_dict['File_Forward'], data_dir)),
                 sample_sheet_file
             )
-        if ((paired_end_read and sample_dict['File_Reverse'] not in data_dir_file_list) and (
+        if ((paired_end_read and sample_dict['File_Reverse'] not in run_data_directory_file_list) and (
                 paired_end_read and sample_dict['File_Reverse'] not in data_dir_file_list_full_path)):
             raise exceptions.SampleSheetError(
                 ("Your sample sheet is malformed. {} Does not match any file in the directory {}"
@@ -112,11 +73,19 @@ def _parse_sample_list(sample_sheet_file):
                 sample_sheet_file
             )
 
+        # create file list of full paths
+        file_list = []
         # Add the dir to each file to create the full path
         if sample_dict['File_Forward'] not in data_dir_file_list_full_path:
             sample_dict['File_Forward'] = path.join(data_dir, sample_dict['File_Forward'])
+            file_list.append(sample_dict['File_Forward'])
         if paired_end_read and sample_dict['File_Reverse'] not in data_dir_file_list_full_path:
             sample_dict['File_Reverse'] = path.join(data_dir, sample_dict['File_Reverse'])
+            file_list.append(sample_dict['File_Reverse'])
+
+        # Create sequence file object and attach to sample
+        sq = model.SequenceFile(file_list=file_list)
+        sample.sequence_file = deepcopy(sq)
 
     # Verify we don't have both single end and paired end reads
     if has_single_end_read and has_paired_end_read:
@@ -127,7 +96,7 @@ def _parse_sample_list(sample_sheet_file):
             sample_sheet_file
         )
 
-    return sample_dict_list
+    return sample_list
 
 
 def _parse_samples(sample_sheet_file):
@@ -138,7 +107,8 @@ def _parse_samples(sample_sheet_file):
     arguments:
             sample_sheet_file -- path to SampleSheet.csv
 
-    returns a list containing dictionaries with the properties from the csv file
+    returns	a list containing Sample objects that have been created by a
+        dictionary from the parsed out key:pair values from .csv file
     """
 
     logging.info("Reading data from sample sheet {}".format(sample_sheet_file))
@@ -147,7 +117,7 @@ def _parse_samples(sample_sheet_file):
     # start with an ordered dictionary so that keys are ordered in the same
     # way that they are inserted.
     sample_dict = OrderedDict()
-    sample_dict_list = []
+    sample_list = []
 
     sample_key_list = ['Sample_Name', 'Project_ID', 'File_Forward', 'File_Reverse']
 
@@ -206,6 +176,22 @@ def _parse_samples(sample_sheet_file):
 
             sample_dict[key] = value
 
-        sample_dict_list.append(deepcopy(sample_dict))
 
-    return sample_dict_list
+        sample_key_list = ['Sample_Name', 'Project_ID', 'File_Forward', 'File_Reverse']
+
+        new_sample_dict = deepcopy(sample_dict)
+        new_sample_name = new_sample_dict['Sample_Name']
+        new_sample_project = new_sample_dict['Project_ID']
+        new_sample_dict['sample_project'] = new_sample_project
+        del new_sample_dict['Sample_Name']
+        del new_sample_dict['Project_ID']
+
+        sample = model.Sample(
+            sample_name=new_sample_name,
+            description="",
+            sample_number=sample_number + 1,
+            samp_dict=new_sample_dict)
+
+        sample_list.append(sample)
+
+    return sample_list
