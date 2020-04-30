@@ -311,7 +311,6 @@ class TestParseSampleList(unittest.TestCase):
         data_dir = path.join(directory, parsers.miseq.Parser.get_relative_data_directory())
         file_list = parsers.common.get_file_list(data_dir)
 
-
         sample = model.Sample(
             "01-1111",
             "Super bug",

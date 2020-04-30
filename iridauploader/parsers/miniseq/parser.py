@@ -32,7 +32,7 @@ class Parser:
 
         This is not used in the application but is useful for scripting and cloud deployment
 
-        This includes a '*' character to be interpreted as a wildcard symbol, 
+        This includes a '*' character to be interpreted as a wildcard symbol,
         as this sequencer does not make consitant names for data directories, and the * must be gotten from the filesystem
 
         :return: a string which represents the concatenated path components, as per os.path.join
@@ -58,7 +58,7 @@ class Parser:
         if not os.path.exists(partial_data_dir):
             raise exceptions.DirectoryError(
                 ("The uploader was unable to find the data directory, Verify that the run directory is "
-                "undamaged, and that it is a MiniSeq sequencing run."), partial_data_dir)
+                 "undamaged, and that it is a MiniSeq sequencing run."), partial_data_dir)
 
         # get the directories [1] get the first directory [0]
         data_dir = os.path.join(partial_data_dir, next(os.walk(partial_data_dir))[1][0], "Fastq")

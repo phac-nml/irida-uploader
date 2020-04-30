@@ -48,7 +48,7 @@ def parse_sample_list(sample_sheet_file, run_data_directory_file_list):
 
     for sample in sample_list:
 
-        sample_dict =  sample.get_uploadable_dict()
+        sample_dict = sample.get_uploadable_dict()
 
         paired_end_read = len(sample_dict['File_Reverse']) > 0
         # keep track if we have both paired and single end reads
@@ -175,7 +175,6 @@ def _parse_samples(sample_sheet_file):
                     )
 
             sample_dict[key] = value
-
 
         sample_key_list = ['Sample_Name', 'Project_ID', 'File_Forward', 'File_Reverse']
 

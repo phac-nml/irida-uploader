@@ -314,7 +314,6 @@ class TestParseSampleList(unittest.TestCase):
 
         res = sample_parser.parse_sample_list(sample_sheet_file=sheet_file, run_data_directory=data_dir, run_data_directory_file_list=file_list)
 
-
         # Check sample is the same
         self.assertEqual(res[0].get_uploadable_dict(), sample.get_uploadable_dict())
         # Check sequencing file is correct
@@ -348,7 +347,6 @@ class TestParseSampleList(unittest.TestCase):
 
         with self.assertRaises(SequenceFileError):
             res = sample_parser.parse_sample_list(sample_sheet_file=file_path, run_data_directory=data_dir, run_data_directory_file_list=file_list)
-
 
     def test_space_in_sample_name(self):
         directory = path.join(path_to_module, "ngs_space_in_sample_name")
