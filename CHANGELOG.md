@@ -1,6 +1,11 @@
 Changes
 =======
 
+version tbd
+-----------
+* Added mode `readonly`, controlled with config option `readonly` and cli argument `--readonly` / `-r`
+    * This mode uploads without writing status and log files to the sequencing run directory.
+
 Beta 0.4.1
 ----------
 Developer changes:

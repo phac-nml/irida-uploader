@@ -78,6 +78,9 @@ argument_parser.add_argument('-cr', '--config_parser', action='store', nargs='?'
                              help='Override "parser" in config file. '
                                   'Choose the type of sequencer data that is being uploaded. '
                                   'Supported parsers: ' + str(supported_parsers))
+argument_parser.add_argument('-r', '--readonly',
+                             action='store_true',  # This line makes it not parse a variable
+                             help='Upload in Read Only mode, does not write status or log file to run directory.')
 
 
 def _set_config_override(args):
@@ -92,6 +95,7 @@ def _set_config_override(args):
     password = None
     base_url = None
     parser = None
+    readonly = None
 
     if args.config_client_id is True:
         print("Enter Client ID:")
@@ -131,12 +135,16 @@ def _set_config_override(args):
     elif args.config_parser is not False:
         parser = args.config_parser
 
+    if args.readonly is True:
+        readonly = args.readonly
+
     config.set_config_options(client_id=client_id,
                               client_secret=client_secret,
                               username=username,
                               password=password,
                               base_url=base_url,
-                              parser=parser)
+                              parser=parser,
+                              readonly=readonly)
 
 
 def _config_uploader(args):
@@ -161,9 +169,9 @@ def main():
     # Setup config options
     _config_uploader(args)
 
-    # Verify directory is writable before upload
-    if not os.access(args.directory, os.W_OK):  # Cannot access upload directory
-        print("ERROR! Specified directory is not writable: {}".format(args.directory))
+    # Verify directory is readable before upload
+    if not os.access(args.directory, os.R_OK):  # Cannot access upload directory
+        print("ERROR! Specified directory is not readable: {}".format(args.directory))
         return 1
 
     # Start Upload

@@ -4,6 +4,7 @@ from os import path
 import os
 
 from iridauploader.core import cli_entry, logger, exit_return
+from iridauploader.config import config
 from iridauploader.model import DirectoryStatus
 from iridauploader.parsers.exceptions import DirectoryError
 from iridauploader.api.exceptions import FileError, IridaResourceError, IridaConnectionError
@@ -21,6 +22,8 @@ class TestUploadRunSingleEntry(unittest.TestCase):
 
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)
+        # config.setup()
+        config._init_config_parser()
 
     def tearDown(self):
         print("Cleaning up status file")
@@ -71,7 +74,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         cli_entry.upload_run_single_entry(my_directory, force_upload=False)
 
         # Make sure directory status is init
-        mock_progress.write_directory_status.assert_called_with(stub_directory_status)
+        mock_progress.write_directory_status.assert_called_with(stub_directory_status, None)
         # Make sure parsing and validation is done
         mock_parsing_handler.parse_and_validate.assert_called_with(my_directory)
         # api must be initialized
@@ -398,7 +401,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         # Check that the run failed to upload
         self.assertEqual(result.exit_code, exit_return.EXIT_CODE_ERROR)
         # Make sure directory status is init
-        mock_progress.write_directory_status.assert_called_with(stub_directory_status)
+        mock_progress.write_directory_status.assert_called_with(stub_directory_status, None)
         # Make sure parsing and validation is done
         mock_parsing_handler.parse_and_validate.assert_called_with(my_directory)
         # api must be initialized
@@ -446,7 +449,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         # Check that the run failed to upload
         self.assertEqual(result.exit_code, exit_return.EXIT_CODE_ERROR)
         # Make sure directory status is init
-        mock_progress.write_directory_status.assert_called_with(stub_directory_status)
+        mock_progress.write_directory_status.assert_called_with(stub_directory_status, None)
         # Make sure parsing and validation is done
         mock_parsing_handler.parse_and_validate.assert_called_with(my_directory)
         # api must be initialized
@@ -494,7 +497,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         # Check that the run failed to upload
         self.assertEqual(result.exit_code, exit_return.EXIT_CODE_ERROR)
         # Make sure directory status is init
-        mock_progress.write_directory_status.assert_called_with(stub_directory_status)
+        mock_progress.write_directory_status.assert_called_with(stub_directory_status, None)
         # Make sure parsing and validation is done
         mock_parsing_handler.parse_and_validate.assert_called_with(my_directory)
         # api must be initialized

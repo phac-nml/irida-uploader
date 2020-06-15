@@ -51,7 +51,7 @@ class TestEndToEnd(unittest.TestCase):
         Deletes status file from data directories if they exist
         :return:
         """
-        self.write_to_config_file("", "", "", "", "", "")
+        self.write_to_config_file("", "", "", "", "", "", False)
 
         for directory_path in CLEANUP_DIRECTORY_LIST:
             status_file_path = path.join(directory_path, 'irida_uploader_status.info')
@@ -62,7 +62,7 @@ class TestEndToEnd(unittest.TestCase):
                 os.remove(log_file_path)
 
     @staticmethod
-    def write_to_config_file(client_id, client_secret, username, password, base_url, parser):
+    def write_to_config_file(client_id, client_secret, username, password, base_url, parser, readonly):
         """
         Write to out sample configuration file so that the IRIDA instance will be accessed
         :param client_id:
@@ -71,6 +71,7 @@ class TestEndToEnd(unittest.TestCase):
         :param password:
         :param base_url:
         :param parser:
+        :param readonly:
         :return:
         """
         config.set_config_options(client_id=client_id,
@@ -78,7 +79,8 @@ class TestEndToEnd(unittest.TestCase):
                                   username=username,
                                   password=password,
                                   base_url=base_url,
-                                  parser=parser)
+                                  parser=parser,
+                                  readonly=readonly)
         config.write_config_options_to_file()
 
     def test_valid_miseq_upload(self):
@@ -93,7 +95,8 @@ class TestEndToEnd(unittest.TestCase):
             username=tests_integration.username,
             password=tests_integration.password,
             base_url=tests_integration.base_url,
-            parser="miseq"
+            parser="miseq",
+            readonly=False
         )
 
         # instance an api
@@ -192,7 +195,8 @@ class TestEndToEnd(unittest.TestCase):
             username=tests_integration.username,
             password=tests_integration.password,
             base_url=tests_integration.base_url,
-            parser="miseq"
+            parser="miseq",
+            readonly=False
         )
 
         # instance an api
@@ -276,7 +280,8 @@ class TestEndToEnd(unittest.TestCase):
             username=tests_integration.username,
             password=tests_integration.password,
             base_url=tests_integration.base_url,
-            parser="directory"
+            parser="directory",
+            readonly=False
         )
 
         # instance an api
@@ -349,7 +354,8 @@ class TestEndToEnd(unittest.TestCase):
             username=tests_integration.username,
             password=tests_integration.password,
             base_url=tests_integration.base_url,
-            parser="miniseq"
+            parser="miniseq",
+            readonly=False
         )
 
         # instance an api
@@ -443,7 +449,8 @@ class TestEndToEnd(unittest.TestCase):
             username=tests_integration.username,
             password=tests_integration.password,
             base_url=tests_integration.base_url,
-            parser="nextseq"
+            parser="nextseq",
+            readonly=False
         )
 
         # instance an api
@@ -533,7 +540,8 @@ class TestEndToEnd(unittest.TestCase):
             username=tests_integration.username,
             password=tests_integration.password,
             base_url=tests_integration.base_url,
-            parser="miseq"
+            parser="miseq",
+            readonly=False
         )
 
         # instance an api
@@ -578,7 +586,8 @@ class TestEndToEnd(unittest.TestCase):
             username=tests_integration.username,
             password=tests_integration.password,
             base_url=tests_integration.base_url,
-            parser="miseq"
+            parser="miseq",
+            readonly=False
         )
 
         # instance an api
@@ -619,7 +628,8 @@ class TestEndToEnd(unittest.TestCase):
             username=tests_integration.username,
             password=tests_integration.password,
             base_url=tests_integration.base_url,
-            parser="miseq"
+            parser="miseq",
+            readonly=False
         )
 
         # instance an api
@@ -720,7 +730,8 @@ class TestEndToEnd(unittest.TestCase):
             username=tests_integration.username,
             password=tests_integration.password,
             base_url=tests_integration.base_url,
-            parser="miseq"
+            parser="miseq",
+            readonly=False
         )
 
         # Write a status file to the upload directory
@@ -748,7 +759,8 @@ class TestEndToEnd(unittest.TestCase):
             username=tests_integration.username,
             password=tests_integration.password,
             base_url=tests_integration.base_url,
-            parser="miseq"
+            parser="miseq",
+            readonly=False
         )
 
         # Do the upload, without force option

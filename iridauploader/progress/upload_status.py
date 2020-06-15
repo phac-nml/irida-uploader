@@ -33,7 +33,7 @@ def get_directory_status(directory, required_file_list):
     """
     result = DirectoryStatus(directory)
 
-    if not os.access(directory, os.W_OK):
+    if not os.access(directory, os.R_OK):
         result.status = DirectoryStatus.INVALID
         result.message = 'Directory cannot be accessed. Please check permissions'
         return result
