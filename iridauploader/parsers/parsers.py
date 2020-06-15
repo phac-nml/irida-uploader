@@ -42,14 +42,14 @@ class Parser:
         """
         if parser_type == "directory":
             logging.debug("Creating directory parser")
-            return directory.Parser()
+            return directory.Parser(parser_type_name=parser_type)
         if parser_type in ['miseq', 'miseq_v26']:
             logging.debug("Creating miseq (v26) parser")
-            return miseq.Parser()
+            return miseq.Parser(parser_type_name=parser_type)
         if parser_type in ['miniseq', 'iseq', 'miseq_v31']:
             logging.debug("Creating miniseq/iseq/miseq_v31 parser")
-            return miniseq.Parser()
+            return miniseq.Parser(parser_type_name=parser_type)
         if parser_type == "nextseq":
             logging.debug("Creating nextseq parser")
-            return nextseq.Parser()
+            return nextseq.Parser(parser_type_name=parser_type)
         raise AssertionError("Bad parser creation, invalid parser_type given: {}".format(parser_type))

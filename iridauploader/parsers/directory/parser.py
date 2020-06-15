@@ -13,6 +13,13 @@ class Parser:
 
     SAMPLE_SHEET_FILE_NAME = 'SampleList.csv'
 
+    def __init__(self, parser_type_name='directory'):
+        """
+        Initialize the Parser
+        :param parser_type_name: string to be included in metadata of sequencing run for type identification in IRIDA
+        """
+        self._parser_type_name = parser_type_name
+
     @staticmethod
     def get_required_file_list():
         """

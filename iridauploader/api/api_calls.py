@@ -1,11 +1,9 @@
 import ast
-import itertools
 import json
 import logging
 import threading
 
 from http import HTTPStatus
-from os import path
 from rauth import OAuth2Service
 from requests import ConnectionError
 from requests.adapters import HTTPAdapter
@@ -263,6 +261,16 @@ class ApiCalls(object):
                                            ", ".join([str(link["rel"]) for link in links_list]))
 
         return ret_val
+
+    @staticmethod
+    def _get_upload_url(base_url, run_type_str):
+        """
+        Concatenates a base url with the run type for constructing the upload url path
+        :param base_url: Upload url
+        :param run_type_str: Type of sequencing run that is being uploaded
+        :return: url
+        """
+        return urljoin(base_url, "sequencingrun/" + run_type_str)
 
     @staticmethod
     def _get_irida_exception(response):
@@ -631,6 +639,9 @@ class ApiCalls(object):
             file_name_b = sequence_file.file_list[1]
 
             file_metadata = sequence_file.properties_dict
+            # miseqRunId is what irida uses to parse the upload id
+            # we should think about renaming this in irida,
+            # but when we do it will break compatibility with all older uploaders
             file_metadata["miseqRunId"] = str(upload_id)
             file_metadata_json = json.dumps(file_metadata)
 
@@ -649,6 +660,9 @@ class ApiCalls(object):
             file_name = sequence_file.file_list[0]
 
             file_metadata = sequence_file.properties_dict
+            # miseqRunId is what irida uses to parse the upload id
+            # we should think about renaming this in irida,
+            # but when we do it will break compatibility with all older uploaders
             file_metadata["miseqRunId"] = str(upload_id)
             file_metadata_json = json.dumps(file_metadata)
 
@@ -688,7 +702,10 @@ class ApiCalls(object):
         seq_run_url = self._get_link(self.base_url, "sequencingRuns")
         # todo: we upload everything as miseq, should change when new sequencers are added to IRIDA
         # The easiest way to do this would be to add a sequencer type param to the metadata when parsing the sample
-        url = self._get_link(seq_run_url, "sequencingRun/miseq")
+        # here
+        url = self._get_upload_url(seq_run_url, "miniseq")
+        print("HERE BE SOME SHIT")
+        print(url)
 
         headers = {
             "headers": {

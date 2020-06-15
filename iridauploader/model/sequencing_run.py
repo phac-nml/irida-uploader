@@ -22,6 +22,10 @@ class SequencingRun:
                     'type': 'string',
                     'required': True,
                     'allowed': ['PAIRED_END', 'SINGLE_END']
+                },
+                'sequencingRunType': {
+                    'type': 'string',
+                    'required': True,
                 }
             }
         }
