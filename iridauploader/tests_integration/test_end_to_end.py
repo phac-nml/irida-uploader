@@ -268,6 +268,143 @@ class TestEndToEnd(unittest.TestCase):
         self.assertEqual(sample_2_not_found, True)
         self.assertEqual(sample_3_found, True)
 
+    def test_read_only_miseq_upload(self):
+        """
+        Test upload of a readonly miseq directory with readonly turned on
+        :return:
+        """
+        # Set our sample config file to use miseq parser and the correct irida credentials
+        self.write_to_config_file(
+            client_id=tests_integration.client_id,
+            client_secret=tests_integration.client_secret,
+            username=tests_integration.username,
+            password=tests_integration.password,
+            base_url=tests_integration.base_url,
+            parser="miseq"
+        )
+
+        # instance an api
+        test_api = api.ApiCalls(
+            client_id=tests_integration.client_id,
+            client_secret=tests_integration.client_secret,
+            base_url=tests_integration.base_url,
+            username=tests_integration.username,
+            password=tests_integration.password
+        )
+
+        # Create a test project, the uploader does not make new projects on its own
+        # so one must exist to upload samples into
+        # This may not be the project that the files get uploaded to,
+        # but one will be made in the case this is the only test being run
+        project_name = "test_read_only_project"
+        project_description = "test_project_description"
+        project = model.Project(name=project_name, description=project_description)
+        test_api.send_project(project)
+        # We always upload to project "1" so that tests will be consistent no matter how many / which tests are run
+        project_id = "1"
+
+        # Do the upload
+        upload_result = upload_run_single_entry(path.join(path_to_module, "fake_ngs_data_read_only"),
+                                                force_upload=False,
+                                                read_only_mode=True)
+
+        # Make sure the upload was a success
+        self.assertEqual(upload_result.exit_code, 0)
+
+        # Verify the files were uploaded
+        sample_list = test_api.get_samples(project_id)
+
+        sample_1_found = False
+        sample_2_found = False
+        sample_3_found = False
+
+        for sample in sample_list:
+            if sample.sample_name in ["R01-1111", "R02-2222", "R03-3333"]:
+                if sample.sample_name == "R01-1111":
+                    sample_1_found = True
+                    sequence_files = test_api.get_sequence_files(project_id, sample.sample_name)
+                    self.assertEqual(len(sequence_files), 2)
+                    res_sequence_file_names = [
+                        sequence_files[0]['fileName'],
+                        sequence_files[1]['fileName']
+                    ]
+                    expected_sequence_file_names = [
+                        'R01-1111_S1_L001_R1_001.fastq.gz',
+                        'R01-1111_S1_L001_R2_001.fastq.gz'
+                    ]
+                    self.assertEqual(res_sequence_file_names.sort(), expected_sequence_file_names.sort())
+                elif sample.sample_name == "R02-2222":
+                    sample_2_found = True
+                    sequence_files = test_api.get_sequence_files(project_id, sample.sample_name)
+                    self.assertEqual(len(sequence_files), 2)
+                    res_sequence_file_names = [
+                        sequence_files[0]['fileName'],
+                        sequence_files[1]['fileName']
+                    ]
+                    expected_sequence_file_names = [
+                        'R02-2222_S1_L001_R1_001.fastq.gz',
+                        'R02-2222_S1_L001_R2_001.fastq.gz'
+                    ]
+                    self.assertEqual(res_sequence_file_names.sort(), expected_sequence_file_names.sort())
+                elif sample.sample_name == "R03-3333":
+                    sample_3_found = True
+                    sequence_files = test_api.get_sequence_files(project_id, sample.sample_name)
+                    self.assertEqual(len(sequence_files), 2)
+                    res_sequence_file_names = [
+                        sequence_files[0]['fileName'],
+                        sequence_files[1]['fileName']
+                    ]
+                    expected_sequence_file_names = [
+                        'R03-3333_S1_L001_R1_001.fastq.gz',
+                        'R03-3333_S1_L001_R2_001.fastq.gz'
+                    ]
+                    self.assertEqual(res_sequence_file_names.sort(), expected_sequence_file_names.sort())
+
+        self.assertEqual(sample_1_found, True)
+        self.assertEqual(sample_2_found, True)
+        self.assertEqual(sample_3_found, True)
+
+    def test_invalid_read_only_miseq_upload(self):
+        """
+        Test failing to upload a readonly miseq directory because readonly is turned off
+        :return:
+        """
+        # Set our sample config file to use miseq parser and the correct irida credentials
+        self.write_to_config_file(
+            client_id=tests_integration.client_id,
+            client_secret=tests_integration.client_secret,
+            username=tests_integration.username,
+            password=tests_integration.password,
+            base_url=tests_integration.base_url,
+            parser="miseq"
+        )
+
+        # instance an api
+        test_api = api.ApiCalls(
+            client_id=tests_integration.client_id,
+            client_secret=tests_integration.client_secret,
+            base_url=tests_integration.base_url,
+            username=tests_integration.username,
+            password=tests_integration.password
+        )
+
+        # Create a test project, the uploader does not make new projects on its own
+        # so one must exist to upload samples into
+        # This may not be the project that the files get uploaded to,
+        # but one will be made in the case this is the only test being run
+        project_name = "test_read_only_project_fail"
+        project_description = "test_project_description"
+        project = model.Project(name=project_name, description=project_description)
+        test_api.send_project(project)
+        # We always upload to project "1" so that tests will be consistent no matter how many / which tests are run
+        project_id = "1"
+
+        # fail the upload
+        with self.assertRaises(PermissionError):
+            upload_result = upload_run_single_entry(path.join(path_to_module, "fake_ngs_data_read_only"),
+                                                    force_upload=False,
+                                                    read_only_mode=False)
+
     def test_valid_directory_upload(self):
         """
         Test a valid directory for upload end to end
