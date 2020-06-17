@@ -140,6 +140,16 @@ def _validate_and_upload(directory_status):
         _set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
         return exit_error(e)
 
+    # Init status file with file list and write
+    try:
+        directory_status.init_file_status_list_from_sequencing_run(sequencing_run)
+        _set_and_write_directory_status(directory_status, DirectoryStatus.PARTIAL)
+    except progress.exceptions.DirectoryError as e:
+        logging.error("ERROR! Error while trying to write status file to directory {} with error message: {}"
+                      "".format(e.directory, e.message))
+        logging.info("Samples not uploaded!")
+        return exit_error()
+
     # Initialize the api for first use
     logging.info("*** Connecting to IRIDA ***")
     try:
@@ -176,7 +186,7 @@ def _validate_and_upload(directory_status):
     # Start upload
     logging.info("*** Starting Upload ***")
     try:
-        run_id = api_handler.upload_sequencing_run(sequencing_run)
+        api_handler.upload_sequencing_run(sequencing_run, directory_status)
     except api.exceptions.IridaConnectionError as e:
         logging.error("Lost connection to Irida")
         logging.error("Errors: " + pformat(e.args))
@@ -199,7 +209,7 @@ def _validate_and_upload(directory_status):
 
     # Set progress file to complete
     try:
-        _set_and_write_directory_status(directory_status, DirectoryStatus.COMPLETE, run_id=run_id)
+        _set_and_write_directory_status(directory_status, DirectoryStatus.COMPLETE)
     except progress.exceptions.DirectoryError as e:
         # this is an exceptionally rare case (successful upload, but fails to write progress)
         logging.ERROR("ERROR! Error while trying to write status file to directory {} with error message: {}"
@@ -213,22 +223,18 @@ def _validate_and_upload(directory_status):
     return exit_success()
 
 
-def _set_and_write_directory_status(directory_status, status, message=None, run_id=None):
+def _set_and_write_directory_status(directory_status, status, message=None):
     """
     Given a DirectoryStatus object, sets the status and message, and then writes to the directory status directory
 
     :param directory_status: DirectoryStatus object
     :param status: a valid DirectoryStatus status
     :param message: string
-    :param run_id: optional, if provided, the run id and irida instance will be included when written
     :return:
     """
     directory_status.status = status
     directory_status.message = message
-    if run_id:
-        progress.write_directory_status(directory_status, run_id)
-    else:
-        progress.write_directory_status(directory_status)
+    progress.write_directory_status(directory_status)
 
 
 def exit_error(error):

@@ -20,6 +20,7 @@ DATE_TIME_FIELD = "Date Time"
 RUN_ID_FIELD = "Run ID"
 IRIDA_INSTANCE_FIELD = "IRIDA Instance"
 MESSAGE_FIELD = "Message"
+SAMPLES_UPLOADED_FIELD = "Samples Uploaded"
 
 
 def get_directory_status(directory, required_file_list):
@@ -78,7 +79,7 @@ def get_directory_status(directory, required_file_list):
     return result
 
 
-def write_directory_status(directory_status, run_id=None):
+def write_directory_status(directory_status):
     """
     Writes a status to the status file:
     Overwrites anything that is in the file
@@ -86,26 +87,24 @@ def write_directory_status(directory_status, run_id=None):
     Writes a timestamp to the time of last written
 
     :param directory_status: DirectoryStatus object containing status to write to directory
-    :param run_id: optional, when used, the run id will be included in the status file,
-        along with the irida instance the run is uploaded to.
     :return: None
     """
 
     if not os.access(directory_status.directory, os.W_OK):  # Cannot access upload directory
         raise exceptions.DirectoryError("Cannot access directory", directory_status.directory)
 
-    uploader_info_file = os.path.join(directory_status.directory, STATUS_FILE_NAME)
-    if run_id:
-        json_data = {STATUS_FIELD: directory_status.status,
-                     MESSAGE_FIELD: directory_status.message,
-                     DATE_TIME_FIELD: _get_date_time_field(),
-                     RUN_ID_FIELD: run_id,
-                     IRIDA_INSTANCE_FIELD: config.read_config_option('base_url')}
-    else:
-        json_data = {STATUS_FIELD: directory_status.status,
-                     MESSAGE_FIELD: directory_status.message,
-                     DATE_TIME_FIELD: _get_date_time_field()}
+    sample_status_dict = directory_status.sample_status_to_dict()
 
+    json_data = {
+        STATUS_FIELD: directory_status.status,
+        MESSAGE_FIELD: directory_status.message,
+        DATE_TIME_FIELD: _get_date_time_field(),
+        RUN_ID_FIELD: directory_status.run_id if directory_status.run_id is not None else "",
+        IRIDA_INSTANCE_FIELD: config.read_config_option('base_url'),
+        SAMPLES_UPLOADED_FIELD: sample_status_dict if sample_status_dict is not None else ""
+    }
+
+    uploader_info_file = os.path.join(directory_status.directory, STATUS_FILE_NAME)
     with open(uploader_info_file, "w") as json_file:
         json.dump(json_data, json_file, indent=4, sort_keys=True)
         json_file.write("\n")

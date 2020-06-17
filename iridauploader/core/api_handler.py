@@ -8,6 +8,7 @@ import logging
 import iridauploader.api as api
 import iridauploader.config as config
 import iridauploader.model as model
+import iridauploader.progress as progress
 from iridauploader.core import model_validator
 
 # The api instance is a global variable which lets the api behave like a singleton
@@ -122,16 +123,18 @@ def prepare_and_validate_for_upload(sequencing_run):
     return validation_result
 
 
-def upload_sequencing_run(sequencing_run):
+def upload_sequencing_run(sequencing_run, directory_status):
     """
     Handles uploading a sequencing run
 
     Expects api to have been set up
     Expects sequencing run to have been validated
     Expects sequencing run to be valid for upload
+    Expects directory_status to be valid
 
     :param sequencing_run: run to upload
-    :return:
+    :param directory_status: DirectoryStatus object to update as files get uploaded
+    :return: None
     """
     # get api
     api_instance = _get_api_instance()
@@ -139,11 +142,13 @@ def upload_sequencing_run(sequencing_run):
     # create a seq run
     run_id = api_instance.create_seq_run(sequencing_run.metadata)
     logging.info("Sequencing run id '{}' has been created for upload".format(run_id))
+    # Update directory status file
+    directory_status.run_id = run_id
+    progress.write_directory_status(directory_status)
 
     try:
         # set seq run to upload
         api_instance.set_seq_run_uploading(run_id)
-
         # loop through projects
         for project in sequencing_run.project_list:
             # loop through samples
@@ -154,6 +159,11 @@ def upload_sequencing_run(sequencing_run):
                                                  sample_name=sample.sample_name,
                                                  project_id=project.id,
                                                  upload_id=run_id)
+                # Update status file on progress
+                directory_status.set_sample_uploaded(sample_name=sample.sample_name,
+                                                     project_id=project.id,
+                                                     uploaded=True)
+                progress.write_directory_status(directory_status)
 
         # set seq run to complete
         api_instance.set_seq_run_complete(run_id)
@@ -171,8 +181,6 @@ def upload_sequencing_run(sequencing_run):
         api_instance.set_seq_run_error(run_id)
         raise e
     # Todo: once threading is added, the upload canceled error will likely need to be caught/raised here
-
-    return run_id
 
 
 def send_project(project):
