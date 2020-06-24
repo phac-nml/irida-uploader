@@ -515,7 +515,7 @@ class ApiCalls(object):
 
         return json_res
 
-    def send_sequence_files(self, sequence_file, sample_name, project_id, upload_id):
+    def send_sequence_files(self, sequence_file, sample_name, project_id, upload_id, assemblies=False):
         """
         post request to send sequence files found in given sample argument
         raises error if either project ID or sample ID found in Sample object
@@ -524,6 +524,7 @@ class ApiCalls(object):
         arguments:
             sample -- Sample object
             upload_id -- the run to upload the files to
+            assemblies -- default:False -- upload as assemblies instead of regular sequence files
 
         returns result of post request.
         """
@@ -543,23 +544,9 @@ class ApiCalls(object):
                                          })
         except StopIteration:
             raise exceptions.IridaResourceError("The given project ID doesn't exist", project_id)
-        # verify the sample exists
-        try:
-            seq_url = self._get_link(samples_url, "sample/sequenceFiles",
-                                     target_dict={
-                                         "key": "sampleName",
-                                         "value": sample_name
-                                     })
-        except StopIteration:
-            logging.error("The given sample '{}' does not exist on that project".format(sample_name))
-            raise exceptions.IridaResourceError("The given sample ID does not exist on that project", sample_name)
-        # get paired or single end url
-        if sequence_file.is_paired_end():
-            logging.debug("api_calls: sending paired-end file")
-            url = self._get_link(seq_url, "sample/sequenceFiles/pairs")
-        else:
-            logging.debug("api_calls: sending single-end file")
-            url = seq_url
+
+        # Get upload url
+        url = self._get_sample_upload_url(sequence_file, samples_url, sample_name, assemblies)
 
         # Get the data encoder
         data_pkg = self._get_sequence_data_pkg(sequence_file, upload_id)
@@ -587,6 +574,43 @@ class ApiCalls(object):
             raise self._get_irida_exception(response)
 
         return json_res
+
+    def _get_sample_upload_url(self, sequence_file, samples_url, sample_name, assemblies):
+        """
+        Gets the appropriate url for single end, paired end, or assemblies files.
+        :param sequence_file: Sequence Fle to upload
+        :param samples_url: Sample Url to upload to
+        :param sample_name: Sample Name (identifier) to upload to
+        :param assemblies: Boolean for indicating assemblies files
+        :return:
+        """
+        try:
+            if assemblies:
+                url = self._get_link(samples_url, "sample/assemblies",
+                                     target_dict={
+                                         "key": "sampleName",
+                                         "value": sample_name
+                                     })
+            else:
+                part_url = self._get_link(samples_url, "sample/sequenceFiles",
+                                          target_dict={
+                                             "key": "sampleName",
+                                             "value": sample_name
+                                          })
+                # get paired or single end url
+                if sequence_file.is_paired_end():
+                    logging.debug("api_calls: sending paired-end file")
+                    url = self._get_link(part_url, "sample/sequenceFiles/pairs")
+                else:
+                    logging.debug("api_calls: sending single-end file")
+                    url = part_url
+
+        except StopIteration:
+            logging.error("The given sample '{}' does not exist on that project".format(sample_name))
+            raise exceptions.IridaResourceError("The given sample ID does not exist on that project", sample_name)
+
+        return url
+
 
     def _send_file_callback(self, monitor):
         """
