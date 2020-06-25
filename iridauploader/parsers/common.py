@@ -1,3 +1,10 @@
+"""
+This file has generic utility methods that can be used by all parsers
+
+These methods can rely on the os module to function, and therefor not to be used with cloud environments.
+
+They should be used as generic utilities for any new parser that is added to the project.
+"""
 import os
 from csv import reader
 import logging
@@ -92,7 +99,7 @@ def get_file_list(directory):
     """
     Get the list of file names in the data directory
 
-    :param data_directory: directory to search for files
+    :param directory: directory to search for files
     :return: list of file names in data directory
     """
     # verify that directory exists

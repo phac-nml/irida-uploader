@@ -121,7 +121,7 @@ def _parse_samples(sample_sheet_file):
 
     sample_key_list = ['Sample_Name', 'Project_ID', 'File_Forward', 'File_Reverse']
 
-    # initilize dictionary keys from first line (data headers/attributes)
+    # initialize dictionary keys from first line (data headers/attributes)
     set_attributes = False
     for line in csv_reader:
 
