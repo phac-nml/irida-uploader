@@ -26,6 +26,11 @@ setuptools.setup(
                       'argparse',
                       'requests-toolbelt',
                       ],
+    entry_points={
+        'console_scripts': [
+            'irida-uploader=iridauploader.core.cli:main',
+        ],
+    },
     # https://pypi.org/pypi?%3Aaction=list_classifiers
     classifiers=[
         "Programming Language :: Python :: 3",
