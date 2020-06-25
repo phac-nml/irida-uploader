@@ -1,13 +1,23 @@
 #!/usr/bin/env python3
 
-import argparse
 import getpass
 import os
 import textwrap
 
+import argparse
+
 import iridauploader.config as config
 import iridauploader.core as core
 from iridauploader.parsers import supported_parsers
+
+DESCRIPTION = textwrap.dedent('''
+This program parses sequencing runs and uploads them to IRIDA.
+
+required arguments:
+  --d DIRECTORY, --directory DIRECTORY
+                        Location of sequencing run to upload.
+                        Directory must be writable.
+''')
 
 
 def init_argparser():
@@ -15,21 +25,14 @@ def init_argparser():
     # description gets added to the usage statements
     argument_parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        description=textwrap.dedent('''
-        This program parses sequencing runs and uploads them to IRIDA.
-    
-        required arguments:
-          --d DIRECTORY, --directory DIRECTORY
-                                Location of sequencing run to upload.
-                                Directory must be writable.
-        '''),
+        description=DESCRIPTION,
         prog="irida-uploader.sh -d DIRECTORY",
         epilog='-c* options can be used without a parameter to prompt for input.')
     # Our main argument. It is required or else an error will be thrown when the program is run
     # Normally we would use a positional argument, but because of our 1 or None config overrides it makes sense to use
-    # a optional argument, with the required set to True. We have to suppress the help on the argument, and add it's help
-    # information to the formatted description text of the parser for the argument to be shown as required when --help
-    # is used.
+    # a optional argument, with the required set to True. We have to suppress the help on the argument, and add it's
+    # help information to the formatted description text of the parser for the argument to be shown as required when
+    # --help is used.
     argument_parser.add_argument('-d', '--directory',
                                  action='store',
                                  required=True,
@@ -55,20 +58,21 @@ def init_argparser():
                                       'and upload in batch. '
                                       'The list of runs is generated at start time '
                                       '(Runs added to directory mid upload will not be uploaded).')
-
     # Optional arguments for overriding config file settings
     # Explanation:
     #   nargs='?', const=True, default=False,
-    #       Allows zero or one parameters
-    #       If the argument is not given:                      the value will be False           (indicates load from file)
-    #       If the argument is given, and no parameter given:  the value will be True            (prompt user for input)
-    #       If the argument is given, and parameter is given:  the value will be the parameter   (used to override config)
+    #   Allows zero or one parameters
+    #   If the argument is not given:                      the value will be False           (indicates load from file)
+    #   If the argument is given, and no parameter given:  the value will be True            (prompt user for input)
+    #   If the argument is given, and parameter is given:  the value will be the parameter   (used to override config)
     argument_parser.add_argument('-ci', '--config_client_id', action='store', nargs='?', const=True, default=False,
                                  help='Override the "client_id" field in config file. '
-                                      'This is for the uploader client created in IRIDA, used to handle the data upload')
+                                      'This is for the uploader client created in IRIDA, '
+                                      'used to handle the data upload')
     argument_parser.add_argument('-cs', '--config_client_secret', action='store', nargs='?', const=True, default=False,
                                  help='Override "client_secret" in config file. '
-                                      'This is for the uploader client created in IRIDA, used to handle the data upload')
+                                      'This is for the uploader client created in IRIDA, '
+                                      'used to handle the data upload')
     argument_parser.add_argument('-cu', '--config_username', action='store', nargs='?', const=True, default=False,
                                  help='Override "username" in config file. This is your IRIDA account username.')
     argument_parser.add_argument('-cp', '--config_password', action='store', nargs='?', const=True, default=False,
