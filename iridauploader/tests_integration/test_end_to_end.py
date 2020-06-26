@@ -382,10 +382,9 @@ class TestEndToEnd(unittest.TestCase):
         # Verify the files were uploaded
         sample_list = test_api.get_samples(project_id)
         test_sample = sample_list[0]
-        if test_sample.sample_name == "my-sample-1":
-            sequence_files = test_api.get_assemblies_files(project_id, test_sample.sample_name)
-            self.assertEqual(len(sequence_files), 1)
-            self.assertEqual(sequence_files[0]['fileName'], 'file_1.fasta')
+        sequence_files = test_api.get_assemblies_files(project_id, test_sample.sample_name)
+        self.assertEqual(len(sequence_files), 1)
+        self.assertEqual(sequence_files[0]['fileName'], 'file_1.fasta')
 
     def test_valid_miniseq_upload(self):
         """
