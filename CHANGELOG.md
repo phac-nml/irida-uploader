@@ -3,6 +3,9 @@ Changes
 
 Beta 0.4.2
 ----------
+Added functionality:
+* Added support for uploading assemblies. Use `-a` / `--assemblies` or the checkbox on the GUI
+
 Developer changes:
 * Added support for cloud deployment by using the `iridauploader` available on `pip`
 * Added version updater script to the `scripts` directory
