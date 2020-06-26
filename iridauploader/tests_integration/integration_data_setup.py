@@ -123,12 +123,12 @@ class SetupIridaData:
 
     def login(self):
         self.driver.get(self.base_url + "/login")
-        self.driver.find_element_by_id("emailTF").clear()
-        self.driver.find_element_by_id("emailTF").send_keys(self.user)
-        self.driver.find_element_by_id("passwordTF").clear()
-        self.driver.find_element_by_id("passwordTF").send_keys(self.password)
+        self.driver.find_element_by_id("loginForm_username").clear()
+        self.driver.find_element_by_id("loginForm_username").send_keys(self.user)
+        self.driver.find_element_by_id("loginForm_password").clear()
+        self.driver.find_element_by_id("loginForm_password").send_keys(self.password)
         with self.wait_for_page_load(timeout=10):
-            self.driver.find_element_by_id("submitBtn").click()
+            self.driver.find_element_by_id("t-submit-btn").click()
 
     def set_new_admin_pw(self):
         self.driver.find_element_by_id("password").clear()
