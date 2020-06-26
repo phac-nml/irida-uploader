@@ -190,9 +190,12 @@ class TestUploadSequencingRun(unittest.TestCase):
         stub_api_instance.create_seq_run.assert_called_once_with(sequencing_run.metadata)
         stub_api_instance.set_seq_run_uploading.assert_called_once_with(mock_sequence_run_id)
         stub_api_instance.send_sequence_files.assert_has_calls([
-            unittest.mock.call(project_id='6', sample_name='01-1111', sequence_file='mock_sample', upload_id=55),
-            unittest.mock.call(project_id='6', sample_name='02-2222', sequence_file='mock_sample', upload_id=55),
-            unittest.mock.call(project_id='6', sample_name='03-3333', sequence_file='mock_sample', upload_id=55)
+            unittest.mock.call(project_id='6', sample_name='01-1111', sequence_file='mock_sample',
+                               upload_id=55, assemblies=False),
+            unittest.mock.call(project_id='6', sample_name='02-2222', sequence_file='mock_sample',
+                               upload_id=55, assemblies=False),
+            unittest.mock.call(project_id='6', sample_name='03-3333', sequence_file='mock_sample',
+                               upload_id=55, assemblies=False)
         ])
         stub_api_instance.set_seq_run_complete.assert_called_once_with(mock_sequence_run_id)
 

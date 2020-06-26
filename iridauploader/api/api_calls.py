@@ -1,11 +1,9 @@
 import ast
-import itertools
 import json
 import logging
 import threading
 
 from http import HTTPStatus
-from os import path
 from rauth import OAuth2Service
 from requests import ConnectionError
 from requests.adapters import HTTPAdapter
@@ -594,8 +592,8 @@ class ApiCalls(object):
             else:
                 part_url = self._get_link(samples_url, "sample/sequenceFiles",
                                           target_dict={
-                                             "key": "sampleName",
-                                             "value": sample_name
+                                              "key": "sampleName",
+                                              "value": sample_name
                                           })
                 # get paired or single end url
                 if sequence_file.is_paired_end():
@@ -610,7 +608,6 @@ class ApiCalls(object):
             raise exceptions.IridaResourceError("The given sample ID does not exist on that project", sample_name)
 
         return url
-
 
     def _send_file_callback(self, monitor):
         """

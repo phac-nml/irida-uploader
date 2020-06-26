@@ -98,7 +98,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         # Check that log file does not exist before starting
         self.assertFalse(path.exists(log_file))
 
-        cli_entry._validate_and_upload(directory_status)
+        cli_entry._validate_and_upload(directory_status, False)
 
         # Make sure log file is created
         self.assertTrue(path.exists(log_file))
@@ -547,7 +547,7 @@ class TestBatchUploadSingleEntry(unittest.TestCase):
         cli_entry.batch_upload_single_entry("fake_directory", force_upload=False)
 
         # validate calls only happen once
-        mock_validate_and_upload.assert_called_once_with(stub_directory_status_valid)
+        mock_validate_and_upload.assert_called_once_with(stub_directory_status_valid, False)
 
     @patch("iridauploader.core.cli_entry._validate_and_upload")
     @patch("iridauploader.core.cli_entry.parsing_handler")
@@ -585,8 +585,8 @@ class TestBatchUploadSingleEntry(unittest.TestCase):
         # assert calls are what we expect
         self.assertEqual(mock_validate_and_upload.call_count, 3, "Expected 3 calls to mock_validate_and_upload")
         expected_call_args = [
-            call(stub_directory_status_valid,),
-            call(stub_directory_status_complete,),
-            call(stub_directory_status_partial,)
+            call(stub_directory_status_valid, False),
+            call(stub_directory_status_complete, False),
+            call(stub_directory_status_partial, False)
         ]
         self.assertEqual(mock_validate_and_upload.call_args_list, expected_call_args, "Call args do not match expected")
