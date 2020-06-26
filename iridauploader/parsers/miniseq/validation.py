@@ -1,5 +1,5 @@
 from iridauploader.parsers import exceptions
-from iridauploader.parsers.miniseq.sample_parser import get_csv_reader
+from iridauploader.parsers import common
 import iridauploader.model as model
 
 
@@ -17,7 +17,7 @@ def validate_sample_sheet(sample_sheet_file):
     returns ValidationResult object - stores list of string error messages
     """
 
-    csv_reader = get_csv_reader(sample_sheet_file)
+    csv_reader = common.get_csv_reader(sample_sheet_file)
 
     v_res = model.ValidationResult()
 

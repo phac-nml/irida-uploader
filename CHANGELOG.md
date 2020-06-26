@@ -1,6 +1,12 @@
 Changes
 =======
 
+Beta 0.4.2
+----------
+Developer changes:
+* Added support for cloud deployment by using the `iridauploader` available on `pip`
+* Added version updater script to the `scripts` directory
+
 Beta 0.4.1
 ----------
 Developer changes:
