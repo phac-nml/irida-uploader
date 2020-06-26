@@ -1,7 +1,7 @@
 """
 This file has generic utility methods that can be used by all parsers
 
-These methods can rely on the os module to function, and therefor not to be used with cloud environments.
+These methods can rely on the os module to function, and therefore not to be used with cloud environments.
 
 They should be used as generic utilities for any new parser that is added to the project.
 """
