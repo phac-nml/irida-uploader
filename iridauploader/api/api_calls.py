@@ -431,6 +431,52 @@ class ApiCalls(object):
 
         return result
 
+    def get_assemblies_files(self, project_id, sample_name):
+        """
+        API call to api/projects/project_id/sample_id/assemblies
+        We fetch the assemblies files through the project id on this route
+
+        arguments:
+
+            sample_name -- the sample id to get from irida, relative to a project
+            project_id -- the id of the project the sample is on
+
+        returns list of assemblies files dictionary for given sample_id
+        """
+
+        logging.info("Getting assemblies files from sample '{}' on project '{}'".format(sample_name, project_id))
+
+        try:
+            project_url = self._get_link(self.base_url, "projects")
+            sample_url = self._get_link(project_url, "project/samples",
+                                        target_dict={
+                                            "key": "identifier",
+                                            "value": project_id
+                                        })
+
+        except StopIteration:
+            logging.error("The given project ID doesn't exist: ".format(project_id))
+            raise exceptions.IridaResourceError("The given project ID doesn't exist", project_id)
+
+        try:
+            url = self._get_link(sample_url, "sample/assemblies",
+                                 target_dict={
+                                     "key": "sampleName",
+                                     "value": sample_name
+                                 })
+            response = self._session.get(url)
+
+        except StopIteration:
+            logging.error("The given sample doesn't exist: ".format(sample_name))
+            raise exceptions.IridaResourceError("The given sample ID doesn't exist", sample_name)
+
+        # todo future development if needed one day
+        # This response should be returned as some sort of file object
+        # This is related to how we return get_sequence_files too, but there is no real use for it at the moment, yagni
+        result = response.json()["resource"]["resources"]
+
+        return result
+
     def send_project(self, project, clear_cache=True):
         """
         post request to send a project to IRIDA via API
