@@ -9,6 +9,8 @@ Added functionality:
 Developer changes:
 * Added support for cloud deployment by using the `iridauploader` available on `pip`
 * Added version updater script to the `scripts` directory
+* Added argument `assemblies=False` to `send_sequence_files(...)` to allow for assemblies upload from the `api` module
+* Added method `get_assemblies_files(self, project_id, sample_name)` to allow for fetching assemblies from the `api` module
 
 Beta 0.4.1
 ----------
