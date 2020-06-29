@@ -8,11 +8,7 @@ class SequencingRun:
     # Define Project as a type for validation
     _project_type = TypeDefinition('project', (Project,), ())
     Validator.types_mapping['project'] = _project_type
-    """ TODO add this to the schema when doing testing
-    '_assemblies': {
-        'type': 'boolean',
-        'required': True
-    }"""
+
     uploadable_schema = {
         '_project_list': {
             'type': 'list',
@@ -28,6 +24,10 @@ class SequencingRun:
                     'allowed': ['PAIRED_END', 'SINGLE_END']
                 }
             }
+        },
+        '_assemblies': {
+            'type': 'boolean',
+            'required': True
         }
     }
 
