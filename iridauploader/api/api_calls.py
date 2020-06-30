@@ -747,7 +747,7 @@ class ApiCalls(object):
 
             return m_encoder
 
-    def create_seq_run(self, metadata):
+    def create_seq_run(self, metadata, sequencing_run_type):
         """
         Create a sequencing run.
 
@@ -759,6 +759,7 @@ class ApiCalls(object):
 
         arguments:
             metadata -- SequencingRun's metadata
+            sequencing_run_type -- string: used as the identifier for the type of sequencing run being uploaded
 
         returns: the sequencing run identifier for the sequencing run that was created
         """
@@ -774,9 +775,7 @@ class ApiCalls(object):
         # todo: we upload everything as miseq, should change when new sequencers are added to IRIDA
         # The easiest way to do this would be to add a sequencer type param to the metadata when parsing the sample
         # here
-        url = self._get_upload_url(seq_run_url, "miniseq")
-        print("HERE BE SOME SHIT")
-        print(url)
+        url = self._get_upload_url(seq_run_url, sequencing_run_type)
 
         headers = {
             "headers": {

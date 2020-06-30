@@ -22,23 +22,24 @@ class SequencingRun:
                     'type': 'string',
                     'required': True,
                     'allowed': ['PAIRED_END', 'SINGLE_END']
-                },
-                'sequencingRunType': {
-                    'type': 'string',
-                    'required': True,
                 }
             }
         },
         '_assemblies': {
             'type': 'boolean',
             'required': True
+        },
+        '_sequencing_run_type': {
+            'type': 'string',
+            'required': True
         }
     }
 
-    def __init__(self, metadata, project_list, assemblies=False):
+    def __init__(self, metadata, project_list, sequencing_run_type, assemblies=False):
         self._project_list = project_list
         self._metadata = metadata
         self._assemblies = assemblies
+        self._sequencing_run_type = sequencing_run_type
 
     @property
     def metadata(self):
@@ -55,6 +56,14 @@ class SequencingRun:
     @project_list.setter
     def project_list(self, p_list):
         self._project_list = p_list
+
+    @property
+    def sequencing_run_type(self):
+        return self._sequencing_run_type
+
+    @sequencing_run_type.setter
+    def upload_route_string(self, sequencing_run_type):
+        self._sequencing_run_type = sequencing_run_type
 
     @property
     def assemblies(self):
