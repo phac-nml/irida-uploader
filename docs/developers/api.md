@@ -47,7 +47,7 @@ We fetch the sample file through the project id on this route
 
 **arguments:**
 
-sample_name -- the sample id to get from irida, relative to a project
+sample_name -- the sample name identifier to get from irida, relative to a project
 project_id -- the id of the project the sample is on
 
 **returns:**
@@ -60,7 +60,7 @@ We fetch the assemblies files through the project id on this route
 
 **arguments:**
 
-sample_name -- the sample id to get from irida, relative to a project
+sample_name -- the sample name identifier to get from irida, relative to a project
 project_id -- the id of the project the sample is on
 
 **returns:**
@@ -106,7 +106,11 @@ doesn't exist in irida
 
 **arguments:**
 
-sample -- Sample object
+sequence_file -- SequenceFile object to send
+
+sample_name -- irida sample name identifier to send to
+
+project_id -- irida project identifier
 
 upload_id -- the run to upload the files to
 
