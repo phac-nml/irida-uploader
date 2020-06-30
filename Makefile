@@ -69,7 +69,7 @@ integrationtestsdev: clean requirements preintegration
 
 pep8: clean requirements
 	source .virtualenv/bin/activate
-	pycodestyle --show-source --exclude=".git","bin",".idea","docs",".github","site",".virtualenv" --ignore="E501" .
+	pycodestyle --show-source --exclude=".git","bin",".idea","docs",".github","site",".virtualenv","iridauploader/build" --ignore="E501" .
 
 docs: requirements
 	source .virtualenv/bin/activate

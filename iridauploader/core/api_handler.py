@@ -153,7 +153,8 @@ def upload_sequencing_run(sequencing_run):
                 api_instance.send_sequence_files(sequence_file=sample.sequence_file,
                                                  sample_name=sample.sample_name,
                                                  project_id=project.id,
-                                                 upload_id=run_id)
+                                                 upload_id=run_id,
+                                                 assemblies=sequencing_run.assemblies)
 
         # set seq run to complete
         api_instance.set_seq_run_complete(run_id)
