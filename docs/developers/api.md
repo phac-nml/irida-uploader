@@ -47,12 +47,25 @@ We fetch the sample file through the project id on this route
 
 **arguments:**
 
-sample_name -- the sample id to get from irida, relative to a project
+sample_name -- the sample name identifier to get from irida, relative to a project
 project_id -- the id of the project the sample is on
 
 **returns:**
 
 list of sequencefile dictionary for given sample_id
+
+#### get_assemblies_files(self, project_id, sample_name)
+API call to api/projects/project_id/sample_id/assemblies
+We fetch the assemblies files through the project id on this route
+
+**arguments:**
+
+sample_name -- the sample name identifier to get from irida, relative to a project
+project_id -- the id of the project the sample is on
+
+**returns:**
+
+returns list of assemblies files dictionary for given sample_id
 
 ### Sending Data to IRIDA
 
@@ -86,15 +99,22 @@ project_id -- id of project to send sample too
 
 Unmodified json response from server
 
-#### send_sequence_files(self, sequence_file, sample_name, project_id, upload_id)
+#### send_sequence_files(self, sequence_file, sample_name, project_id, upload_id, assemblies=False)
 Post request to send sequence files found in given sample argument
 raises error if either project ID or sample ID found in Sample object
 doesn't exist in irida
 
 **arguments:**
 
-sample -- Sample object
+sequence_file -- SequenceFile object to send
+
+sample_name -- irida sample name identifier to send to
+
+project_id -- irida project identifier
+
 upload_id -- the run to upload the files to
+
+assemblies -- default:False -- upload as assemblies instead of regular sequence files
 
 **returns:**
 
