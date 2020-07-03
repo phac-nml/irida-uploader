@@ -87,9 +87,9 @@ class Parser(BaseParser):
 
     def get_sequencing_run(self, sample_sheet):
         """
-        Does local validation on the integrety of the run directory / sample sheet
+        Does local validation on the integrity of the run directory / sample sheet
 
-        Throws a ValidationError with a valadation result attached if it cannot make a sequencing run
+        Throws a ValidationError with a validation result attached if it cannot make a sequencing run
 
         :param sample_sheet:
         :return: SequencingRun
