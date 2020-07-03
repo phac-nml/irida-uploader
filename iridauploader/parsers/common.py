@@ -66,12 +66,13 @@ def find_directory_list(directory):
     return full_dir_list
 
 
-def build_sequencing_run_from_samples(sample_list, metadata):
+def build_sequencing_run_from_samples(sample_list, metadata, sequence_run_type):
     """
     Create a SequencingRun object with full project/sample/sequence_file structure
 
     :param sample_list: List of Sample objects
     :param metadata: metadata dict to add to the run
+    :param sequence_run_type: string identifier for sequencer type when generating api route
     :return: SequencingRun
     """
 
@@ -90,7 +91,9 @@ def build_sequencing_run_from_samples(sample_list, metadata):
 
         project.add_sample(sample)
 
-    sequence_run = model.SequencingRun(metadata, project_list)
+    sequence_run = model.SequencingRun(metadata=metadata,
+                                       project_list=project_list,
+                                       sequencing_run_type=sequence_run_type)
     logging.debug("SequencingRun built")
     return sequence_run
 

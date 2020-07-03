@@ -6,10 +6,11 @@ import iridauploader.model as model
 
 from iridauploader.parsers import exceptions
 from iridauploader.parsers import common
+from iridauploader.parsers import BaseParser
 from iridauploader.parsers.directory import sample_parser, validation
 
 
-class Parser:
+class Parser(BaseParser):
 
     SAMPLE_SHEET_FILE_NAME = 'SampleList.csv'
 
@@ -18,18 +19,9 @@ class Parser:
         Initialize the Parser
         :param parser_type_name: string to be included in metadata of sequencing run for type identification in IRIDA
         """
-        self._parser_type_name = parser_type_name
+        super().__init__(parser_type_name=parser_type_name, required_file_list=[Parser.SAMPLE_SHEET_FILE_NAME])
 
-    @staticmethod
-    def get_required_file_list():
-        """
-        Returns a list of files that are required for a run directory to be considered valid
-        :return: [files_names]
-        """
-        return [Parser.SAMPLE_SHEET_FILE_NAME]
-
-    @staticmethod
-    def find_runs(directory):
+    def find_runs(self, directory):
         """
         find a list of run directories in the directory given
 
@@ -41,12 +33,11 @@ class Parser:
         runs = []
         directory_list = common.find_directory_list(directory)
         for d in directory_list:
-            runs.append(progress.get_directory_status(d, Parser.get_required_file_list()))
+            runs.append(progress.get_directory_status(d, self.get_required_file_list()))
 
         return runs
 
-    @staticmethod
-    def find_single_run(directory):
+    def find_single_run(self, directory):
         """
         Find a run in the base directory given
 
@@ -55,7 +46,7 @@ class Parser:
         """
         logging.info("looking for run in {}".format(directory))
 
-        return progress.get_directory_status(directory, Parser.get_required_file_list())
+        return progress.get_directory_status(directory, self.get_required_file_list())
 
     @staticmethod
     def get_sample_sheet(directory):
@@ -86,14 +77,15 @@ class Parser:
             logging.debug("Sample sheet found")
             return os.path.join(directory, sample_sheet_file_name)
 
-    @staticmethod
-    def get_sequencing_run(sample_sheet, run_data_directory_file_list=None):
+    def get_sequencing_run(self, sample_sheet, run_data_directory_file_list=None):
         """
         Does local validation on the integrity of the run directory / sample sheet
 
         Throws a ValidationError with a validation result attached if it cannot make a sequencing run
 
         :param sample_sheet:
+        :param run_data_directory_file_list: Optional: List of files in data directory.
+                                             Can be provided for bypassing os calls when developing on cloud systems
         :return: SequencingRun
         """
 
@@ -119,7 +111,9 @@ class Parser:
         try:
             sample_list = sample_parser.parse_sample_list(sample_sheet, run_data_directory_file_list)
             run_metadata = sample_parser.parse_metadata(sample_list)
-            sequencing_run = common.build_sequencing_run_from_samples(sample_list, run_metadata)
+            sequencing_run = common.build_sequencing_run_from_samples(sample_list,
+                                                                      run_metadata,
+                                                                      self.get_parser_type_name())
         except exceptions.SequenceFileError as error:
             validation_result.add_error(error)
             logging.error("Errors occurred while building sequence run from sample sheet")

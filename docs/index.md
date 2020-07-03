@@ -198,7 +198,7 @@ import iridauploader.api as api
 import iridauploader.parsers as parsers
 
 api_instance = api.ApiCalls(client_id, client_secret, base_url, username, password, max_wait_time)
-parser_instance = parsers.Parser.factory("miseq")
+parser_instance = parsers.parser_factory("miseq")
 ```
 
 Want to create a parser for a sequencer that we don't yet support or have an idea for an IRIDA related project?
