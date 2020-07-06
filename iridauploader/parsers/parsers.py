@@ -10,6 +10,7 @@ supported_parsers = [
     'nextseq',
     'iseq',
     'directory',
+    'nanopore_assemblies',
 ]
 
 
@@ -26,7 +27,7 @@ def parser_factory(parser_type):
     :param parser_type: a String of a valid parser name
     :return:
     """
-    if parser_type == "directory":
+    if parser_type in ['directory', 'nanopore_assemblies']:
         logging.debug("Creating directory parser")
         return directory.Parser(parser_type_name=parser_type)
     if parser_type in ['miseq', 'miseq_v26']:

@@ -1,19 +1,25 @@
 Changes
 =======
 
+Beta 0.5.0
+----------
+Added functionality:
+* Added `nanopore_assemblies` as an alias for directory uploads
+
+Developer changes:
+* Changed `api` to post to `<base_url>/sequencingrun/<sequencing_run_type>` instead of `<base_url>/sequencingrun/miseqrun`
+  * Added `sequencing_run_type` to the `parser -> model -> api` chain
+
 Beta 0.4.2
 ----------
 Added functionality:
 * Added support for uploading assemblies. Use `-a` / `--assemblies` or the checkbox on the GUI
-* Added `nanopore_assemblies` as an alias for directory uploads
 
 Developer changes:
 * Added support for cloud deployment by using the `iridauploader` available on `pip`
 * Added version updater script to the `scripts` directory
 * Added argument `assemblies=False` to `send_sequence_files(...)` to allow for assemblies upload from the `api` module
 * Added method `get_assemblies_files(self, project_id, sample_name)` to allow for fetching assemblies from the `api` module
-* Changed `api` to post to `<base_url>/sequencingrun/<sequencing_run_type>` instead of `<base_url>/sequencingrun/miseqrun`
-  * Added `sequencing_run_type` to the `parser -> model -> api` chain
 
 Beta 0.4.1
 ----------
