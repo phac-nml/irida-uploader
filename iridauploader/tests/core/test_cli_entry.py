@@ -84,6 +84,51 @@ class TestUploadRunSingleEntry(unittest.TestCase):
     @patch("iridauploader.core.cli_entry.progress")
     @patch("iridauploader.core.cli_entry.api_handler")
     @patch("iridauploader.core.cli_entry.parsing_handler")
+    def test_valid_assemblies_all_functions_called(self, mock_parsing_handler, mock_api_handler, mock_progress):
+        """
+        Makes sure that all functions are called when a valid directory in given
+        :return:
+        """
+        my_directory = path.join(path_to_module, "fake_ngs_data")
+
+        class StubValidationResult:
+            @staticmethod
+            def is_valid():
+                return True
+
+        class StubDirectoryStatus:
+            directory = my_directory
+            status = DirectoryStatus.NEW
+
+            @staticmethod
+            def status_equals(status):
+                return status == DirectoryStatus.NEW
+
+        # add mock data to the function calls that are essential
+        stub_directory_status = StubDirectoryStatus()
+        mock_parsing_handler.get_run_status.side_effect = [stub_directory_status]
+        mock_parsing_handler.parse_and_validate.side_effect = ["Fake Sequencing Run"]
+        mock_api_handler.initialize_api_from_config.side_effect = [None]
+        mock_api_handler.prepare_and_validate_for_upload.side_effect = [StubValidationResult]
+        mock_api_handler.upload_sequencing_run.side_effect = [None]
+        mock_progress.write_directory_status.side_effect = [None, None]
+
+        cli_entry.upload_run_single_entry(my_directory, force_upload=True)
+
+        # Make sure directory status is init
+        mock_progress.write_directory_status.assert_called_with(stub_directory_status)
+        # Make sure parsing and validation is done
+        mock_parsing_handler.parse_and_validate.assert_called_with(my_directory)
+        # api must be initialized
+        mock_api_handler.initialize_api_from_config.assert_called_with()
+        # api must prep for upload
+        mock_api_handler.prepare_and_validate_for_upload.assert_called_with("Fake Sequencing Run")
+        # api should try to upload
+        mock_api_handler.upload_sequencing_run.assert_called_with("Fake Sequencing Run")
+
+    @patch("iridauploader.core.cli_entry.progress")
+    @patch("iridauploader.core.cli_entry.api_handler")
+    @patch("iridauploader.core.cli_entry.parsing_handler")
     def test_log_file_created(self, mock_parsing_handler, mock_api_handler, mock_progress):
         """
         Makes sure that all functions are called when a valid directory in given
@@ -98,7 +143,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         # Check that log file does not exist before starting
         self.assertFalse(path.exists(log_file))
 
-        cli_entry._validate_and_upload(directory_status)
+        cli_entry._validate_and_upload(directory_status, False)
 
         # Make sure log file is created
         self.assertTrue(path.exists(log_file))
@@ -547,7 +592,7 @@ class TestBatchUploadSingleEntry(unittest.TestCase):
         cli_entry.batch_upload_single_entry("fake_directory", force_upload=False)
 
         # validate calls only happen once
-        mock_validate_and_upload.assert_called_once_with(stub_directory_status_valid)
+        mock_validate_and_upload.assert_called_once_with(stub_directory_status_valid, False)
 
     @patch("iridauploader.core.cli_entry._validate_and_upload")
     @patch("iridauploader.core.cli_entry.parsing_handler")
@@ -585,8 +630,8 @@ class TestBatchUploadSingleEntry(unittest.TestCase):
         # assert calls are what we expect
         self.assertEqual(mock_validate_and_upload.call_count, 3, "Expected 3 calls to mock_validate_and_upload")
         expected_call_args = [
-            call(stub_directory_status_valid,),
-            call(stub_directory_status_complete,),
-            call(stub_directory_status_partial,)
+            call(stub_directory_status_valid, False),
+            call(stub_directory_status_complete, False),
+            call(stub_directory_status_partial, False)
         ]
         self.assertEqual(mock_validate_and_upload.call_args_list, expected_call_args, "Call args do not match expected")

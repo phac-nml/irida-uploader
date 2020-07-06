@@ -4,8 +4,10 @@ from os import path
 from csv import reader
 from io import StringIO
 
+from iridauploader import parsers
 import iridauploader.parsers.miniseq.sample_parser as sample_parser
 from iridauploader.parsers.exceptions import SampleSheetError, SequenceFileError
+from iridauploader.parsers import common
 import iridauploader.model as model
 
 path_to_module = path.abspath(path.dirname(__file__))
@@ -21,7 +23,7 @@ class TestParseMetadata(unittest.TestCase):
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)
 
-    @patch("iridauploader.parsers.miniseq.sample_parser.get_csv_reader")
+    @patch("iridauploader.parsers.common.get_csv_reader")
     def test_parse_metadata_paired_valid(self, mock_csv_reader):
         """
         When given a valid directory, ensure valid metadata is built
@@ -81,7 +83,7 @@ class TestParseMetadata(unittest.TestCase):
         self.assertEqual(metadata['description'], "12-34")
         self.assertEqual(metadata['chemistry'], "Yes")
 
-    @patch("iridauploader.parsers.miniseq.sample_parser.get_csv_reader")
+    @patch("iridauploader.parsers.common.get_csv_reader")
     def test_parse_metadata_single_valid(self, mock_csv_reader):
         """
         When given a valid directory, ensure valid metadata is built
@@ -173,39 +175,6 @@ class TestParseMetadata(unittest.TestCase):
         self.assertEqual(correct_metadata, meta_data)
 
 
-class TestBuildSequencingRunFromSamples(unittest.TestCase):
-    """
-    Test building the sequencing run from a sample sheet with a csv reader
-    """
-
-    def setUp(self):
-        print("\nStarting " + self.__module__ + ": " + self._testMethodName)
-
-    def test_build_valid(self):
-        """
-        When given a valid directory, ensure a valid SequencingRun is built with Projects, Samples, ect
-        :return:
-        """
-        sheet_file = path.join(path_to_module, "fake_ngs_data",
-                               "SampleSheet.csv")
-        meta_data = sample_parser.parse_metadata(sheet_file)
-
-        sequencing_run = sample_parser.build_sequencing_run_from_samples(sheet_file, meta_data)
-
-        # Returns a SequencingRun
-        self.assertEqual(type(sequencing_run), model.SequencingRun)
-        # Includes a single project
-        self.assertEqual(len(sequencing_run.project_list), 1)
-        # is of type Project
-        self.assertEqual(type(sequencing_run.project_list[0]), model.Project)
-        # Project has 3 samples
-        self.assertEqual(len(sequencing_run.project_list[0].sample_list), 3)
-        # samples are of type Sample
-        self.assertEqual(type(sequencing_run.project_list[0].sample_list[0]), model.Sample)
-        # samples have SequenceFile
-        self.assertEqual(type(sequencing_run.project_list[0].sample_list[0].sequence_file), model.SequenceFile)
-
-
 class TestGetCsvReader(unittest.TestCase):
     """
     Test that the csv reader behaves as expected
@@ -222,7 +191,7 @@ class TestGetCsvReader(unittest.TestCase):
         sheet_file = path.join(path_to_module, "fake_ngs_data",
                                "SampleSheet.csv")
 
-        lines = sample_parser.get_csv_reader(sheet_file)
+        lines = common.get_csv_reader(sheet_file)
 
         correct_lines = [
             ['[Header]'],
@@ -260,7 +229,7 @@ class TestGetCsvReader(unittest.TestCase):
                                "Alignment_1")
 
         with self.assertRaises(SampleSheetError):
-            sample_parser.get_csv_reader(sheet_file)
+            common.get_csv_reader(sheet_file)
 
 
 class TestValidatePfList(unittest.TestCase):
@@ -308,8 +277,11 @@ class TestParseSampleList(unittest.TestCase):
         Ensure a a parsed valid directory matches the expected sample list
         :return:
         """
-        sheet_file = path.join(path_to_module, "fake_ngs_data",
-                               "SampleSheet.csv")
+        directory = path.join(path_to_module, "fake_ngs_data")
+        sheet_file = path.join(directory, "SampleSheet.csv")
+        data_dir = path.join(directory, parsers.miniseq.Parser.get_relative_data_directory())
+        data_dir = data_dir.replace("*", "some_dir")
+        file_list = parsers.common.get_file_list(data_dir)
 
         sample = model.Sample(
             "01-1111",
@@ -338,15 +310,15 @@ class TestParseSampleList(unittest.TestCase):
                                 "fake_ngs_data", "Alignment_1", "some_dir", "Fastq", "01-1111_S1_L001_R1_001.fastq.gz")
         file_path_2 = path.join(path_to_module,
                                 "fake_ngs_data", "Alignment_1", "some_dir", "Fastq", "01-1111_S1_L001_R2_001.fastq.gz")
-        file_list = [file_path_1, file_path_2]
+        raw_file_list = [file_path_1, file_path_2]
 
-        res = sample_parser._parse_sample_list(sheet_file)
+        res = sample_parser.parse_sample_list(sample_sheet_file=sheet_file, run_data_directory=data_dir, run_data_directory_file_list=file_list)
 
         # Check sample is the same
         self.assertEqual(res[0].get_uploadable_dict(), sample.get_uploadable_dict())
         # Check sequencing file is correct
         self.assertEqual(res[0].sequence_file.properties_dict, sequence_file_properties)
-        self.assertEqual(res[0].sequence_file.file_list.sort(), file_list.sort())
+        self.assertEqual(res[0].sequence_file.file_list.sort(), raw_file_list.sort())
 
     def test_not_pf_list(self):
         """
@@ -354,10 +326,13 @@ class TestParseSampleList(unittest.TestCase):
         :return:
         """
         directory = path.join(path_to_module, "ngs_not_pf_list")
+        data_dir = path.join(directory, parsers.miniseq.Parser.get_relative_data_directory())
+        data_dir = data_dir.replace("*", "some_dir")
+        file_list = parsers.common.get_file_list(data_dir)
         file_path = path.join(directory, "SampleSheet.csv")
 
         with self.assertRaises(SequenceFileError):
-            res = sample_parser._parse_sample_list(file_path)
+            res = sample_parser.parse_sample_list(sample_sheet_file=file_path, run_data_directory=data_dir, run_data_directory_file_list=file_list)
 
     def test_not_valid_pf_list(self):
         """
@@ -365,17 +340,23 @@ class TestParseSampleList(unittest.TestCase):
         :return:
         """
         directory = path.join(path_to_module, "ngs_not_valid_pf_list")
+        data_dir = path.join(directory, parsers.miniseq.Parser.get_relative_data_directory())
+        data_dir = data_dir.replace("*", "some_dir")
+        file_list = parsers.common.get_file_list(data_dir)
         file_path = path.join(directory, "SampleSheet.csv")
 
         with self.assertRaises(SequenceFileError):
-            res = sample_parser._parse_sample_list(file_path)
+            res = sample_parser.parse_sample_list(sample_sheet_file=file_path, run_data_directory=data_dir, run_data_directory_file_list=file_list)
 
     def test_space_in_sample_name(self):
         directory = path.join(path_to_module, "ngs_space_in_sample_name")
+        data_dir = path.join(directory, parsers.miniseq.Parser.get_relative_data_directory())
+        data_dir = data_dir.replace("*", "some_dir")
+        file_list = parsers.common.get_file_list(data_dir)
         file_path = path.join(directory, "SampleSheet.csv")
 
         # Just making sure this doesn't throw an error
-        sample_parser._parse_sample_list(file_path)
+        sample_parser.parse_sample_list(sample_sheet_file=file_path, run_data_directory=data_dir, run_data_directory_file_list=file_list)
 
 
 class TestParseSamples(unittest.TestCase):
@@ -507,12 +488,17 @@ class TestBuildISeqRun(unittest.TestCase):
         When given a valid directory, ensure a valid SequencingRun is built with Projects, Samples, ect
         :return:
         """
-
-        sheet_file = path.join(path_to_module, "iseq_with_desc_field",
-                               "SampleSheet.csv")
+        directory = path.join(path_to_module, "iseq_with_desc_field")
+        sheet_file = path.join(directory, "SampleSheet.csv")
         meta_data = sample_parser.parse_metadata(sheet_file)
+        data_dir = path.join(directory, parsers.miniseq.Parser.get_relative_data_directory())
+        data_dir = data_dir.replace("*", "some_dir")
+        file_list = parsers.common.get_file_list(data_dir)
 
-        sequencing_run = sample_parser.build_sequencing_run_from_samples(sheet_file, meta_data)
+        sample_list = sample_parser.parse_sample_list(sample_sheet_file=sheet_file,
+                                                      run_data_directory=data_dir,
+                                                      run_data_directory_file_list=file_list)
+        sequencing_run = parsers.common.build_sequencing_run_from_samples(sample_list, meta_data)
 
         # Returns a SequencingRun
         self.assertEqual(type(sequencing_run), model.SequencingRun)

@@ -7,6 +7,7 @@
 * MiSeq/MiniSeq/NextSeq Sequencing Run Parser
 * Directory Parsing
 * Batch Uploads
+* Assemblies Uploads
 * Can be used with cron/windows task scheduler for automated uploads
 * GUI
 
@@ -154,6 +155,14 @@ The `--force` option can be used with the `--batch` option
 
 ##### WARNING! When uploading `nextseq` data and using `--batch` upload with an auto-upload script, incomplete fastq files could be uploaded if `bcl2fastq` has not finished when the upload begins.
 
+## Assemblies Uploading
+
+You can upload assemblies by using the `--assemblies` option while running the uploader, or by clicking the assemblies checkbox in the GUI.
+
+It is recommended that you use the Directory Upload structure to upload assemblies.
+
+Please note that assemblies can not be uploaded as paired files.
+
 ## Logging
 
 Logs about individual runs are written to the sequencing run directory that they are uploaded from.
@@ -199,3 +208,5 @@ Want to create a parser for a sequencer that we don't yet support or have an ide
 [Information on the IRIDA python API](developers/api.md)
 
 [Object Model Reference](developers/objects.md)
+
+[Cloud Deployment](developers/cloud.md)

@@ -1,12 +1,12 @@
 import re
-from os import path, walk
-from csv import reader
+from os import path
 from collections import OrderedDict
 from copy import deepcopy
 import logging
 
 import iridauploader.model as model
 from iridauploader.parsers import exceptions
+from iridauploader.parsers import common
 
 
 def parse_metadata(sample_sheet_file):
@@ -25,7 +25,7 @@ def parse_metadata(sample_sheet_file):
 
     metadata_dict = {"readLengths": []}
 
-    csv_reader = get_csv_reader(sample_sheet_file)
+    csv_reader = common.get_csv_reader(sample_sheet_file)
 
     metadata_key_translation_dict = {
         'Local Run Manager Analysis Id': 'localrunmanager',
@@ -86,56 +86,16 @@ def parse_metadata(sample_sheet_file):
     return metadata_dict
 
 
-def build_sequencing_run_from_samples(sample_sheet_file, metadata):
+def parse_sample_list(sample_sheet_file, run_data_directory, run_data_directory_file_list):
     """
-    Create a SequencingRun object with full project/sample/sequence_file structure
+    Creates a list of Sample Objects
 
-    :param sample_sheet_file:
-    :param metadata:
-    :return: SequencingRun
-    """
-    sample_list = _parse_sample_list(sample_sheet_file)
-
-    logging.debug("Building SequencingRun from parsed data")
-
-    # create list of projects and add samples to appropriate project
-    project_list = []
-    for sample in sample_list:
-        project = None
-        for p in project_list:
-            if sample.get('sample_project') == p.id:
-                project = p
-        if project is None:
-            project = model.Project(id=sample.get('sample_project'))
-            project_list.append(project)
-
-        project.add_sample(sample)
-
-    sequence_run = model.SequencingRun(metadata, project_list)
-    logging.debug("SequencingRun built")
-    return sequence_run
-
-
-def _parse_sample_list(sample_sheet_file):
-    """
-    Creates a list of all samples in the sample_sheet_file, with accompanying data/metadata
-
-    :param sample_sheet_file:
-    :return: list of samples
+    :param sample_sheet_file: Sample Sheet file
+    :param run_data_directory: Data directory including run directory (e.g. my_run/Data/Intensities/BaseCalls)
+    :param run_data_directory_file_list: The list of all files in the data directory
+    :return: list of Sample objects
     """
     sample_list = _parse_samples(sample_sheet_file)
-    sample_sheet_dir = path.dirname(sample_sheet_file)
-    partial_data_dir = path.join(sample_sheet_dir, "Alignment_1")
-    # Verify the partial path exits, path could not exist if there was a sequencing error
-    # Also, if someone runs the miniseq parser on a miseq directory, this is the failure point
-    if not path.exists(partial_data_dir):
-        raise exceptions.SequenceFileError(
-            ("The uploader was unable to find the data directory with the path: {}, Verify that the run directory is "
-             "undamaged, and that it is a MiniSeq sequencing run.").format(partial_data_dir))
-
-    # get the directories [1] get the first directory [0]
-    data_dir = path.join(partial_data_dir, next(walk(partial_data_dir))[1][0], "Fastq")
-    data_dir_file_list = next(walk(data_dir))[2]  # Create a file list of the data directory, only hit the os once
 
     for sample in sample_list:
         properties_dict = _parse_out_sequence_file(sample)
@@ -145,7 +105,7 @@ def _parse_sample_list(sample_sheet_file):
             sample_name=re.escape(sample.sample_name), sample_number=sample.sample_number)
         logging.info("Looking for files with pattern {}".format(file_pattern))
         regex = re.compile(file_pattern)
-        pf_list = list(filter(regex.search, data_dir_file_list))
+        pf_list = list(filter(regex.search, run_data_directory_file_list))
         if not pf_list:
             # OK. So we didn't find any files using the **correct** file name
             # definition according to Illumina. Let's try again with our deprecated
@@ -155,7 +115,7 @@ def _parse_sample_list(sample_sheet_file):
             logging.info("Looking for files with pattern {}".format(file_pattern))
 
             regex = re.compile(file_pattern)
-            pf_list = list(filter(regex.search, data_dir_file_list))
+            pf_list = list(filter(regex.search, run_data_directory_file_list))
 
             if not pf_list:
                 # we **still** didn't find anything. It's pretty likely, then that
@@ -166,18 +126,18 @@ def _parse_sample_list(sample_sheet_file):
                      ".fastq.gz for the sample in your sample sheet with name {} in the directory {}. "
                      "This usually happens when the Illumina MiniSeq Reporter tool "
                      "does not generate any FastQ data.").format(
-                        sample.sample_name, data_dir))
+                        sample.sample_name, run_data_directory))
 
         # List of files may be invalid if directory searching in has been modified by user
         if not _validate_pf_list(pf_list):
             raise exceptions.SequenceFileError(
                 ("The following file list {} found in the directory {} is invalid. "
                  "Please verify the folder containing the sequence files matches the SampleSheet file").format(
-                    pf_list, data_dir))
+                    pf_list, run_data_directory))
 
         # Add the dir to each file to create the full path
         for i in range(len(pf_list)):
-            pf_list[i] = path.join(data_dir, pf_list[i])
+            pf_list[i] = path.join(run_data_directory, pf_list[i])
 
         sq = model.SequenceFile(file_list=pf_list, properties_dict=properties_dict)
         sample.sequence_file = deepcopy(sq)
@@ -231,7 +191,7 @@ def _parse_samples(sample_sheet_file):
 
     logging.info("Reading data from sample sheet {}".format(sample_sheet_file))
 
-    csv_reader = get_csv_reader(sample_sheet_file)
+    csv_reader = common.get_csv_reader(sample_sheet_file)
     # start with an ordered dictionary so that keys are ordered in the same
     # way that they are inserted.
     sample_dict = OrderedDict()
@@ -336,35 +296,3 @@ def _parse_out_sequence_file(sample):
             sequence_file_dict[key] = sample_dict[key]
 
     return sequence_file_dict
-
-
-def get_csv_reader(sample_sheet_file):
-
-    """
-    tries to create a csv.reader object which will be used to
-        parse through the lines in SampleSheet.csv
-    raises an error if:
-            sample_sheet_file is not an existing file
-            sample_sheet_file contains null byte(s)
-
-    arguments:
-            data_dir -- the directory that has SampleSheet.csv in it
-
-    returns a csv.reader object
-    """
-
-    if path.isfile(sample_sheet_file):
-        csv_file = open(sample_sheet_file, "r")
-        # strip any trailing newline characters from the end of the line
-        # including Windows newline characters (\r\n)
-        csv_lines = [x.rstrip('\n') for x in csv_file]
-        csv_lines = [x.rstrip('\r') for x in csv_lines]
-
-        # open and read file in binary then send it to be parsed by csv's reader
-        csv_reader = reader(csv_lines)
-    else:
-        raise exceptions.SampleSheetError(
-            "Sample sheet cannot be parsed as a CSV file because it's not a regular file.",
-            sample_sheet_file)
-
-    return csv_reader

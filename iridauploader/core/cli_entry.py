@@ -9,10 +9,10 @@ from iridauploader.model import DirectoryStatus
 
 from . import api_handler, parsing_handler, logger, exit_return
 
-VERSION_NUMBER = "0.4.1"
+VERSION_NUMBER = "0.4.2"
 
 
-def upload_run_single_entry(directory, force_upload=False):
+def upload_run_single_entry(directory, force_upload=False, upload_assemblies=False):
     """
     This function acts as a single point of entry for uploading a directory
 
@@ -20,6 +20,7 @@ def upload_run_single_entry(directory, force_upload=False):
 
     :param directory: Directory of the sequencing run to upload
     :param force_upload: When set to true, the upload status file will be ignored and file will attempt to be uploaded
+    :param upload_assemblies: When True, uploads as assemblies files, not as regular sequence files
     :return: ExitReturn
     """
     directory_status = parsing_handler.get_run_status(directory)
@@ -41,10 +42,10 @@ def upload_run_single_entry(directory, force_upload=False):
             logging.error(error_msg)
             return exit_error(error_msg)
 
-    return _validate_and_upload(directory_status)
+    return _validate_and_upload(directory_status, upload_assemblies)
 
 
-def batch_upload_single_entry(batch_directory, force_upload=False):
+def batch_upload_single_entry(batch_directory, force_upload=False, upload_assemblies=False):
     """
     This function acts as a single point of entry for batch uploading run directories
 
@@ -54,6 +55,7 @@ def batch_upload_single_entry(batch_directory, force_upload=False):
 
     :param batch_directory: Directory containing sequencing run directories to upload
     :param force_upload: When set to true, the upload status file will be ignored and file will attempt to be uploaded
+    :param upload_assemblies: When True, uploads as assemblies files, not as regular sequence files
     :return: ExitReturn
     """
     logging.debug("batch_upload_single_entry:Starting {} with force={}".format(batch_directory, force_upload))
@@ -81,7 +83,7 @@ def batch_upload_single_entry(batch_directory, force_upload=False):
     error_list = []
     for directory_status in upload_list:
         logging.info("Starting upload for {}".format(directory_status.directory))
-        result = _validate_and_upload(directory_status)
+        result = _validate_and_upload(directory_status, upload_assemblies)
         if result.exit_code == exit_return.EXIT_CODE_ERROR:
             error_list.append(directory_status.directory)
 
@@ -94,7 +96,7 @@ def batch_upload_single_entry(batch_directory, force_upload=False):
     return exit_success()
 
 
-def _validate_and_upload(directory_status):
+def _validate_and_upload(directory_status, upload_assemblies):
     """
     This function attempts to upload a single run directory
 
@@ -105,6 +107,7 @@ def _validate_and_upload(directory_status):
     Starts the upload
 
     :param directory_status: DirectoryStatus object that has directory to try upload
+    :param upload_assemblies: Boolean, upload assemblies instead of regular sequence files
     :return: ExitReturn
     """
     logging_start_block(directory_status.directory)
@@ -139,6 +142,13 @@ def _validate_and_upload(directory_status):
         full_error = error_msg + ", " + error_list_msg
         _set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
         return exit_error(e)
+
+    # Check if assemblies
+    # Todo: This should get split into another block when resume upload gets added
+    # Keep this simple for now until the bigger refactor
+    if upload_assemblies:
+        logging.info("Setting SequencingRun to upload as assemblies")
+        sequencing_run.assemblies = True
 
     # Initialize the api for first use
     logging.info("*** Connecting to IRIDA ***")

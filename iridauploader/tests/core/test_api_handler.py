@@ -190,9 +190,50 @@ class TestUploadSequencingRun(unittest.TestCase):
         stub_api_instance.create_seq_run.assert_called_once_with(sequencing_run.metadata)
         stub_api_instance.set_seq_run_uploading.assert_called_once_with(mock_sequence_run_id)
         stub_api_instance.send_sequence_files.assert_has_calls([
-            unittest.mock.call(project_id='6', sample_name='01-1111', sequence_file='mock_sample', upload_id=55),
-            unittest.mock.call(project_id='6', sample_name='02-2222', sequence_file='mock_sample', upload_id=55),
-            unittest.mock.call(project_id='6', sample_name='03-3333', sequence_file='mock_sample', upload_id=55)
+            unittest.mock.call(project_id='6', sample_name='01-1111', sequence_file='mock_sample',
+                               upload_id=55, assemblies=False),
+            unittest.mock.call(project_id='6', sample_name='02-2222', sequence_file='mock_sample',
+                               upload_id=55, assemblies=False),
+            unittest.mock.call(project_id='6', sample_name='03-3333', sequence_file='mock_sample',
+                               upload_id=55, assemblies=False)
+        ])
+        stub_api_instance.set_seq_run_complete.assert_called_once_with(mock_sequence_run_id)
+
+    @patch("iridauploader.core.api_handler._get_api_instance")
+    def test_valid_all_functions_called_assemblies(self, mock_api_instance):
+        """
+        Makes sure that all functions are called when a valid sequencing run in given
+        :return:
+        """
+        global sequencing_run
+
+        # set up all the mock data for a fake upload
+        for samp in sequencing_run.project_list[0].sample_list:
+            samp.sequence_file = "mock_sample"
+        sequencing_run.assemblies = True
+
+        mock_sequence_run_id = 55
+
+        stub_api_instance = unittest.mock.MagicMock()
+        stub_api_instance.create_seq_run.side_effect = [mock_sequence_run_id]
+        stub_api_instance.set_seq_run_uploading.side_effect = [True]
+        stub_api_instance.send_sequence_files.side_effect = [True, True, True]
+        stub_api_instance.set_seq_run_complete.side_effect = [True]
+
+        mock_api_instance.side_effect = [stub_api_instance]
+
+        api_handler.upload_sequencing_run(sequencing_run)
+
+        # ensure the response matches our mocks, and that all the needed functions were called correctly
+        stub_api_instance.create_seq_run.assert_called_once_with(sequencing_run.metadata)
+        stub_api_instance.set_seq_run_uploading.assert_called_once_with(mock_sequence_run_id)
+        stub_api_instance.send_sequence_files.assert_has_calls([
+            unittest.mock.call(project_id='6', sample_name='01-1111', sequence_file='mock_sample',
+                               upload_id=55, assemblies=True),
+            unittest.mock.call(project_id='6', sample_name='02-2222', sequence_file='mock_sample',
+                               upload_id=55, assemblies=True),
+            unittest.mock.call(project_id='6', sample_name='03-3333', sequence_file='mock_sample',
+                               upload_id=55, assemblies=True)
         ])
         stub_api_instance.set_seq_run_complete.assert_called_once_with(mock_sequence_run_id)
 
