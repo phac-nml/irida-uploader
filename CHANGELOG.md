@@ -1,6 +1,11 @@
 Changes
 =======
 
+Beta 0.4.3
+----------
+Added functionality:
+* `directory` parsers now support full file paths for upload.
+
 Beta 0.4.2
 ----------
 Added functionality:
