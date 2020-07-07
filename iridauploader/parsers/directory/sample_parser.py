@@ -77,10 +77,12 @@ def parse_sample_list(sample_sheet_file, run_data_directory_file_list):
         file_list = []
         # Add the dir to each file to create the full path
         if sample_dict['File_Forward'] not in data_dir_file_list_full_path:
-            sample_dict['File_Forward'] = path.join(data_dir, sample_dict['File_Forward'])
-            file_list.append(sample_dict['File_Forward'])
-        if paired_end_read and sample_dict['File_Reverse'] not in data_dir_file_list_full_path:
-            sample_dict['File_Reverse'] = path.join(data_dir, sample_dict['File_Reverse'])
+            sample_dict['File_Forward'] = path.join(path.abspath(data_dir), sample_dict['File_Forward'])
+        file_list.append(sample_dict['File_Forward'])
+
+        if paired_end_read:
+            if sample_dict['File_Reverse'] not in data_dir_file_list_full_path:
+                sample_dict['File_Reverse'] = path.join(path.abspath(data_dir), sample_dict['File_Reverse'])
             file_list.append(sample_dict['File_Reverse'])
 
         # Create sequence file object and attach to sample
