@@ -97,7 +97,8 @@ class Parser:
         if not validation_result.is_valid():
             logging.error("Errors occurred while getting sample sheet")
             raise exceptions.ValidationError("Errors occurred while getting sample sheet", validation_result)
-        #todo: document in this func
+
+        # When running with a premade file list, verify files on sample_sheet are in file list
         try:
             if run_data_directory_file_list is not None:
                 sample_parser.verify_sample_sheet_file_names_in_file_list(sample_sheet, run_data_directory_file_list)
@@ -107,6 +108,7 @@ class Parser:
             raise exceptions.ValidationError("Errors occurred while building sequence run from sample sheet",
                                              validation_result)
 
+        # Build a list of sample objects from sample sheet
         try:
             if run_data_directory_file_list is not None:
                 sample_list = sample_parser.build_sample_list_from_sample_sheet_no_verify(sample_sheet)
@@ -117,6 +119,7 @@ class Parser:
             logging.error("Errors occurred while parsing files")
             raise exceptions.ValidationError("Errors occurred while parsing files", validation_result)
 
+        # verify samples in sample_list are all of one type, either single or paired end
         if not sample_parser.only_single_or_paired_in_sample_list(sample_list):
             e = exceptions.SampleSheetError(
                 ("Your sample sheet is malformed. "
