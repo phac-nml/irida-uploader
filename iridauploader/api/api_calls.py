@@ -660,6 +660,56 @@ class ApiCalls(object):
 
         return json_res
 
+    def send_metadata(self, metadata, project_id, sample_id):
+        """
+        Put request to add metadata to specific sample ID
+
+        :param metadata: MetadataProfile object
+        :param project_id: id of project sample id is in
+        :param sample_id: id of sample to add metadata to
+        :return: json response from server
+        """
+
+        logging.info("Adding metadata to sample '{}' found in project '{}' on IRIDA.".format(sample_id, project_id))
+
+        try:
+            project_url = self._get_link(self.base_url, "projects")
+            sample_url = self._get_link(project_url, "project/samples",
+                                        target_dict={
+                                            "key": "identifier",
+                                            "value": project_id
+                                        })
+
+        except StopIteration:
+            logging.error("The given project ID doesn't exist: ".format(project_id))
+            raise exceptions.IridaResourceError("The given project ID doesn't exist", project_id)
+
+        try:
+            url = self._get_link(sample_url, "sample/metadata",
+                                 target_dict={
+                                     "key": "identifier",
+                                     "value": sample_id
+                                 })
+
+        except StopIteration:
+            logging.error("The given sample doesn't exist: ".format(sample_id))
+            raise exceptions.IridaResourceError("The given sample ID doesn't exist", sample_id)
+
+        json_obj = json.dumps(metadata.get_uploadable_dict())
+
+        headers_pkg = {'Content-Type': 'application/json'}
+
+        response = self._session.put(url, data=json_obj, headers=headers_pkg)
+
+        if response.status_code == 200:  # 200
+            json_res = json.loads(response.text)
+        else:
+            logging.error("Did not add metadata to sample. Response code is '{}' and error message is '{}'"
+                          "".format(response.status_code, response.text))
+            raise self._get_irida_exception(response)
+
+        return json_res
+
     def _get_sample_upload_url(self, sequence_file, samples_url, sample_name, assemblies):
         """
         Gets the appropriate url for single end, paired end, or assemblies files.

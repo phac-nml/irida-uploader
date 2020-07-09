@@ -1,4 +1,5 @@
 from iridauploader.model.sequencing_run import SequencingRun
+from iridauploader.model.metadata import MetadataProfile
 from iridauploader.model.project import Project
 from iridauploader.model.sample import Sample
 from iridauploader.model.sequence_file import SequenceFile
