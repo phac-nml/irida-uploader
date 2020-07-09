@@ -476,6 +476,45 @@ class ApiCalls(object):
         result = response.json()["resource"]["resources"]
 
         return result
+    
+    def get_metadata(self, sample_id, project_id):
+        """
+        API call to api/samples/{sampleId}/metadata
+        arguments:
+            sample_id
+            project_id
+        returns list of metadata associated with sampleID
+        """
+
+        logging.info("Getting metadata from sample ID '{}' found in project ID '{}'".format(sample_id, project_id))
+
+        try:
+            project_url = self._get_link(self.base_url, "projects")
+            sample_url = self._get_link(project_url, "project/samples",
+                                        target_dict={
+                                            "key": "identifier",
+                                            "value": project_id
+                                        })
+
+        except StopIteration:
+            logging.error("The given project ID doesn't exist: ".format(project_id))
+            raise exceptions.IridaResourceError("The given project ID doesn't exist", project_id)
+
+        try:
+            url = self._get_link(sample_url, "sample/metadata",
+                                 target_dict={
+                                     "key": "identifier",
+                                     "value": sample_id
+                                 })
+            response = self._session.get(url)
+
+        except StopIteration:
+            logging.error("The given sample doesn't exist: ".format(sample_id))
+            raise exceptions.IridaResourceError("The given sample ID doesn't exist", sample_id)
+
+        result = response.json()["resource"]["metadata"]
+
+        return result
 
     def send_project(self, project, clear_cache=True):
         """
