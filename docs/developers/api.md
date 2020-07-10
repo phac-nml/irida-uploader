@@ -140,7 +140,7 @@ doesn't exist in irida
 
 **arguments:**
 
-metadata -- OtherMetadata object to send to irida
+metadata -- Metadata object to send to irida
 
 project_id -- irida project identifier
 

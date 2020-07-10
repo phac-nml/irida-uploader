@@ -664,7 +664,7 @@ class ApiCalls(object):
         """
         Put request to add metadata to specific sample ID
 
-        :param metadata: OtherMetadata object
+        :param metadata: Metadata object
         :param project_id: id of project sample id is in
         :param sample_id: id of sample to add metadata to
         :return: json response from server

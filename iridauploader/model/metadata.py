@@ -1,4 +1,16 @@
-class OtherMetadata:
+"""
+Metadata defines and stores metadata in (key: value) pairs using a dictionary
+
+(key: value) pairs can take any string so long as they are structured as such:
+    { "Key_1": "Value_1", "Key_2": "Value_2" ... }
+"""
+
+
+class Metadata:
+
+    uploadable_schema = {
+        "Key_1": { "type": "text", "value": "Value_1" }
+    }
 
     def __init__(self, metadata=None):
         if metadata is None:
