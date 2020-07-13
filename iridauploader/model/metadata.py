@@ -8,10 +8,6 @@ Metadata defines and stores metadata in (key: value) pairs using a dictionary
 
 class Metadata:
 
-    uploadable_schema = {
-        "Key_1": {"type": "text", "value": "Value_1"}
-    }
-
     def __init__(self, metadata=None):
         if metadata is None:
             metadata = {}
