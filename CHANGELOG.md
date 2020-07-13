@@ -6,6 +6,11 @@ Beta 0.4.3
 Added functionality:
 * `directory` parsers now support full file paths for upload.
 
+Developer changes:
+* Added method `get_metadata(self, sample_id, project_id)` to allow other metadata to be fetched from the `api` module
+* Added method `send_metadata(self, metadata, project_id, sample_id)` to allow other metadata to be sent using the `api` module
+* Added model `Metadata` to support `send_metadata` method
+
 Beta 0.4.2
 ----------
 Added functionality:
