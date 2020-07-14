@@ -1,4 +1,4 @@
-from os import path, walk
+from os import path
 from collections import OrderedDict
 from copy import deepcopy
 import logging
@@ -24,79 +24,134 @@ def parse_metadata(sample_list):
     return metadata
 
 
-def parse_sample_list(sample_sheet_file, run_data_directory_file_list):
+def verify_sample_sheet_file_names_in_file_list(sample_sheet_file, run_data_directory_file_list):
     """
-    Creates a list of all sample data in the sample_sheet_file
-    Verifies data is valid for uploading
+    Given a sample sheet, and a list of files in a directory,
+    verify that all the files on the sheet exist in the file list
+
+    If a file is missing, a SampleSheetError is raised
 
     :param sample_sheet_file:
-    :param run_data_directory_file_list: list of all files
-    :return: list of Sample objects
+    :param run_data_directory_file_list:
+    :return:
     """
     sample_list = _parse_samples(sample_sheet_file)
 
+    for sample in sample_list:
+        sample_dict = sample.get_uploadable_dict()
+        paired_end_read = len(sample_dict['File_Reverse']) > 0
+
+        # Check if file names are in the files we found in the directory file list
+        if sample_dict['File_Forward'] not in run_data_directory_file_list:
+            raise exceptions.SampleSheetError(
+                ("Your sample sheet is malformed. {} Does not match any file list in sample sheet file"
+                 "".format(sample_dict['File_Forward'])),
+                sample_sheet_file
+            )
+        if paired_end_read and sample_dict['File_Reverse'] not in run_data_directory_file_list:
+            raise exceptions.SampleSheetError(
+                ("Your sample sheet is malformed. {} Does not match any file list in sample sheet file"
+                 "".format(sample_dict['File_Reverse'])),
+                sample_sheet_file
+            )
+
+
+def build_sample_list_from_sample_sheet_with_abs_path(sample_sheet_file):
+    """
+    Create a list of Sample objects, where each SequenceFile object has an absolute file path
+
+    :param sample_sheet_file:
+    :return:
+    """
+    sample_list = _parse_samples(sample_sheet_file)
+    # Data directory is used if file names on sample sheet are not absolute paths (in directory files)
     data_dir = path.dirname(sample_sheet_file)
+    sample_sheet_dir_file_list = common.get_file_list(data_dir)
 
-    data_dir_file_list_full_path = []
-    for file_name in run_data_directory_file_list:
-        data_dir_file_list_full_path.append(path.join(path.abspath(data_dir), file_name))
+    for sample in sample_list:
+        sample_dict = sample.get_uploadable_dict()
+        paired_end_read = len(sample_dict['File_Reverse']) > 0
 
-    has_paired_end_read = False
-    has_single_end_read = False
+        # create file list of full paths
+        file_list = []
+        # If file is not an abspath already, make it an abspath from filename + data dir
+        if path.isabs(sample_dict['File_Forward']):
+            file_list.append(sample_dict['File_Forward'])
+        elif sample_dict['File_Forward'] in sample_sheet_dir_file_list:
+            sample_dict['File_Forward'] = path.join(path.abspath(data_dir), sample_dict['File_Forward'])
 
-    logging.info("Verifying data parsed from sample sheet {}".format(sample_sheet_file))
+            file_list.append(sample_dict['File_Forward'])
+        else:
+            raise exceptions.SampleSheetError(
+                ("Your sample sheet is malformed. {} Does not match any file in the directory {}"
+                 "".format(sample_dict['File_Forward'], data_dir)),
+                sample_sheet_file)
+
+        # reverse file is same as for forward file
+        if paired_end_read:
+            if path.isabs(sample_dict['File_Reverse']):
+                file_list.append(sample_dict['File_Reverse'])
+            elif sample_dict['File_Reverse'] in sample_sheet_dir_file_list:
+                sample_dict['File_Reverse'] = path.join(path.abspath(data_dir), sample_dict['File_Reverse'])
+                file_list.append(sample_dict['File_Reverse'])
+            else:
+                raise exceptions.SampleSheetError(
+                    ("Your sample sheet is malformed. {} Does not match any file in the directory {}"
+                     "".format(sample_dict['File_Reverse'], data_dir)),
+                    sample_sheet_file)
+
+        # Create sequence file object and attach to sample
+        sq = model.SequenceFile(file_list=file_list)
+        sample.sequence_file = deepcopy(sq)
+
+    return sample_list
+
+
+def build_sample_list_from_sample_sheet_no_verify(sample_sheet_file):
+    """
+    Create a list of Sample objects, file existence is not verified before SequenceFile is created
+    this is used when a pre-generated file list is used (e.g. cloud deployment)
+
+    :param sample_sheet_file:
+    :return:
+    """
+    sample_list = _parse_samples(sample_sheet_file)
 
     for sample in sample_list:
 
         sample_dict = sample.get_uploadable_dict()
+        # create file list
+        file_list = [sample_dict['File_Forward']]
 
+        # if paired end add file to file list
         paired_end_read = len(sample_dict['File_Reverse']) > 0
-        # keep track if we have both paired and single end reads
         if paired_end_read:
-            has_paired_end_read = True
-        else:
-            has_single_end_read = True
-
-        # Check if file names are in the files we found in the directory
-        if ((sample_dict['File_Forward'] not in run_data_directory_file_list) and (
-                sample_dict['File_Forward'] not in data_dir_file_list_full_path)):
-            raise exceptions.SampleSheetError(
-                ("Your sample sheet is malformed. {} Does not match any file in the directory {}"
-                 "".format(sample_dict['File_Forward'], data_dir)),
-                sample_sheet_file
-            )
-        if ((paired_end_read and sample_dict['File_Reverse'] not in run_data_directory_file_list) and (
-                paired_end_read and sample_dict['File_Reverse'] not in data_dir_file_list_full_path)):
-            raise exceptions.SampleSheetError(
-                ("Your sample sheet is malformed. {} Does not match any file in the directory {}"
-                 "".format(sample_dict['File_Reverse'], data_dir)),
-                sample_sheet_file
-            )
-
-        # create file list of full paths
-        file_list = []
-        # Add the dir to each file to create the full path
-        if sample_dict['File_Forward'] not in data_dir_file_list_full_path:
-            sample_dict['File_Forward'] = path.join(data_dir, sample_dict['File_Forward'])
-            file_list.append(sample_dict['File_Forward'])
-        if paired_end_read and sample_dict['File_Reverse'] not in data_dir_file_list_full_path:
-            sample_dict['File_Reverse'] = path.join(data_dir, sample_dict['File_Reverse'])
             file_list.append(sample_dict['File_Reverse'])
 
         # Create sequence file object and attach to sample
         sq = model.SequenceFile(file_list=file_list)
         sample.sequence_file = deepcopy(sq)
 
-    # Verify we don't have both single end and paired end reads
-    if has_single_end_read and has_paired_end_read:
-        raise exceptions.SampleSheetError(
-            ("Your sample sheet is malformed. "
-             "SampleSheet cannot have both paired end and single end runs. "
-             "Make sure all samples are either paired or single."),
-            sample_sheet_file
-        )
-
     return sample_list
+
+
+def only_single_or_paired_in_sample_list(sample_list):
+    """
+    Given a list of Sample objects, verifies there are only one type (single end or paired end)
+
+    :param sample_list:
+    :return: Boolean
+    """
+    has_single = False
+    has_paired = False
+
+    for sample in sample_list:
+        if sample.sequence_file.is_paired_end():
+            has_paired = True
+        else:
+            has_single = True
+
+    return not (has_single and has_paired)
 
 
 def _parse_samples(sample_sheet_file):
@@ -175,8 +230,6 @@ def _parse_samples(sample_sheet_file):
                     )
 
             sample_dict[key] = value
-
-        sample_key_list = ['Sample_Name', 'Project_ID', 'File_Forward', 'File_Reverse']
 
         new_sample_dict = deepcopy(sample_dict)
         new_sample_name = new_sample_dict['Sample_Name']
