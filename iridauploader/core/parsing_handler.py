@@ -17,6 +17,22 @@ def get_parser_from_config():
     return parsers.Parser.factory(parser_instance)
 
 
+def parse_metadata(metadata_file):
+    """
+    Creates a metadata parser, then parses a metadata file and returns the metadata object list
+    :return: List of metadata objects: [Metadata, Metadata, ...]
+    """
+    metadata_parser = parsers.Parser.factory("metadata")
+
+    try:
+        metadata_object_list = metadata_parser.get_metadata_list(metadata_file)
+    except parsers.exceptions.ValidationError as e:
+        logging.debug("parsing_handler:Exception while building metadata list")
+        raise e
+
+    return metadata_object_list
+
+
 def parse_and_validate(directory):
     """
     Parses and validates a run from a directory

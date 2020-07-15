@@ -16,23 +16,18 @@ argument_parser = argparse.ArgumentParser(
     description=textwrap.dedent('''
     This program parses sequencing runs and uploads them to IRIDA.
 
-    required arguments:
-      --d DIRECTORY, --directory DIRECTORY
-                            Location of sequencing run to upload.
-                            Directory must be writable.
+    One of -d/--directory or -m/--metadata is required
     '''),
     prog="irida-uploader.sh -d DIRECTORY",
     epilog='-c* options can be used without a parameter to prompt for input.')
-# Our main argument. It is required or else an error will be thrown when the program is run
-# Normally we would use a positional argument, but because of our 1 or None config overrides it makes sense to use
-# a optional argument, with the required set to True. We have to suppress the help on the argument, and add it's help
-# information to the formatted description text of the parser for the argument to be shown as required when --help
-# is used.
+
+# Our main arguments, one of directory or metadata must be used
 argument_parser.add_argument('-d', '--directory',
                              action='store',
-                             required=True,
-                             help=argparse.SUPPRESS)
-# help='Location of sequencing run to upload. Directory must be writable.')
+                             help='Location of sequencing run to upload. Directory must be writable.')
+argument_parser.add_argument('-m', '--metadata',
+                             action='store',
+                             help='CSV file containing metadata for samples')
 # Add the version argument
 argument_parser.add_argument('--version',
                              action='version', version='IRIDA Uploader {}'.format(core.VERSION_NUMBER))
@@ -165,38 +160,41 @@ def main():
     # Setup config options
     _config_uploader(args)
 
-    # Verify directory is writable before upload
-    if not os.access(args.directory, os.W_OK):  # Cannot access upload directory
-        print("ERROR! Specified directory is not writable: {}".format(args.directory))
+    if bool(args.directory) == bool(args.metadata):
+        print("One of -d/--directory or -m/--metadata is required, both cannot be given at the same time.")
         return 1
 
-    # Start Upload
-    if args.batch:
-        return upload_batch(args.directory, args.force, args.assemblies)
-    else:
-        return upload(args.directory, args.force, args.assemblies)
+    if args.directory:
+        # Verify directory is writable before upload
+        if not os.access(args.directory, os.W_OK):  # Cannot access upload directory
+            print("ERROR! Specified directory is not writable: {}".format(args.directory))
+            return 1
+        # Upload
+        return upload_samples(args.directory, bool(args.batch), args.force, args.assemblies)
+
+    if args.metadata:
+        # Upload
+        return upload_metadata(args.metadata)
 
 
-def upload(run_directory, force_upload, upload_assemblies):
+def upload_samples(directory, batch_upload, force_upload, upload_assemblies):
     """
     start upload on a single run directory
-    :param run_directory:
+    :param directory:
+    :param batch_upload:
     :param force_upload:
     :param upload_assemblies
     :return: exit code 0 or 1
     """
-    return core.cli_entry.upload_run_single_entry(run_directory, force_upload, upload_assemblies).exit_code
+    if batch_upload:
+        return core.cli_entry.batch_upload_single_entry(directory, force_upload, upload_assemblies).exit_code
+
+    else:
+        return core.cli_entry.upload_run_single_entry(directory, force_upload, upload_assemblies).exit_code
 
 
-def upload_batch(batch_directory, force_upload, upload_assemblies):
-    """
-    Start uploading runs in the batch directory
-    :param batch_directory:
-    :param force_upload:
-    :param upload_assemblies
-    :return: exit code 0 or 1
-    """
-    return core.cli_entry.batch_upload_single_entry(batch_directory, force_upload, upload_assemblies).exit_code
+def upload_metadata(metadata_file):
+    return core.cli_entry.upload_metadata(metadata_file)
 
 
 # This is called when the program is run for the first time

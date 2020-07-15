@@ -200,3 +200,25 @@ def send_project(project):
     except api.exceptions.IridaConnectionError as e:
         logging.error("Failed to send project to IRIDA")
         raise e
+
+
+def upload_metadata(metadata_list):
+    """
+    Uploads a list of Metadata objects
+    :param metadata_list: [Metadata, Metadata, ...]
+    :return:
+    """
+
+    # get api
+    api_instance = _get_api_instance()
+
+    # send data
+    try:
+        for metadata in metadata_list:
+            api_instance.send_metadata(metadata, metadata.project_id, metadata.sample_id)
+    except api.exceptions.IridaResourceError as e:
+        logging.error("Failed to send metadata to IRIDA")
+        raise e
+    except api.exceptions.IridaConnectionError as e:
+        logging.error("Failed to send metadata to IRIDA")
+        raise e

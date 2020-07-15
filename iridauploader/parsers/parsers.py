@@ -1,6 +1,6 @@
 import logging
 
-from iridauploader.parsers import directory, miseq, miniseq, nextseq
+from iridauploader.parsers import directory, miseq, miniseq, nextseq, metadata
 
 supported_parsers = [
     'miseq',
@@ -52,4 +52,7 @@ class Parser:
         if parser_type == "nextseq":
             logging.debug("Creating nextseq parser")
             return nextseq.Parser()
+        if parser_type == 'metadata':
+            logging.debug("Creating metatdata parser")
+            return metadata.Parser()
         raise AssertionError("Bad parser creation, invalid parser_type given: {}".format(parser_type))

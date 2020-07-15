@@ -12,6 +12,53 @@ from . import api_handler, parsing_handler, logger, exit_return
 VERSION_NUMBER = "0.4.3"
 
 
+def upload_metadata(metadata_file):
+    """
+    This function acts as a single point of entry for uploading metadata
+
+    Handles getting a metadata parser, parsing metadata into objects, and starting the upload of metadata
+    :param metadata_file: File path for metadata csv to upload
+    :return: ExitReturn
+    """
+    # todo: once readonly mode is implemented, add a starting and ending block here
+    # todo: this is because our logging currently depends on writing to a directory
+
+    # Parse metadata file
+    try:
+        metadata_object_list = parsing_handler.parse_metadata(metadata_file)
+    except parsers.exceptions.ValidationError as e:
+        error_msg = "ERROR! Errors occurred during validation with message: {}".format(e.message)
+        logging.error(error_msg)
+        error_list_msg = "Error list: " + pformat(e.validation_result.error_list)
+        logging.error(error_list_msg)
+        logging.info("Metadata not uploaded!")
+        return exit_error(e)
+
+    # Initialize the api for first use
+    logging.info("*** Connecting to IRIDA ***")
+    try:
+        api_handler.initialize_api_from_config()
+    except api.exceptions.IridaConnectionError as e:
+        logging.error("ERROR! Could not initialize irida api.")
+        logging.error("Errors: " + pformat(e.args))
+        logging.info("Metadata not uploaded!")
+        return exit_error(e)
+
+    # Upload metadata
+    try:
+        api_handler.upload_metadata(metadata_object_list)
+    except api.exceptions.IridaConnectionError as e:
+        logging.error("Lost connection to Irida")
+        logging.error("Errors: " + pformat(e.args))
+        return exit_error(e)
+    except api.exceptions.IridaResourceError as e:
+        logging.error("Could not access IRIDA resource")
+        logging.error("Errors: " + pformat(e.args))
+        return exit_error(e)
+
+    return exit_success()
+
+
 def upload_run_single_entry(directory, force_upload=False, upload_assemblies=False):
     """
     This function acts as a single point of entry for uploading a directory
