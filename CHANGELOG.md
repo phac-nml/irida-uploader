@@ -4,8 +4,8 @@ Changes
 Beta 0.4.3
 ----------
 Developer changes:
-* Added method `get_metadata(self, sample_id, project_id)` to allow other metadata to be fetched from the `api` module
-* Added method `send_metadata(self, metadata, project_id, sample_id)` to allow other metadata to be sent using the `api` module
+* Added method `get_metadata(self, sample_name, project_id)` to allow other metadata to be fetched from the `api` module
+* Added method `send_metadata(self, metadata, project_id, sample_name)` to allow other metadata to be sent using the `api` module
 * Added model `Metadata` to support `send_metadata` method
 
 Beta 0.4.2
