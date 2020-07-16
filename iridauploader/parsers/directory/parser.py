@@ -2,7 +2,6 @@ import logging
 import os
 
 import iridauploader.progress as progress
-import iridauploader.model as model
 
 from iridauploader.parsers import exceptions
 from iridauploader.parsers import common
@@ -130,7 +129,6 @@ class Parser(BaseParser):
 
         # Try to build sequencing run from sample sheet & meta data, raise validation error if errors occur
         try:
-            # sample_list = sample_parser.parse_sample_list(sample_sheet, run_data_directory_file_list)
             run_metadata = sample_parser.parse_metadata(sample_list)
             sequencing_run = common.build_sequencing_run_from_samples(sample_list,
                                                                       run_metadata,

@@ -487,16 +487,16 @@ class ApiCalls(object):
 
         return result
 
-    def get_metadata(self, sample_id, project_id):
+    def get_metadata(self, sample_name, project_id):
         """
         API call to api/samples/{sampleId}/metadata
         arguments:
-            sample_id
+            sample_name
             project_id
         returns list of metadata associated with sampleID
         """
 
-        logging.info("Getting metadata from sample ID '{}' found in project ID '{}'".format(sample_id, project_id))
+        logging.info("Getting metadata from sample name '{}' found in project ID '{}'".format(sample_name, project_id))
 
         try:
             project_url = self._get_link(self.base_url, "projects")
@@ -513,14 +513,14 @@ class ApiCalls(object):
         try:
             url = self._get_link(sample_url, "sample/metadata",
                                  target_dict={
-                                     "key": "identifier",
-                                     "value": sample_id
+                                     "key": "sampleName",
+                                     "value": sample_name
                                  })
             response = self._session.get(url)
 
         except StopIteration:
-            logging.error("The given sample doesn't exist: ".format(sample_id))
-            raise exceptions.IridaResourceError("The given sample ID doesn't exist", sample_id)
+            logging.error("The given sample name doesn't exist: ".format(sample_name))
+            raise exceptions.IridaResourceError("The given sample name doesn't exist", sample_name)
 
         result = response.json()["resource"]["metadata"]
 
@@ -670,17 +670,17 @@ class ApiCalls(object):
 
         return json_res
 
-    def send_metadata(self, metadata, project_id, sample_id):
+    def send_metadata(self, metadata, project_id, sample_name):
         """
         Put request to add metadata to specific sample ID
 
         :param metadata: Metadata object
         :param project_id: id of project sample id is in
-        :param sample_id: id of sample to add metadata to
+        :param sample_name: name of sample in project to add metadata to
         :return: json response from server
         """
 
-        logging.info("Adding metadata to sample '{}' found in project '{}' on IRIDA.".format(sample_id, project_id))
+        logging.info("Adding metadata to sample '{}' found in project '{}' on IRIDA.".format(sample_name, project_id))
 
         try:
             project_url = self._get_link(self.base_url, "projects")
@@ -697,13 +697,13 @@ class ApiCalls(object):
         try:
             url = self._get_link(sample_url, "sample/metadata",
                                  target_dict={
-                                     "key": "identifier",
-                                     "value": sample_id
+                                     "key": "sampleName",
+                                     "value": sample_name
                                  })
 
         except StopIteration:
-            logging.error("The given sample doesn't exist: ".format(sample_id))
-            raise exceptions.IridaResourceError("The given sample ID doesn't exist", sample_id)
+            logging.error("The given sample doesn't exist: ".format(sample_name))
+            raise exceptions.IridaResourceError("The given sample doesn't exist", sample_name)
 
         json_obj = json.dumps(metadata.get_uploadable_dict())
 
