@@ -2,7 +2,6 @@ import logging
 import os
 
 import iridauploader.progress as progress
-import iridauploader.model as model
 
 from iridauploader.parsers import exceptions
 from iridauploader.parsers import common
@@ -87,20 +86,10 @@ class Parser:
         Throws a ValidationError with a validation result attached if it cannot make a sequencing run
 
         :param sample_sheet:
+        :param run_data_directory_file_list: Optional: List of files in the data directory to verify against the
+        SampleList.csv file. This is used when deploying the parsers on a cloud environment.
         :return: SequencingRun
         """
-
-        # get file list
-        validation_result = model.ValidationResult()
-
-        try:
-            if run_data_directory_file_list is None:
-                data_dir = os.path.dirname(sample_sheet)
-                run_data_directory_file_list = common.get_file_list(data_dir)
-        except exceptions.DirectoryError as error:
-            validation_result.add_error(error)
-            logging.error("Errors occurred while parsing files")
-            raise exceptions.ValidationError("Errors occurred while parsing files", validation_result)
 
         # Try to get the sample sheet, validate that the sample sheet is valid
         validation_result = validation.validate_sample_sheet(sample_sheet)
@@ -108,9 +97,41 @@ class Parser:
             logging.error("Errors occurred while getting sample sheet")
             raise exceptions.ValidationError("Errors occurred while getting sample sheet", validation_result)
 
+        # When running with a premade file list, verify files on sample_sheet are in file list
+        try:
+            if run_data_directory_file_list is not None:
+                sample_parser.verify_sample_sheet_file_names_in_file_list(sample_sheet, run_data_directory_file_list)
+        except exceptions.SequenceFileError as error:
+            validation_result.add_error(error)
+            logging.error("Errors occurred while building sequence run from sample sheet")
+            raise exceptions.ValidationError("Errors occurred while building sequence run from sample sheet",
+                                             validation_result)
+
+        # Build a list of sample objects from sample sheet
+        try:
+            if run_data_directory_file_list is not None:
+                sample_list = sample_parser.build_sample_list_from_sample_sheet_no_verify(sample_sheet)
+            else:
+                sample_list = sample_parser.build_sample_list_from_sample_sheet_with_abs_path(sample_sheet)
+        except exceptions.DirectoryError as error:
+            validation_result.add_error(error)
+            logging.error("Errors occurred while parsing files")
+            raise exceptions.ValidationError("Errors occurred while parsing files", validation_result)
+
+        # verify samples in sample_list are all of one type, either single or paired end
+        if not sample_parser.only_single_or_paired_in_sample_list(sample_list):
+            e = exceptions.SampleSheetError(
+                ("Your sample sheet is malformed. "
+                 "SampleSheet cannot have both paired end and single end runs. "
+                 "Make sure all samples are either paired or single."),
+                sample_sheet
+            )
+            validation_result.add_error(e)
+            logging.error("Error occurred while building file list: Sample sheet has both paired and single end reads")
+            raise exceptions.ValidationError("Errors occurred while building file list.", validation_result)
+
         # Try to build sequencing run from sample sheet & meta data, raise validation error if errors occur
         try:
-            sample_list = sample_parser.parse_sample_list(sample_sheet, run_data_directory_file_list)
             run_metadata = sample_parser.parse_metadata(sample_list)
             sequencing_run = common.build_sequencing_run_from_samples(sample_list, run_metadata)
         except exceptions.SequenceFileError as error:
