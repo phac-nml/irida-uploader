@@ -34,7 +34,7 @@ class Metadata:
     @property
     def sample_name(self):
         return self._sample_name
-    
+
     @sample_name.setter
     def sample_name(self, sample_name):
         self._sample_name = sample_name
