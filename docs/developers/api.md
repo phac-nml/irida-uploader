@@ -67,9 +67,9 @@ project_id -- the id of the project the sample is on
 
 returns list of assemblies files dictionary for given sample_id
 
-#### get_metadata(self, sample_id, project_id)
+#### get_metadata(self, sample_name, project_id)
 API call to api/samples/sample_id/metadata
-We fetch the other metadata metrics through the sample id
+We fetch the other metadata metrics through the sample name and its id from the project
 
 **arguments:**
 
@@ -133,9 +133,9 @@ assemblies -- default:False -- upload as assemblies instead of regular sequence 
 
 unmodified json response from server.
 
-#### send_metadata(self, metadata, project_id, sample_id)
-Put request to add user metadata to specific sample id
-raises error if either project ID or sample ID found in Sample object
+#### send_metadata(self, metadata, project_id, sample_name)
+Put request to add user metadata to specific sample name in the project.
+Raises error if either project ID or sample name found in Sample object
 doesn't exist in irida
 
 **arguments:**
@@ -144,7 +144,7 @@ metadata -- Metadata object to send to irida
 
 project_id -- irida project identifier
 
-sample_id -- irida numberical sample id
+sample_name -- sample now in specific irida project
 
 **returns:**
 
