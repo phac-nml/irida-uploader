@@ -47,7 +47,7 @@ It also includes a `properties_dict` that is used to store meta data, and is fil
 
 The `Metadata` object defines and stores additional metadata for upload to IRIDA in a key-value dictionary.
 
-When using the API and the `send_metadata` method, an `Metadata` object must be passed to the method.
+When using the API and the `send_metadata` method, a `Metadata` object must be passed to the method.
 
 ## Other Objects
 
