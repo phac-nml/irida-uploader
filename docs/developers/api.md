@@ -144,7 +144,7 @@ metadata -- Metadata object to send to irida
 
 project_id -- irida project identifier
 
-sample_name -- sample now in specific irida project
+sample_name -- sample name found in specified irida project
 
 **returns:**
 
