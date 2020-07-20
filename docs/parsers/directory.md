@@ -55,3 +55,11 @@ my-sample-1,75,file_1.fastq.gz
 my-sample-2,75,samp_F.fastq.gz
 my-sample-3,76,germ_f.fastq.gz
 ```
+
+Alternatively, full file paths can be used when specifying files:
+```
+[Data]
+Sample_Name,Project_ID,File_Forward,File_Reverse
+my-sample-1,5,/home/user/my_file_dir/directory_run/file_1.fastq.gz,
+my-sample-2,5,/home/user/my_file_dir/directory_run/samp_F.fastq.gz,
+```
