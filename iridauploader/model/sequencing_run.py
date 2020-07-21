@@ -1,3 +1,12 @@
+"""
+A SequencingRun contains all required information from a run
+
+project_list: list of Project objects
+metadata: dict of key value pairs for additional data
+    the metadata dict requires the key `layoutType` with one of ['PAIRED_END', 'SINGLE_END']
+assemblies: boolean, True if uploading assemblies
+sequencing_run_type: string for path uploading to.
+"""
 from cerberus import Validator, TypeDefinition
 
 from iridauploader.model.project import Project

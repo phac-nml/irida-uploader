@@ -262,15 +262,15 @@ class ApiCalls(object):
 
         return ret_val
 
-    @staticmethod
-    def _get_upload_url(base_url, run_type_str):
+    def _get_upload_url(self, base_url, run_type_str):
         """
         Concatenates a base url with the run type for constructing the upload url path
         :param base_url: Upload url
         :param run_type_str: Type of sequencing run that is being uploaded
         :return: url
         """
-        return urljoin(base_url, "sequencingrun/" + run_type_str)
+        seq_run_url = self._get_link(base_url, "sequencingRun")
+        return urljoin(seq_run_url, run_type_str)
 
     @staticmethod
     def _get_irida_exception(response):
