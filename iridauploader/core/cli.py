@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 
+import argparse
 import getpass
 import os
 import textwrap
-
-import argparse
 
 import iridauploader.config as config
 import iridauploader.core as core
@@ -164,8 +163,8 @@ def _config_uploader(args):
 
 def main():
     # Parse the arguments passed from the command line and start the upload
-    argparser = init_argparser()
-    args = argparser.parse_args()
+    argument_parser = init_argparser()
+    args = argument_parser.parse_args()
     # Setup config options
     _config_uploader(args)
 

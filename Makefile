@@ -3,7 +3,6 @@ IRIDA_VERSION?=master
 
 all: clean requirements
 gui: clean requirementsgui
-guidev: clean requirementsguidev
 
 clean:
 	rm -rf iridauploader/.cache
@@ -19,32 +18,20 @@ requirements:
 	python3 -m venv .virtualenv
 	source .virtualenv/bin/activate
 	pip3 install --upgrade wheel
-	pip3 install -r requirements.txt
-
-windows: clean requirements
-	source .virtualenv/bin/activate
-	python -m nsist windows-installer.cfg
+	pip3 install -e .
 
 requirementsgui:
 	python3 -m venv .virtualenv
 	source .virtualenv/bin/activate
 	pip3 install --upgrade wheel
-	pip3 install -r requirements.txt
-	pip3 install -r requirementsgui.txt
+	pip3 install -e .[GUI]
 
-requirementsguidev:
-	python3 -m venv .virtualenv
+windows: clean requirements
 	source .virtualenv/bin/activate
-	pip3 install --upgrade wheel
-	pip3 install -r requirements.txt
-	pip3 install -r requirementsguidev.txt
+	python -m nsist windows-installer.cfg
 
 wheel: clean
 	python3 setup.py sdist bdist_wheel
-
-windowsgui: clean requirementsgui
-	source .virtualenv/bin/activate
-	python -m nsist windows-gui-installer.cfg
 
 unittests: clean requirements
 	source .virtualenv/bin/activate
