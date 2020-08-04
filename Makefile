@@ -26,6 +26,12 @@ requirementsgui:
 	pip3 install --upgrade wheel
 	pip3 install -e .[GUI]
 
+requirementstest:
+	python3 -m venv .virtualenv
+	source .virtualenv/bin/activate
+	pip3 install --upgrade wheel
+	pip3 install -e .[TEST]
+
 windows: clean requirements
 	source .virtualenv/bin/activate
 	python -m nsist windows-installer.cfg
@@ -33,7 +39,7 @@ windows: clean requirements
 wheel: clean
 	python3 setup.py sdist bdist_wheel
 
-unittests: clean requirements
+unittests: clean requirementstest
 	source .virtualenv/bin/activate
 	export IRIDA_UPLOADER_TEST='True'
 	python3 -m unittest discover -s tests -t iridauploader
@@ -44,15 +50,15 @@ preintegration:
 	mkdir iridauploader/tests_integration/tmp/reference-files
 	mkdir iridauploader/tests_integration/tmp/sequence-files
 
-integrationtests: clean requirements preintegration
+integrationtests: clean requirementstest preintegration
 	source .virtualenv/bin/activate
 	export IRIDA_UPLOADER_TEST='True'
-	xvfb-run --auto-servernum --server-num=1 python3 start_integration_tests.py master
+	xvfb-run --auto-servernum --server-num=1 integration-test master
 
-integrationtestsdev: clean requirements preintegration
+integrationtestsdev: clean requirementstest preintegration
 	source .virtualenv/bin/activate
 	export IRIDA_UPLOADER_TEST='True'
-	xvfb-run --auto-servernum --server-num=1 python3 start_integration_tests.py development
+	xvfb-run --auto-servernum --server-num=1 integration-test development
 
 pep8: clean requirements
 	source .virtualenv/bin/activate

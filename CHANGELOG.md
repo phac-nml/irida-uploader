@@ -22,6 +22,10 @@ Developer changes:
   * Bash scripts now use the `setup.py` defined entry points for parity with `pip`
   * `irida-uploader.sh` -> `scripts/upload.sh`
   * `gui-uploader.sh` -> `scripts/gui.sh`
+* Changed integration tests build/startup to follow the `setup.py` flow
+  * Moved `start_integration_tests.py` to `iridauploader/tests_integration`
+  * added `[TEST]` as an `extra` to `setup.py` for build simplicity
+  * added `integration-test` as an entry point when building with `[Test]`, which `Makefile` now uses
 
 Beta 0.4.3
 ----------

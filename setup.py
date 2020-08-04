@@ -28,11 +28,13 @@ setuptools.setup(
                       ],
     extras_require={
         "GUI": ["PyQt5==5.12.1", "PyQt5-stubs==5.12.1"],
+        "TEST": ["selenium"],
     },
     entry_points={
         'console_scripts': [
             'irida-uploader=iridauploader.core.cli:main',
             'irida-uploader-gui=iridauploader.gui.gui:main [GUI]',
+            'integration-test=iridauploader.tests_integration.start_integration_tests:main [TEST]'
         ],
     },
     # https://pypi.org/pypi?%3Aaction=list_classifiers
