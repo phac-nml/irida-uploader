@@ -258,7 +258,7 @@ class ApiCalls(object):
             logging.debug(target_key + " not found in links. Available links: "
                           ", ".join([str(link["rel"]) for link in links_list]))
             raise exceptions.IridaKeyError(target_key + " not found in links. Available links: "
-                                           ", ".join([str(link["rel"]) for link in links_list]))
+                                           + ", ".join([str(link["rel"]) for link in links_list]))
 
         return ret_val
 
@@ -274,8 +274,13 @@ class ApiCalls(object):
         There is currently an issue in the IRIDA API with finding links for different sequencer routes
         once that is fixed, the following should be written as:
         
-        seq_run_url = self._get_link(base_url, "sequencingRun")
+        seq_run_url = self._get_link(base_url, "sequencingrun")
         return urljoin(seq_run_url, run_type_str)
+        
+        or better yet:
+        
+        seq_run_url = self._get_link(base_url, "sequencingrun")
+        return self._get_link(seq_run_url, run_type_str)
         """
         return urljoin(base_url, "sequencingrun/" + run_type_str)
 
@@ -867,11 +872,10 @@ class ApiCalls(object):
         if 'workflow' not in metadata_dict:
             metadata_dict['workflow'] = 'workflow'
 
-        seq_run_url = self._get_link(self.base_url, "sequencingRuns")
         # todo: we upload everything as miseq, should change when new sequencers are added to IRIDA
         # The easiest way to do this would be to add a sequencer type param to the metadata when parsing the sample
         # here
-        url = self._get_upload_url(seq_run_url, sequencing_run_type)
+        url = self._get_upload_url(self.base_url, sequencing_run_type)
 
         headers = {
             "headers": {
