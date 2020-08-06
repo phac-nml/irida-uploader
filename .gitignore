@@ -17,3 +17,5 @@ irida-uploader.log
 irida_uploader_status.info
 .vscode/
 venv/
+iridauploader/tests_integration/test_config.conf
+
