@@ -269,8 +269,15 @@ class ApiCalls(object):
         :param run_type_str: Type of sequencing run that is being uploaded
         :return: url
         """
+
+        """TODO: 
+        There is currently an issue in the IRIDA API with finding links for different sequencer routes
+        once that is fixed, the following should be written as:
+        
         seq_run_url = self._get_link(base_url, "sequencingRun")
         return urljoin(seq_run_url, run_type_str)
+        """
+        return urljoin(base_url, "sequencingrun/" + run_type_str)
 
     @staticmethod
     def _get_irida_exception(response):
