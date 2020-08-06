@@ -274,15 +274,16 @@ class ApiCalls(object):
         There is currently an issue in the IRIDA API with finding links for different sequencer routes
         once that is fixed, the following should be written as:
 
-        seq_run_url = self._get_link(base_url, "sequencingrun")
+        seq_run_url = self._get_link(base_url, "sequencingRuns")
         return urljoin(seq_run_url, run_type_str)
 
         or better yet:
 
-        seq_run_url = self._get_link(base_url, "sequencingrun")
+        seq_run_url = self._get_link(base_url, "sequencingRuns")
         return self._get_link(seq_run_url, run_type_str)
         """
-        return urljoin(base_url, "sequencingrun/" + run_type_str)
+        seq_run_url = self._get_link(base_url, "sequencingRuns")
+        return urljoin(seq_run_url + "/", run_type_str)
 
     @staticmethod
     def _get_irida_exception(response):
