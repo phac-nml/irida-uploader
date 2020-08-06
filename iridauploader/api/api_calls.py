@@ -257,8 +257,8 @@ class ApiCalls(object):
         except StopIteration:
             logging.debug(target_key + " not found in links. Available links: "
                           ", ".join([str(link["rel"]) for link in links_list]))
-            raise exceptions.IridaKeyError(target_key + " not found in links. Available links: "
-                                           + ", ".join([str(link["rel"]) for link in links_list]))
+            raise exceptions.IridaKeyError(target_key + " not found in links. Available links: " + ""
+                                           ", ".join([str(link["rel"]) for link in links_list]))
 
         return ret_val
 
@@ -270,15 +270,15 @@ class ApiCalls(object):
         :return: url
         """
 
-        """TODO: 
+        """TODO:
         There is currently an issue in the IRIDA API with finding links for different sequencer routes
         once that is fixed, the following should be written as:
-        
+
         seq_run_url = self._get_link(base_url, "sequencingrun")
         return urljoin(seq_run_url, run_type_str)
-        
+
         or better yet:
-        
+
         seq_run_url = self._get_link(base_url, "sequencingrun")
         return self._get_link(seq_run_url, run_type_str)
         """
