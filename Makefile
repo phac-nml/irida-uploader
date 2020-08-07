@@ -1,8 +1,9 @@
 SHELL=/bin/bash
 IRIDA_VERSION?=master
 
-all: clean requirements
-gui: clean requirementsgui
+requirements: clean env
+	source .virtualenv/bin/activate
+	pip3 install -e .
 
 clean:
 	rm -rf iridauploader/.cache
@@ -14,33 +15,26 @@ clean:
 	rm -rf iridauploader/tests_integration/repos/
 	rm -rf iridauploader/tests_integration/tmp
 
-requirements:
+env:
 	python3 -m venv .virtualenv
 	source .virtualenv/bin/activate
-	pip3 install --upgrade wheel
-	pip3 install -e .
+	pip3 install --upgrade wheel pip
 
-requirementsgui:
-	python3 -m venv .virtualenv
+gui: clean env
 	source .virtualenv/bin/activate
-	pip3 install --upgrade wheel
 	pip3 install -e .[GUI]
 
-requirementstest:
-	python3 -m venv .virtualenv
+windows: clean env
 	source .virtualenv/bin/activate
-	pip3 install --upgrade wheel
-	pip3 install -e .[TEST]
-
-windows: clean requirements
-	source .virtualenv/bin/activate
-	python -m nsist windows-installer.cfg
+	pip3 install -e .[WINDOWS]
+	python3 -m nsist windows-installer.cfg
 
 wheel: clean
 	python3 setup.py sdist bdist_wheel
 
-unittests: clean requirementstest
+unittests: clean
 	source .virtualenv/bin/activate
+	pip3 install -e .[TEST]
 	export IRIDA_UPLOADER_TEST='True'
 	python3 -m unittest discover -s tests -t iridauploader
 
@@ -50,17 +44,13 @@ preintegration:
 	mkdir iridauploader/tests_integration/tmp/reference-files
 	mkdir iridauploader/tests_integration/tmp/sequence-files
 
-integrationtests: clean requirementstest preintegration
+integrationtests: clean preintegration
 	source .virtualenv/bin/activate
+	pip3 install -e .[TEST]
 	export IRIDA_UPLOADER_TEST='True'
-	xvfb-run --auto-servernum --server-num=1 integration-test master
+	xvfb-run --auto-servernum --server-num=1 integration-test $(branch)
 
-integrationtestsdev: clean requirementstest preintegration
-	source .virtualenv/bin/activate
-	export IRIDA_UPLOADER_TEST='True'
-	xvfb-run --auto-servernum --server-num=1 integration-test development
-
-pep8: clean requirements
+pep8: requirements
 	source .virtualenv/bin/activate
 	pycodestyle --show-source --exclude=".git","bin",".idea","docs",".github","site",".virtualenv","iridauploader/build" --ignore="E501" .
 

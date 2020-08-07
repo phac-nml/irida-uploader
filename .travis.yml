@@ -15,7 +15,7 @@ matrix:
       python: 3.6
     - env: "TEST_SUITE=unittests"
       python: 3.7
-    - env: "TEST_SUITE=integrationtests"
+    - env: "TEST_SUITE=integrationtests branch=master"
       python: 3.6
       before_script:
         - java -version
@@ -35,7 +35,7 @@ matrix:
         - rm ~/chromedriver_linux64.zip
         - sudo mv -f ~/chromedriver ~/bin/chromedriver
         - sudo chmod 777 ~/bin/chromedriver
-    - env: "TEST_SUITE=integrationtestsdev"
+    - env: "TEST_SUITE=integrationtests branch=development"
       python: 3.6
       before_script:
         - java -version

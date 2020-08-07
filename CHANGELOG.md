@@ -26,6 +26,11 @@ Developer changes:
   * Moved `start_integration_tests.py` to `iridauploader/tests_integration`
   * added `[TEST]` as an `extra` to `setup.py` for build simplicity
   * added `integration-test` as an entry point when building with `[Test]`, which `Makefile` now uses
+  * Makefile command for integration tests has changed from:
+    * `make integrationtests` ----> `make integrationtests branch=master`
+    * `make integrationtestsdev` -> `make integrationtests branch=development`
+    * any IRIDA github branch can be specified with the `branch` argument
+* Makefile has been simplified for easier readability
 
 Beta 0.4.3
 ----------
