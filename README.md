@@ -28,13 +28,13 @@ You can build an environment and run the uploader from source code with the foll
 
     $ make
     $ source .virtualenv/bin/activate
-    $ iridauploader --help
+    $ irida-uploader --help
 
 You can also build and run the GUI with:
 
     $ make gui
     $ source .virtualenv/bin/activate
-    $ iridauploadergui
+    $ irida-uploader-gui
 
 Creating the Windows installer from source code
 ------------------------------
@@ -49,7 +49,7 @@ Then run the command:
 
     $ make windows
     
-This will create a new installer in the folder `build/nsis/` with a name similar to `IRIDA_Uploader_1.0.exe`
+This will create a new installer in the folder `build/nsis/` with a name similar to `IRIDA_Uploader_GUI_0.X.X.exe`
 
 Running Tests
 -------------
@@ -60,7 +60,7 @@ Running the unittests can be done with the command:
 
     $ make unittests
 
-#### IRIDA Integration
+#### Integration tests
 
 To run integration tests your will need some additional software.
 
@@ -76,9 +76,13 @@ Running the IRIDA integration tests can be done with the command:
 
     $ make integrationtests branch=<IRIDA github branch to test against>
 
+Example:
+
+    $ make integrationtests branch=development
+
 Tests will be logged to `~/.cache/irida_uploader_test/log/irida-uploader.log`
 
-#### PEP8
+#### PEP8 tests
 
 You can run pep8 tests with:
 

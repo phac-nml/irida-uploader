@@ -8,7 +8,7 @@ setuptools.setup(
     name='iridauploader',
     version='0.5.0',
     description='IRIDA uploader: upload NGS data to IRIDA system',
-    url='https://https://github.com/phac-nml/irida-uploader',
+    url='https://github.com/phac-nml/irida-uploader',
     author='Jeffrey Thiessen',
     author_email='jeffrey.thiessen@canada.ca',
     long_description=long_description,
