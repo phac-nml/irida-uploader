@@ -112,7 +112,7 @@ project_id -- id of project to send sample too
 
 Unmodified json response from server
 
-#### send_sequence_files(self, sequence_file, sample_name, project_id, upload_id, assemblies=False)
+#### send_sequence_files(self, sequence_file, sample_name, project_id, upload_id, upload_mode=MODE_DEFAULT)
 Post request to send sequence files found in given sample argument
 raises error if either project ID or sample ID found in Sample object
 doesn't exist in irida
@@ -127,7 +127,7 @@ project_id -- irida project identifier
 
 upload_id -- the run to upload the files to
 
-assemblies -- default:False -- upload as assemblies instead of regular sequence files
+upload_mode -- default:MODE_DEFAULT -- which upload mode will be used
 
 **returns:**
 

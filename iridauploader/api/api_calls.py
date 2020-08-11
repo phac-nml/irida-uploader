@@ -20,6 +20,17 @@ import iridauploader.progress as progress
 from . import exceptions
 
 
+MODE_DEFAULT = "default"
+MODE_ASSEMBLIES = "assemblies"
+MODE_FAST5 = "fast5"
+
+UPLOAD_MODES = [
+    MODE_DEFAULT,
+    MODE_ASSEMBLIES,
+    MODE_FAST5
+]
+
+
 class ApiCalls(object):
 
     def __init__(self, client_id, client_secret,
@@ -621,7 +632,7 @@ class ApiCalls(object):
 
         return json_res
 
-    def send_sequence_files(self, sequence_file, sample_name, project_id, upload_id, assemblies=False):
+    def send_sequence_files(self, sequence_file, sample_name, project_id, upload_id, upload_mode=MODE_DEFAULT):
         """
         post request to send sequence files found in given sample argument
         raises error if either project ID or sample ID found in Sample object
@@ -632,7 +643,7 @@ class ApiCalls(object):
             sample_name -- irida sample name identifier to send to
             project_id -- irida project identifier
             upload_id -- the run to upload the files to
-            assemblies -- default:False -- upload as assemblies instead of regular sequence files
+            upload_mode -- default:MODE_DEFAULT -- which upload mode will be used
 
         returns result of post request.
         """
@@ -654,7 +665,7 @@ class ApiCalls(object):
             raise exceptions.IridaResourceError("The given project ID doesn't exist", project_id)
 
         # Get upload url
-        url = self._get_sample_upload_url(sequence_file, samples_url, sample_name, assemblies)
+        url = self._get_sample_upload_url(sequence_file, samples_url, sample_name, upload_mode)
 
         # Get the data encoder
         data_pkg = self._get_sequence_data_pkg(sequence_file, upload_id)
@@ -733,23 +744,29 @@ class ApiCalls(object):
 
         return json_res
 
-    def _get_sample_upload_url(self, sequence_file, samples_url, sample_name, assemblies):
+    def _get_sample_upload_url(self, sequence_file, samples_url, sample_name, upload_mode):
         """
         Gets the appropriate url for single end, paired end, or assemblies files.
         :param sequence_file: Sequence Fle to upload
         :param samples_url: Sample Url to upload to
         :param sample_name: Sample Name (identifier) to upload to
-        :param assemblies: Boolean for indicating assemblies files
+        :param upload_mode: String indicating upload mode
         :return:
         """
         try:
-            if assemblies:
+            if upload_mode == MODE_ASSEMBLIES:
                 url = self._get_link(samples_url, "sample/assemblies",
                                      target_dict={
                                          "key": "sampleName",
                                          "value": sample_name
                                      })
-            else:
+            elif upload_mode == MODE_FAST5:
+                url = self._get_link(samples_url, "sample/fast5",
+                                     target_dict={
+                                         "key": "sampleName",
+                                         "value": sample_name
+                                     })
+            elif upload_mode == MODE_DEFAULT:
                 part_url = self._get_link(samples_url, "sample/sequenceFiles",
                                           target_dict={
                                               "key": "sampleName",
@@ -762,6 +779,13 @@ class ApiCalls(object):
                 else:
                     logging.debug("api_calls: sending single-end file")
                     url = part_url
+            else:
+                error = "Upload mode '{}' is invalid. Upload mode must be one of {}".format(
+                    upload_mode,
+                    UPLOAD_MODES
+                )
+                logging.error(error)
+                raise exceptions.IridaResourceError(error, upload_mode)
 
         except StopIteration:
             logging.error("The given sample '{}' does not exist on that project".format(sample_name))
