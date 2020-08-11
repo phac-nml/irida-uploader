@@ -1,6 +1,15 @@
 Changes
 =======
 
+Beta 0.5.0
+----------
+Added functionality:
+* Added `nanopore_assemblies` as an alias for directory uploads
+
+Developer changes:
+* Changed `api` to post to `<base_url>/sequencingrun/<sequencing_run_type>` instead of `<base_url>/sequencingrun/miseqrun`
+  * Added `sequencing_run_type` to the `parser -> model -> api` chain
+
 Beta 0.4.3
 ----------
 Added functionality:

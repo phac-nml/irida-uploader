@@ -26,7 +26,7 @@ class TestPrepareAndValidateForUpload(unittest.TestCase):
         # make a sequencing run that we can work with in the tests
         sheet_file = path.join(path_to_module, "fake_ngs_data", "SampleSheet.csv")
         global sequencing_run
-        sequencing_run = Parser.get_sequencing_run(sheet_file)
+        sequencing_run = Parser().get_sequencing_run(sheet_file)
 
     def tearDown(self):
         # set out sequencing run back to None so each tests starts from a clean state
@@ -155,7 +155,7 @@ class TestUploadSequencingRun(unittest.TestCase):
         # make a sequencing run that we can work with in the tests
         sheet_file = path.join(path_to_module, "fake_ngs_data", "SampleSheet.csv")
         global sequencing_run
-        sequencing_run = Parser.get_sequencing_run(sheet_file)
+        sequencing_run = Parser().get_sequencing_run(sheet_file)
 
     def tearDown(self):
         # reset out make sequencing run back to None so all tests start from clean
@@ -187,7 +187,8 @@ class TestUploadSequencingRun(unittest.TestCase):
         api_handler.upload_sequencing_run(sequencing_run)
 
         # ensure the response matches our mocks, and that all the needed functions were called correctly
-        stub_api_instance.create_seq_run.assert_called_once_with(sequencing_run.metadata)
+        stub_api_instance.create_seq_run.assert_called_once_with(sequencing_run.metadata,
+                                                                 sequencing_run.sequencing_run_type)
         stub_api_instance.set_seq_run_uploading.assert_called_once_with(mock_sequence_run_id)
         stub_api_instance.send_sequence_files.assert_has_calls([
             unittest.mock.call(project_id='6', sample_name='01-1111', sequence_file='mock_sample',
@@ -225,7 +226,8 @@ class TestUploadSequencingRun(unittest.TestCase):
         api_handler.upload_sequencing_run(sequencing_run)
 
         # ensure the response matches our mocks, and that all the needed functions were called correctly
-        stub_api_instance.create_seq_run.assert_called_once_with(sequencing_run.metadata)
+        stub_api_instance.create_seq_run.assert_called_once_with(sequencing_run.metadata,
+                                                                 sequencing_run.sequencing_run_type)
         stub_api_instance.set_seq_run_uploading.assert_called_once_with(mock_sequence_run_id)
         stub_api_instance.send_sequence_files.assert_has_calls([
             unittest.mock.call(project_id='6', sample_name='01-1111', sequence_file='mock_sample',
@@ -263,7 +265,8 @@ class TestUploadSequencingRun(unittest.TestCase):
             api_handler.upload_sequencing_run(sequencing_run)
 
         # verify the sequencing run was set to an error state after the upload was run
-        stub_api_instance.create_seq_run.assert_called_once_with(sequencing_run.metadata)
+        stub_api_instance.create_seq_run.assert_called_once_with(sequencing_run.metadata,
+                                                                 sequencing_run.sequencing_run_type)
         stub_api_instance.set_seq_run_uploading.assert_called_once_with(mock_sequence_run_id)
         stub_api_instance.set_seq_run_error.assert_called_once_with(mock_sequence_run_id)
 

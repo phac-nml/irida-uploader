@@ -90,12 +90,13 @@ def parse_metadata(sample_sheet_file):
     return metadata_dict
 
 
-def build_sequencing_run_from_samples(sample_sheet_file, metadata):
+def build_sequencing_run_from_samples(sample_sheet_file, metadata, sequencing_run_type):
     """
     Create a SequencingRun object with full project/sample/sequence_file structure
 
     :param sample_sheet_file:
     :param metadata:
+    :param sequencing_run_type:
     :return: SequencingRun
     """
     sample_list = _parse_sample_list(sample_sheet_file)
@@ -115,7 +116,9 @@ def build_sequencing_run_from_samples(sample_sheet_file, metadata):
 
         project.add_sample(sample)
 
-    sequence_run = model.SequencingRun(metadata, project_list)
+    sequence_run = model.SequencingRun(metadata=metadata,
+                                       project_list=project_list,
+                                       sequencing_run_type=sequencing_run_type)
     logging.debug("SequencingRun built")
     return sequence_run
 

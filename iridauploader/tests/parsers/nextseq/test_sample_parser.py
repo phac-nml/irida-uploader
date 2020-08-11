@@ -216,7 +216,9 @@ class TestBuildSequencingRunFromSamples(unittest.TestCase):
                                "SampleSheet.csv")
         meta_data = sample_parser.parse_metadata(sheet_file)
 
-        sequencing_run = sample_parser.build_sequencing_run_from_samples(sheet_file, meta_data)
+        sequencing_run_type = 'nextseq'
+
+        sequencing_run = sample_parser.build_sequencing_run_from_samples(sheet_file, meta_data, sequencing_run_type)
 
         # Returns a SequencingRun
         self.assertEqual(type(sequencing_run), model.SequencingRun)

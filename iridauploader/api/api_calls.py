@@ -257,10 +257,33 @@ class ApiCalls(object):
         except StopIteration:
             logging.debug(target_key + " not found in links. Available links: "
                           ", ".join([str(link["rel"]) for link in links_list]))
-            raise exceptions.IridaKeyError(target_key + " not found in links. Available links: "
+            raise exceptions.IridaKeyError(target_key + " not found in links. Available links: " + ""
                                            ", ".join([str(link["rel"]) for link in links_list]))
 
         return ret_val
+
+    def _get_upload_url(self, base_url, run_type_str):
+        """
+        Concatenates a base url with the run type for constructing the upload url path
+        :param base_url: Upload url
+        :param run_type_str: Type of sequencing run that is being uploaded
+        :return: url
+        """
+
+        """TODO:
+        There is currently an issue in the IRIDA API with finding links for different sequencer routes
+        once that is fixed, the following should be written as:
+
+        seq_run_url = self._get_link(base_url, "sequencingRuns")
+        return urljoin(seq_run_url, run_type_str)
+
+        or better yet:
+
+        seq_run_url = self._get_link(base_url, "sequencingRuns")
+        return self._get_link(seq_run_url, run_type_str)
+        """
+        seq_run_url = self._get_link(base_url, "sequencingRuns")
+        return urljoin(seq_run_url + "/", run_type_str)
 
     @staticmethod
     def _get_irida_exception(response):
@@ -789,6 +812,9 @@ class ApiCalls(object):
             file_name_b = sequence_file.file_list[1]
 
             file_metadata = sequence_file.properties_dict
+            # miseqRunId is what irida uses to parse the upload id
+            # we should think about renaming this in irida,
+            # but when we do it will break compatibility with all older uploaders
             file_metadata["miseqRunId"] = str(upload_id)
             file_metadata_json = json.dumps(file_metadata)
 
@@ -807,6 +833,9 @@ class ApiCalls(object):
             file_name = sequence_file.file_list[0]
 
             file_metadata = sequence_file.properties_dict
+            # miseqRunId is what irida uses to parse the upload id
+            # we should think about renaming this in irida,
+            # but when we do it will break compatibility with all older uploaders
             file_metadata["miseqRunId"] = str(upload_id)
             file_metadata_json = json.dumps(file_metadata)
 
@@ -820,7 +849,7 @@ class ApiCalls(object):
 
             return m_encoder
 
-    def create_seq_run(self, metadata):
+    def create_seq_run(self, metadata, sequencing_run_type):
         """
         Create a sequencing run.
 
@@ -832,6 +861,7 @@ class ApiCalls(object):
 
         arguments:
             metadata -- SequencingRun's metadata
+            sequencing_run_type -- string: used as the identifier for the type of sequencing run being uploaded
 
         returns: the sequencing run identifier for the sequencing run that was created
         """
@@ -843,10 +873,10 @@ class ApiCalls(object):
         if 'workflow' not in metadata_dict:
             metadata_dict['workflow'] = 'workflow'
 
-        seq_run_url = self._get_link(self.base_url, "sequencingRuns")
         # todo: we upload everything as miseq, should change when new sequencers are added to IRIDA
         # The easiest way to do this would be to add a sequencer type param to the metadata when parsing the sample
-        url = self._get_link(seq_run_url, "sequencingRun/miseq")
+        # here
+        url = self._get_upload_url(self.base_url, sequencing_run_type)
 
         headers = {
             "headers": {

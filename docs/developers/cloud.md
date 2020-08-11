@@ -21,7 +21,7 @@ import iridauploader.api as api
 import iridauploader.parsers as parsers
 
 api_instance = api.ApiCalls(client_id, client_secret, base_url, username, password, max_wait_time)
-parser_instance = parsers.Parser.factory("miseq")
+parser_instance = parsers.parser_factory("miseq")
 ```
 
 ## Examples for deployment on Azure Cloud
@@ -87,7 +87,7 @@ def main(myblob: func.InputStream):
     run_directory_name = posixpath.split(posixpath.split(myblob.name)[0])[1]
 
     # we are gonna use miseq for this example
-    my_parser = parsers.Parser.factory("miseq")
+    my_parser = parsers.parser_factory("miseq")
     logging.info("built parser")
 
     # This example was tested locally on a windows machine, so replacing \\ with / was needed for compatibility
@@ -150,7 +150,7 @@ def main(myblob: func.InputStream):
     run_directory_name = posixpath.split(posixpath.split(myblob.name)[0])[1]
 
     # we are gonna use directory for this example
-    my_parser = parsers.Parser.factory("directory")
+    my_parser = parsers.parser_factory("directory")
     logging.info("built parser")
 
     # list the blobs of the run directory
