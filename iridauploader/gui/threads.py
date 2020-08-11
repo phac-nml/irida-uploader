@@ -141,7 +141,8 @@ class UploadThread(QtCore.QThread):
         This runs when the threads start call is done
         :return:
         """
-        self._exit_return = cli_entry.upload_run_single_entry(self._run_dir, self._force_state, self._upload_as_assemblies)
+        # todo fix gui
+        self._exit_return = cli_entry.upload_run_single_entry(self._run_dir, self._force_state, None)
         pass
 
     def is_success(self):

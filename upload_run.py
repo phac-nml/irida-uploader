@@ -8,6 +8,7 @@ import textwrap
 import iridauploader.config as config
 import iridauploader.core as core
 from iridauploader.parsers import supported_parsers
+from iridauploader.api import UPLOAD_MODES
 
 # Set up an argument parser. We are using defaults to stay consistent with other software.
 # description gets added to the usage statements
@@ -56,7 +57,8 @@ argument_parser.add_argument('-b', '--batch',
 # Optional argument, Upload mode
 argument_parser.add_argument('-u', '--upload_mode',
                              action='store',
-                             help='Choose which upload mode to use. ["default", "assemblies", "fast5"]')
+                             help='Choose which upload mode to use. '
+                                  'Supported Modes: ' + str(UPLOAD_MODES))
 
 # Optional arguments for overriding config file settings
 # Explanation:
