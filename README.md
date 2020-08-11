@@ -9,6 +9,8 @@ IRIDA Uploader
 Download / Installation
 --------------------
 
+The IRIDA Uploader is available via `pip` and `bioconda`
+
 Installation instructions can be found in our documentation.
 
 [ReadTheDocs](https://irida-uploader.readthedocs.io/en/stable/)
@@ -19,6 +21,20 @@ Tutorial
 You can find a walkthrough and tutorial on the phac-nml github
 
 https://github.com/phac-nml/irida-uploader-tutorial
+
+Running the project from source code
+--------------------------
+You can build an environment and run the uploader from source code with the following commands:
+
+    $ make
+    $ source .virtualenv/bin/activate
+    $ iridauploader --help
+
+You can also build and run the GUI with:
+
+    $ make gui
+    $ source .virtualenv/bin/activate
+    $ iridauploadergui
 
 Creating the Windows installer from source code
 ------------------------------
@@ -58,7 +74,7 @@ You will need to grant the IRIDA instance access to the mysql database needed fo
 
 Running the IRIDA integration tests can be done with the command:
 
-    $ make integrationtests
+    $ make integrationtests branch=<IRIDA github branch to test against>
 
 Tests will be logged to `~/.cache/irida_uploader_test/log/irida-uploader.log`
 
