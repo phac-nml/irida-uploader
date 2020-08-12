@@ -15,7 +15,7 @@ To upload using the directory parser, Organize your files according to the follo
 
 ```
 
-Example files can be found: `/example_sample_sheets/directory_run/`
+Example files can be found: `/examples/directory_run/`
 
 ## File Names
 

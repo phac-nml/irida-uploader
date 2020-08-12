@@ -8,7 +8,7 @@ setuptools.setup(
     name='iridauploader',
     version='0.5.0',
     description='IRIDA uploader: upload NGS data to IRIDA system',
-    url='https://https://github.com/phac-nml/irida-uploader',
+    url='https://github.com/phac-nml/irida-uploader',
     author='Jeffrey Thiessen',
     author_email='jeffrey.thiessen@canada.ca',
     long_description=long_description,
@@ -26,6 +26,18 @@ setuptools.setup(
                       'argparse',
                       'requests-toolbelt',
                       ],
+    extras_require={
+        "GUI": ["PyQt5==5.12.1", "PyQt5-stubs==5.12.1"],
+        "TEST": ["selenium"],
+        "WINDOWS": ["PyQt5==5.12.1", "pynsist"],
+    },
+    entry_points={
+        'console_scripts': [
+            'irida-uploader=iridauploader.core.cli:main',
+            'irida-uploader-gui=iridauploader.gui.gui:main [GUI]',
+            'integration-test=iridauploader.tests_integration.start_integration_tests:main [TEST]'
+        ],
+    },
     # https://pypi.org/pypi?%3Aaction=list_classifiers
     classifiers=[
         "Programming Language :: Python :: 3",

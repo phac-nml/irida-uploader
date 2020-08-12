@@ -36,7 +36,7 @@ password = password1
 base_url = http://localhost:8080/irida-latest/api/
 parser = miseq
 ```
-This can also be found in the file `example_config.conf`
+This can also be found in the file `examples/example_config.conf`
 
 ## Specify other config file
 

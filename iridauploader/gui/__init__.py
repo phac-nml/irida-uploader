@@ -1,1 +1,1 @@
-from iridauploader.gui.gui import MainDialog
+from iridauploader.gui.main_dialog import MainDialog
