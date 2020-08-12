@@ -7,6 +7,7 @@ import textwrap
 
 import iridauploader.config as config
 import iridauploader.core as core
+from iridauploader.api import UPLOAD_MODES
 from iridauploader.parsers import supported_parsers
 
 DESCRIPTION = textwrap.dedent('''
@@ -57,10 +58,11 @@ def init_argparser():
                                       'and upload in batch. '
                                       'The list of runs is generated at start time '
                                       '(Runs added to directory mid upload will not be uploaded).')
-    # Optional argument, Upload files as assemblies instead of regular sequence files
-    argument_parser.add_argument('-a', '--assemblies',
-                                 action='store_true',  # This line makes it not parse a variable
-                                 help='Upload files as assemblies instead of regular sequence files.')
+    # Optional argument, Upload mode
+    argument_parser.add_argument('-u', '--upload_mode',
+                                 action='store',
+                                 help='Choose which upload mode to use. '
+                                      'Supported modes: ' + str(UPLOAD_MODES))
 
     # Optional arguments for overriding config file settings
     # Explanation:
@@ -180,31 +182,31 @@ def main():
 
     # Start Upload
     if args.batch:
-        return upload_batch(args.directory, args.force, args.assemblies)
+        return upload_batch(args.directory, args.force, args.upload_mode)
     else:
-        return upload(args.directory, args.force, args.assemblies)
+        return upload(args.directory, args.force, args.upload_mode)
 
 
-def upload(run_directory, force_upload, upload_assemblies):
+def upload(run_directory, force_upload, upload_mode):
     """
     start upload on a single run directory
     :param run_directory:
     :param force_upload:
-    :param upload_assemblies
+    :param upload_mode
     :return: exit code 0 or 1
     """
-    return core.cli_entry.upload_run_single_entry(run_directory, force_upload, upload_assemblies).exit_code
+    return core.cli_entry.upload_run_single_entry(run_directory, force_upload, upload_mode).exit_code
 
 
-def upload_batch(batch_directory, force_upload, upload_assemblies):
+def upload_batch(batch_directory, force_upload, upload_mode):
     """
     Start uploading runs in the batch directory
     :param batch_directory:
     :param force_upload:
-    :param upload_assemblies
+    :param upload_mode
     :return: exit code 0 or 1
     """
-    return core.cli_entry.batch_upload_single_entry(batch_directory, force_upload, upload_assemblies).exit_code
+    return core.cli_entry.batch_upload_single_entry(batch_directory, force_upload, upload_mode).exit_code
 
 
 # This is called when the program is run for the first time
