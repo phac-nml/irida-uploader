@@ -761,7 +761,7 @@ class ApiCalls(object):
                                          "value": sample_name
                                      })
             elif upload_mode == MODE_FAST5:
-                url = self._get_link(samples_url, "sample/fast5",
+                url = self._get_link(samples_url, "sample/sequenceFiles/fast5",
                                      target_dict={
                                          "key": "sampleName",
                                          "value": sample_name
