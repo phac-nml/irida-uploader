@@ -2,7 +2,7 @@
 ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 
-source ${ROOT_DIR}/.virtualenv/bin/activate
+source ${ROOT_DIR}/../.virtualenv/bin/activate
 
 if [[ $? -eq 0 ]]; then
     true
@@ -11,5 +11,4 @@ else
     exit 1
 fi
 
-python ${ROOT_DIR}/upload_run.py "$@"
-
+irida-uploader "$@"
