@@ -5,6 +5,13 @@ Beta 0.5.0
 ----------
 Added functionality:
 * Added `nanopore_assemblies` as an alias for directory uploads
+* Added support for uploading `fast5` files
+* Added `--upload_mode=<mode>` as an argument, replacing the `--assemblies` argument
+  * Supports the following upload modes, which each upload files to different IRIDA REST endpoints
+    * `default`: Sends to `sequencingRuns`, this is the default behaviour
+    * `assemblies`: Sends to `assemblies`, this replaces `--assemblies`
+    * `fast5`: Sends to `fast5`, this is a new feature
+  * GUI now has a dropdown box to select upload mode
 
 Developer changes:
 * Changed `api` to post to `<base_url>/sequencingrun/<sequencing_run_type>` instead of `<base_url>/sequencingrun/miseqrun`
