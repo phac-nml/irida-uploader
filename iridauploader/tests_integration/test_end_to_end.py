@@ -374,6 +374,7 @@ class TestEndToEnd(unittest.TestCase):
 
         # Do the upload
         upload_result = upload_run_single_entry(directory=path.join(path_to_module, "fake_assemblies_data"),
+                                                force_upload=True,
                                                 upload_mode=api.MODE_ASSEMBLIES)
 
         # Make sure the upload was a success
