@@ -57,6 +57,11 @@ def init_argparser():
                                       'and upload in batch. '
                                       'The list of runs is generated at start time '
                                       '(Runs added to directory mid upload will not be uploaded).')
+    # Optional argument, Upload files as assemblies instead of regular sequence files
+    argument_parser.add_argument('-a', '--assemblies',
+                                 action='store_true',  # This line makes it not parse a variable
+                                 help='Upload files as assemblies instead of regular sequence files.')
+
     # Optional arguments for overriding config file settings
     # Explanation:
     #   nargs='?', const=True, default=False,
@@ -175,29 +180,31 @@ def main():
 
     # Start Upload
     if args.batch:
-        return upload_batch(args.directory, args.force)
+        return upload_batch(args.directory, args.force, args.assemblies)
     else:
-        return upload(args.directory, args.force)
+        return upload(args.directory, args.force, args.assemblies)
 
 
-def upload(run_directory, force_upload):
+def upload(run_directory, force_upload, upload_assemblies):
     """
     start upload on a single run directory
     :param run_directory:
     :param force_upload:
+    :param upload_assemblies
     :return: exit code 0 or 1
     """
-    return core.cli_entry.upload_run_single_entry(run_directory, force_upload).exit_code
+    return core.cli_entry.upload_run_single_entry(run_directory, force_upload, upload_assemblies).exit_code
 
 
-def upload_batch(batch_directory, force_upload):
+def upload_batch(batch_directory, force_upload, upload_assemblies):
     """
     Start uploading runs in the batch directory
     :param batch_directory:
     :param force_upload:
+    :param upload_assemblies
     :return: exit code 0 or 1
     """
-    return core.cli_entry.batch_upload_single_entry(batch_directory, force_upload).exit_code
+    return core.cli_entry.batch_upload_single_entry(batch_directory, force_upload, upload_assemblies).exit_code
 
 
 # This is called when the program is run for the first time
