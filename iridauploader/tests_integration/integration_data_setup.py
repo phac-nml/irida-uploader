@@ -46,6 +46,7 @@ class SetupIridaData:
         output_files = "tests_integration/tmp/output-files"
         reference_file = "tests_integration/tmp/reference-files"
         sequence_files = "tests_integration/tmp/sequence-files"
+        assembly_files = "tests_integration/tmp/assembly-files"
 
         self.IRIDA_CMD = ['mvn', 'clean', 'jetty:run', '--quiet',
                           '-Djdbc.url=jdbc:mysql://localhost:3306/' + db_name,
@@ -56,7 +57,8 @@ class SetupIridaData:
                           '-Dirida.it.rootdirectory={}'.format(root_dir),
                           '-Dsequence.file.base.directory={}'.format(sequence_files),
                           '-Dreference.file.base.directory={}'.format(reference_file),
-                          '-Doutput.file.base.directory={}'.format(output_files)
+                          '-Doutput.file.base.directory={}'.format(output_files),
+                          '-Dassembly.file.base.directory={}'.format(assembly_files)
                           ]
 
         self.IRIDA_STOP = 'mvn jetty:stop'

@@ -43,8 +43,9 @@ preintegration:
 	mkdir iridauploader/tests_integration/tmp/output-files
 	mkdir iridauploader/tests_integration/tmp/reference-files
 	mkdir iridauploader/tests_integration/tmp/sequence-files
+	mkdir iridauploader/tests_integration/tmp/assembly-files
 
-integrationtests: clean preintegration
+integrationtests: clean env preintegration
 	source .virtualenv/bin/activate
 	pip3 install -e .[TEST]
 	export IRIDA_UPLOADER_TEST='True'

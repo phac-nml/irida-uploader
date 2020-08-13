@@ -91,15 +91,21 @@ def start(branch="master"):
     This is the entry point for the integration tests
     :return:
     """
+    exit_code = 0
+
     setup_handler = start_setup(branch)
 
     try:
         full_suite = create_test_suite()
 
         runner = unittest.TextTestRunner()
-        runner.run(full_suite)
+        res = runner.run(full_suite)
+        if not res.wasSuccessful():
+            exit_code = 1
     except Exception as e:
         raise e
     finally:
         # Make sure IRIDA is stopped even when an exception is raised
         setup_handler.stop_irida()
+
+    return exit_code

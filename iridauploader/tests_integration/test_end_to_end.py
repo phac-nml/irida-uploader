@@ -367,6 +367,7 @@ class TestEndToEnd(unittest.TestCase):
         # but one will be made in the case this is the only test being run
         project_name = "test_project_assemblies"
         project_description = "test_project_description_assemblies"
+        sample_name = "my-sample-1"
         project = model.Project(name=project_name, description=project_description)
         test_api.send_project(project)
         # We always upload to project "1" so that tests will be consistent no matter how many / which tests are run
@@ -381,9 +382,7 @@ class TestEndToEnd(unittest.TestCase):
         self.assertEqual(upload_result.exit_code, 0)
 
         # Verify the files were uploaded
-        sample_list = test_api.get_samples(project_id)
-        test_sample = sample_list[0]
-        sequence_files = test_api.get_assemblies_files(project_id, test_sample.sample_name)
+        sequence_files = test_api.get_assemblies_files(project_id, sample_name)
         self.assertEqual(len(sequence_files), 1)
         self.assertEqual(sequence_files[0]['fileName'], 'file_1.fasta')
 
