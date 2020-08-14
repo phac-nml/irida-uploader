@@ -67,6 +67,19 @@ project_id -- the id of the project the sample is on
 
 returns list of assemblies files dictionary for given sample_id
 
+### get_fast5_files(self, project_id, sample_name)
+API call to api/projects/project_id/sample_id/sequenceFiles/fast5
+We fetch the fast5 files through the project id on this route
+
+**arguments:**
+
+sample_name -- the sample name identifier to get from irida, relative to a project
+project_id -- the id of the project the sample is on
+
+**returns:**
+
+returns list of fast5 files dictionary for given sample_id
+
 #### get_metadata(self, sample_name, project_id)
 API call to api/samples/sample_id/metadata
 We fetch the other metadata metrics through the sample name and its id from the project
