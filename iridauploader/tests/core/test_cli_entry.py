@@ -3,6 +3,7 @@ from unittest.mock import patch, MagicMock, Mock, call
 from os import path
 import os
 
+from iridauploader.api import UPLOAD_MODES, MODE_DEFAULT, MODE_FAST5, MODE_ASSEMBLIES
 from iridauploader.core import cli_entry, logger, exit_return
 from iridauploader.config import config
 from iridauploader.model import DirectoryStatus
@@ -69,6 +70,8 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.initialize_api_from_config.side_effect = [None]
         mock_api_handler.prepare_and_validate_for_upload.side_effect = [StubValidationResult]
         mock_api_handler.upload_sequencing_run.side_effect = [None]
+        mock_api_handler.get_default_upload_mode.side_effect = [MODE_DEFAULT]
+        mock_api_handler.get_upload_modes.side_effect = [UPLOAD_MODES]
         mock_progress.write_directory_status.side_effect = [None, None]
 
         cli_entry.upload_run_single_entry(my_directory, force_upload=False)
@@ -81,8 +84,12 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.initialize_api_from_config.assert_called_with()
         # api must prep for upload
         mock_api_handler.prepare_and_validate_for_upload.assert_called_with("Fake Sequencing Run")
+        # api should check upload modes
+        mock_api_handler.get_default_upload_mode.assert_called_with()
+        mock_api_handler.get_upload_modes.assert_called_with()
         # api should try to upload
-        mock_api_handler.upload_sequencing_run.assert_called_with("Fake Sequencing Run")
+        mock_api_handler.upload_sequencing_run.assert_called_with(sequencing_run="Fake Sequencing Run",
+                                                                  upload_mode=MODE_DEFAULT)
 
     @patch("iridauploader.core.cli_entry.progress")
     @patch("iridauploader.core.cli_entry.api_handler")
@@ -114,9 +121,11 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.initialize_api_from_config.side_effect = [None]
         mock_api_handler.prepare_and_validate_for_upload.side_effect = [StubValidationResult]
         mock_api_handler.upload_sequencing_run.side_effect = [None]
+        mock_api_handler.get_default_upload_mode.side_effect = [MODE_DEFAULT]
+        mock_api_handler.get_upload_modes.side_effect = [UPLOAD_MODES]
         mock_progress.write_directory_status.side_effect = [None, None]
 
-        cli_entry.upload_run_single_entry(my_directory, force_upload=True)
+        cli_entry.upload_run_single_entry(my_directory, force_upload=True, upload_mode=MODE_ASSEMBLIES)
 
         # Make sure directory status is init
         mock_progress.write_directory_status.assert_called_with(stub_directory_status)
@@ -127,7 +136,56 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         # api must prep for upload
         mock_api_handler.prepare_and_validate_for_upload.assert_called_with("Fake Sequencing Run")
         # api should try to upload
-        mock_api_handler.upload_sequencing_run.assert_called_with("Fake Sequencing Run")
+        mock_api_handler.upload_sequencing_run.assert_called_with(sequencing_run="Fake Sequencing Run",
+                                                                  upload_mode=MODE_ASSEMBLIES)
+
+    @patch("iridauploader.core.cli_entry.progress")
+    @patch("iridauploader.core.cli_entry.api_handler")
+    @patch("iridauploader.core.cli_entry.parsing_handler")
+    def test_valid_fast5_all_functions_called(self, mock_parsing_handler, mock_api_handler, mock_progress):
+        """
+        Makes sure that all functions are called when a valid directory in given
+        :return:
+        """
+        my_directory = path.join(path_to_module, "fake_ngs_data")
+
+        class StubValidationResult:
+            @staticmethod
+            def is_valid():
+                return True
+
+        class StubDirectoryStatus:
+            directory = my_directory
+            status = DirectoryStatus.NEW
+
+            @staticmethod
+            def status_equals(status):
+                return status == DirectoryStatus.NEW
+
+        # add mock data to the function calls that are essential
+        stub_directory_status = StubDirectoryStatus()
+        mock_parsing_handler.get_run_status.side_effect = [stub_directory_status]
+        mock_parsing_handler.parse_and_validate.side_effect = ["Fake Sequencing Run"]
+        mock_api_handler.initialize_api_from_config.side_effect = [None]
+        mock_api_handler.prepare_and_validate_for_upload.side_effect = [StubValidationResult]
+        mock_api_handler.upload_sequencing_run.side_effect = [None]
+        mock_api_handler.get_default_upload_mode.side_effect = [MODE_DEFAULT]
+        mock_api_handler.get_upload_modes.side_effect = [UPLOAD_MODES]
+        mock_progress.write_directory_status.side_effect = [None, None]
+
+        cli_entry.upload_run_single_entry(my_directory, force_upload=True, upload_mode=MODE_FAST5)
+
+        # Make sure directory status is init
+        mock_progress.write_directory_status.assert_called_with(stub_directory_status)
+        # Make sure parsing and validation is done
+        mock_parsing_handler.parse_and_validate.assert_called_with(my_directory)
+        # api must be initialized
+        mock_api_handler.initialize_api_from_config.assert_called_with()
+        # api must prep for upload
+        mock_api_handler.prepare_and_validate_for_upload.assert_called_with("Fake Sequencing Run")
+        # api should try to upload
+        mock_api_handler.upload_sequencing_run.assert_called_with(sequencing_run="Fake Sequencing Run",
+                                                                  upload_mode=MODE_FAST5)
 
     @patch("iridauploader.core.cli_entry.progress")
     @patch("iridauploader.core.cli_entry.api_handler")
@@ -192,6 +250,8 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.initialize_api_from_config.side_effect = [None]
         mock_api_handler.prepare_and_validate_for_upload.side_effect = [StubValidationResult]
         mock_api_handler.upload_sequencing_run.side_effect = [None]
+        mock_api_handler.get_default_upload_mode.side_effect = [MODE_DEFAULT]
+        mock_api_handler.get_upload_modes.side_effect = [UPLOAD_MODES]
 
         cli_entry.upload_run_single_entry(directory)
 
@@ -224,6 +284,8 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.initialize_api_from_config.side_effect = [None]
         mock_api_handler.prepare_and_validate_for_upload.side_effect = [None]
         mock_api_handler.upload_sequencing_run.side_effect = [None]
+        mock_api_handler.get_default_upload_mode.side_effect = [MODE_DEFAULT]
+        mock_api_handler.get_upload_modes.side_effect = [UPLOAD_MODES]
 
         directory = path.join(path_to_module, "fake_ngs_data")
 
@@ -262,6 +324,8 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.initialize_api_from_config.side_effect = [None]
         mock_api_handler.prepare_and_validate_for_upload.side_effect = [None]
         mock_api_handler.upload_sequencing_run.side_effect = [None]
+        mock_api_handler.get_default_upload_mode.side_effect = [MODE_DEFAULT]
+        mock_api_handler.get_upload_modes.side_effect = [UPLOAD_MODES]
 
         cli_entry.upload_run_single_entry(directory)
 
@@ -304,6 +368,8 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.initialize_api_from_config.side_effect = [None]
         mock_api_handler.prepare_and_validate_for_upload.side_effect = [StubValidationResult]
         mock_api_handler.upload_sequencing_run.side_effect = [None]
+        mock_api_handler.get_default_upload_mode.side_effect = [MODE_DEFAULT]
+        mock_api_handler.get_upload_modes.side_effect = [UPLOAD_MODES]
 
         cli_entry.upload_run_single_entry(directory, True)
 
@@ -318,7 +384,8 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         # api must prep for upload
         mock_api_handler.prepare_and_validate_for_upload.assert_called_with("Fake Sequencing Run")
         # api should try to upload
-        mock_api_handler.upload_sequencing_run.assert_called_with("Fake Sequencing Run")
+        mock_api_handler.upload_sequencing_run.assert_called_with(sequencing_run="Fake Sequencing Run",
+                                                                  upload_mode=MODE_DEFAULT)
 
     @patch("iridauploader.core.cli_entry.progress")
     @patch("iridauploader.core.cli_entry.api_handler")
@@ -349,6 +416,8 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.initialize_api_from_config.side_effect = [None]
         mock_api_handler.prepare_and_validate_for_upload.side_effect = [StubValidationResult]
         mock_api_handler.upload_sequencing_run.side_effect = [None]
+        mock_api_handler.get_default_upload_mode.side_effect = [MODE_DEFAULT]
+        mock_api_handler.get_upload_modes.side_effect = [UPLOAD_MODES]
 
         cli_entry.upload_run_single_entry(directory, False)
 
@@ -363,7 +432,8 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         # api must prep for upload
         mock_api_handler.prepare_and_validate_for_upload.assert_called_with("Fake Sequencing Run")
         # api should try to upload
-        mock_api_handler.upload_sequencing_run.assert_called_with("Fake Sequencing Run")
+        mock_api_handler.upload_sequencing_run.assert_called_with(sequencing_run="Fake Sequencing Run",
+                                                                  upload_mode=MODE_DEFAULT)
 
     @patch("iridauploader.core.cli_entry.progress")
     @patch("iridauploader.core.cli_entry.api_handler")
@@ -396,6 +466,8 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.initialize_api_from_config.side_effect = [None]
         mock_api_handler.prepare_and_validate_for_upload.side_effect = [StubValidationResult]
         mock_api_handler.upload_sequencing_run.side_effect = [None]
+        mock_api_handler.get_default_upload_mode.side_effect = [MODE_DEFAULT]
+        mock_api_handler.get_upload_modes.side_effect = [UPLOAD_MODES]
 
         cli_entry.upload_run_single_entry(directory, False)
 
@@ -439,6 +511,8 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.prepare_and_validate_for_upload.side_effect = [StubValidationResult]
         mock_api_handler.upload_sequencing_run.side_effect = [None]
         mock_api_handler.upload_sequencing_run.side_effect = [IridaConnectionError("")]
+        mock_api_handler.get_default_upload_mode.side_effect = [MODE_DEFAULT]
+        mock_api_handler.get_upload_modes.side_effect = [UPLOAD_MODES]
         mock_progress.write_directory_status.side_effect = [None, None]
 
         result = cli_entry.upload_run_single_entry(my_directory, force_upload=False)
@@ -454,7 +528,8 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         # api must prep for upload
         mock_api_handler.prepare_and_validate_for_upload.assert_called_with("Fake Sequencing Run")
         # api should try to upload
-        mock_api_handler.upload_sequencing_run.assert_called_with("Fake Sequencing Run")
+        mock_api_handler.upload_sequencing_run.assert_called_with(sequencing_run="Fake Sequencing Run",
+                                                                  upload_mode=MODE_DEFAULT)
 
     @patch("iridauploader.core.cli_entry.progress")
     @patch("iridauploader.core.cli_entry.api_handler")
@@ -487,6 +562,8 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.prepare_and_validate_for_upload.side_effect = [StubValidationResult]
         mock_api_handler.upload_sequencing_run.side_effect = [None]
         mock_api_handler.upload_sequencing_run.side_effect = [IridaResourceError("")]
+        mock_api_handler.get_default_upload_mode.side_effect = [MODE_DEFAULT]
+        mock_api_handler.get_upload_modes.side_effect = [UPLOAD_MODES]
         mock_progress.write_directory_status.side_effect = [None, None]
 
         result = cli_entry.upload_run_single_entry(my_directory, force_upload=False)
@@ -502,7 +579,8 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         # api must prep for upload
         mock_api_handler.prepare_and_validate_for_upload.assert_called_with("Fake Sequencing Run")
         # api should try to upload
-        mock_api_handler.upload_sequencing_run.assert_called_with("Fake Sequencing Run")
+        mock_api_handler.upload_sequencing_run.assert_called_with(sequencing_run="Fake Sequencing Run",
+                                                                  upload_mode=MODE_DEFAULT)
 
     @patch("iridauploader.core.cli_entry.progress")
     @patch("iridauploader.core.cli_entry.api_handler")
@@ -535,6 +613,8 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.prepare_and_validate_for_upload.side_effect = [StubValidationResult]
         mock_api_handler.upload_sequencing_run.side_effect = [None]
         mock_api_handler.upload_sequencing_run.side_effect = [FileError("")]
+        mock_api_handler.get_default_upload_mode.side_effect = [MODE_DEFAULT]
+        mock_api_handler.get_upload_modes.side_effect = [UPLOAD_MODES]
         mock_progress.write_directory_status.side_effect = [None, None]
 
         result = cli_entry.upload_run_single_entry(my_directory, force_upload=False)
@@ -550,7 +630,8 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         # api must prep for upload
         mock_api_handler.prepare_and_validate_for_upload.assert_called_with("Fake Sequencing Run")
         # api should try to upload
-        mock_api_handler.upload_sequencing_run.assert_called_with("Fake Sequencing Run")
+        mock_api_handler.upload_sequencing_run.assert_called_with(sequencing_run="Fake Sequencing Run",
+                                                                  upload_mode=MODE_DEFAULT)
 
 
 class TestBatchUploadSingleEntry(unittest.TestCase):
@@ -592,10 +673,10 @@ class TestBatchUploadSingleEntry(unittest.TestCase):
         mock_parsing_handler.parse_and_validate.side_effect = ["Fake Sequencing Run"]
 
         # start
-        cli_entry.batch_upload_single_entry("fake_directory", force_upload=False)
+        cli_entry.batch_upload_single_entry("fake_directory", upload_mode=MODE_DEFAULT)
 
         # validate calls only happen once
-        mock_validate_and_upload.assert_called_once_with(stub_directory_status_valid, False)
+        mock_validate_and_upload.assert_called_once_with(stub_directory_status_valid, MODE_DEFAULT)
 
     @patch("iridauploader.core.cli_entry._validate_and_upload")
     @patch("iridauploader.core.cli_entry.parsing_handler")
@@ -633,8 +714,8 @@ class TestBatchUploadSingleEntry(unittest.TestCase):
         # assert calls are what we expect
         self.assertEqual(mock_validate_and_upload.call_count, 3, "Expected 3 calls to mock_validate_and_upload")
         expected_call_args = [
-            call(stub_directory_status_valid, False),
-            call(stub_directory_status_complete, False),
-            call(stub_directory_status_partial, False)
+            call(stub_directory_status_valid, MODE_DEFAULT),
+            call(stub_directory_status_complete, MODE_DEFAULT),
+            call(stub_directory_status_partial, MODE_DEFAULT)
         ]
         self.assertEqual(mock_validate_and_upload.call_args_list, expected_call_args, "Call args do not match expected")

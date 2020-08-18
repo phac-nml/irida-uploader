@@ -122,7 +122,7 @@ def prepare_and_validate_for_upload(sequencing_run):
     return validation_result
 
 
-def upload_sequencing_run(sequencing_run):
+def upload_sequencing_run(sequencing_run, upload_mode):
     """
     Handles uploading a sequencing run
 
@@ -131,6 +131,7 @@ def upload_sequencing_run(sequencing_run):
     Expects sequencing run to be valid for upload
 
     :param sequencing_run: run to upload
+    :param upload_mode: mode of upload
     :return:
     """
     # get api
@@ -154,7 +155,7 @@ def upload_sequencing_run(sequencing_run):
                                                  sample_name=sample.sample_name,
                                                  project_id=project.id,
                                                  upload_id=run_id,
-                                                 assemblies=sequencing_run.assemblies)
+                                                 upload_mode=upload_mode)
 
         # set seq run to complete
         api_instance.set_seq_run_complete(run_id)
@@ -200,3 +201,21 @@ def send_project(project):
     except api.exceptions.IridaConnectionError as e:
         logging.error("Failed to send project to IRIDA")
         raise e
+
+
+def get_upload_modes():
+    """
+    Returns all the upload modes the api supports for sequence files
+
+    :return: List of Strings
+    """
+    return api.UPLOAD_MODES
+
+
+def get_default_upload_mode():
+    """
+    Returns the string for the default upload mode
+
+    :return: Default upload mode string
+    """
+    return api.MODE_DEFAULT
