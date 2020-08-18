@@ -1,12 +1,12 @@
 [Header]
 IEMFileVersion,4
-Investigator Name,Some Guy
-Experiment Name,1
+Investigator Name,The Lord of Dawn
+Experiment Name,Elevator Test
 Date,10/15/2013
 Workflow,GenerateFASTQ
 Application,FASTQ Only
 Assay,Nextera XT
-Description,Superbug
+Description,Narehate
 Chemistry,Amplicon
 
 [Reads]

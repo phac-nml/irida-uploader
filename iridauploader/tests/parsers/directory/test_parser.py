@@ -29,7 +29,7 @@ class TestFindRuns(unittest.TestCase):
         dir_3 = path.join(directory, "third")
         correct_dirs = [dir_1, dir_2, dir_3]
 
-        res = Parser.find_runs(directory)
+        res = Parser().find_runs(directory)
 
         self.assertIn(res[0].directory, correct_dirs)
         self.assertIn(res[1].directory, correct_dirs)
@@ -50,7 +50,7 @@ class TestFindRuns(unittest.TestCase):
         """
         directory = path.join(path_to_module, "no_dirs")
 
-        res = Parser.find_runs(directory)
+        res = Parser().find_runs(directory)
 
         self.assertEqual(res, [])
 
@@ -70,7 +70,7 @@ class TestFindSingleRun(unittest.TestCase):
         """
         directory = path.join(path_to_module, "three_dirs")
 
-        res = Parser.find_single_run(directory)
+        res = Parser().find_single_run(directory)
 
         self.assertEqual(type(res), model.DirectoryStatus)
         self.assertEqual(res.status, "invalid")
@@ -83,7 +83,7 @@ class TestFindSingleRun(unittest.TestCase):
         """
         directory = path.join(path_to_module, "no_dirs")
 
-        res = Parser.find_single_run(directory)
+        res = Parser().find_single_run(directory)
 
         self.assertEqual(type(res), model.DirectoryStatus)
         self.assertEqual(res.status, "invalid")
@@ -96,7 +96,7 @@ class TestFindSingleRun(unittest.TestCase):
         """
         directory = path.join(path_to_module, "three_dirs", "first")
 
-        res = Parser.find_single_run(directory)
+        res = Parser().find_single_run(directory)
 
         self.assertEqual(type(res), model.DirectoryStatus)
         self.assertEqual(res.status, "new")
@@ -119,7 +119,7 @@ class TestGetSampleSheet(unittest.TestCase):
         directory = path.join(path_to_module, "three_dirs", "first")
         file_path = path.join(directory, "SampleList.csv")
 
-        res = Parser.get_sample_sheet(directory)
+        res = Parser().get_sample_sheet(directory)
 
         self.assertEqual(res, file_path)
 
@@ -131,7 +131,7 @@ class TestGetSampleSheet(unittest.TestCase):
         directory = path.join(path_to_module, "three_dirs", "third")
 
         with self.assertRaises(DirectoryError) as context:
-            Parser.get_sample_sheet(directory)
+            Parser().get_sample_sheet(directory)
 
         self.assertEqual(context.exception.directory, directory)
 
@@ -143,7 +143,7 @@ class TestGetSampleSheet(unittest.TestCase):
         directory = path.join(path_to_module, "inaccessible_dir")
 
         with self.assertRaises(DirectoryError) as context:
-            Parser.get_sample_sheet(directory)
+            Parser().get_sample_sheet(directory)
 
         self.assertEqual(context.exception.directory, directory)
 
@@ -164,7 +164,7 @@ class TestGetSequencingRun(unittest.TestCase):
         sample_sheet = path.join(path_to_module, "invalid_sample_sheet", "SampleList.csv")
 
         with self.assertRaises(ValidationError) as context:
-            Parser.get_sequencing_run(sample_sheet)
+            Parser().get_sequencing_run(sample_sheet)
 
         validation_result = context.exception.validation_result
         self.assertEqual(type(validation_result), model.ValidationResult)
@@ -179,40 +179,91 @@ class TestGetSequencingRun(unittest.TestCase):
         """
         sample_sheet = path.join(path_to_module, "fake_dir_data", "SampleList.csv")
 
-        res = Parser.get_sequencing_run(sample_sheet)
+        res = Parser().get_sequencing_run(sample_sheet)
 
         self.assertEqual(type(res), model.SequencingRun)
 
-
-class TestFindDirectoryList(unittest.TestCase):
-    """
-    Test getting the list of directories
-    """
-
-    def setUp(self):
-        print("\nStarting " + self.__module__ + ": " + self._testMethodName)
-
-    def test_find_three(self):
+    def test_build_valid(self):
         """
-        Given a directory with 3 run directories in it, make sure all 3 directories are included in result
+        When given a valid directory, ensure a valid SequencingRun is built with Projects, Samples, ect
         :return:
         """
-        directory = path.join(path_to_module, "three_dirs")
-        dir_1 = path.join(directory, "first")
-        dir_2 = path.join(directory, "second")
-        dir_3 = path.join(directory, "third")
-        res = Parser._find_directory_list(directory)
+        sheet_file = path.join(path_to_module, "fake_dir_data",
+                               "SampleList.csv")
 
-        self.assertIn(dir_1, res)
-        self.assertIn(dir_2, res)
-        self.assertIn(dir_3, res)
+        sequencing_run = Parser().get_sequencing_run(sheet_file)
 
-    def test_find_none(self):
+        # Returns a SequencingRun
+        self.assertEqual(type(sequencing_run), model.SequencingRun)
+        # Includes 2 projects
+        self.assertEqual(len(sequencing_run.project_list), 2)
+        # is of type Project
+        self.assertEqual(type(sequencing_run.project_list[0]), model.Project)
+        # Project has 2 samples
+        self.assertEqual(len(sequencing_run.project_list[0].sample_list), 2)
+        # Other Project has 1 sample
+        self.assertEqual(len(sequencing_run.project_list[1].sample_list), 1)
+        # samples are of type Sample
+        self.assertEqual(type(sequencing_run.project_list[0].sample_list[0]), model.Sample)
+        # samples have SequenceFile
+        self.assertEqual(type(sequencing_run.project_list[0].sample_list[0].sequence_file), model.SequenceFile)
+
+    def test_build_valid_extra_line_on_sample_list(self):
         """
-        Given a directory with no sequencing run directories in it, make sure an empty list is returned
+        Ensure a valid SequencingRun is made when extra lines are present in sample list
         :return:
         """
-        directory = path.join(path_to_module, "no_dirs")
-        res = Parser._find_directory_list(directory)
+        sheet_file = path.join(path_to_module, "fake_dir_data",
+                               "SampleList_with_space.csv")
 
-        self.assertEqual(res, [])
+        sequencing_run = Parser().get_sequencing_run(sheet_file)
+
+        # Returns a SequencingRun
+        self.assertEqual(type(sequencing_run), model.SequencingRun)
+        # Includes 2 projects
+        self.assertEqual(len(sequencing_run.project_list), 2)
+        # is of type Project
+        self.assertEqual(type(sequencing_run.project_list[0]), model.Project)
+        # Project has 2 samples
+        self.assertEqual(len(sequencing_run.project_list[0].sample_list), 2)
+        # Other Project has 1 sample
+        self.assertEqual(len(sequencing_run.project_list[1].sample_list), 1)
+        # samples are of type Sample
+        self.assertEqual(type(sequencing_run.project_list[0].sample_list[0]), model.Sample)
+        # samples have SequenceFile
+        self.assertEqual(type(sequencing_run.project_list[0].sample_list[0].sequence_file), model.SequenceFile)
+
+    def test_parse_samples_valid(self):
+        """
+        Verify samples created from parser match expected samples
+        :return:
+        """
+        sheet_file = path.join(path_to_module, "fake_dir_data",
+                               "SampleList.csv")
+
+        sample1 = model.Sample(
+            "my-sample-1",
+            "",
+        )
+
+        sample2 = model.Sample(
+            "my-sample-2",
+            "",
+        )
+
+        sample3 = model.Sample(
+            "my-sample-3",
+            "",
+        )
+
+        res = Parser().get_sequencing_run(sheet_file)
+
+        self.assertEqual(res.metadata, {'layoutType': 'PAIRED_END'})
+        self.assertEqual(res.project_list[0].id, "75")
+        self.assertEqual(res.project_list[1].id, "76")
+        self.assertEqual(res.project_list[0].sample_list[0].sample_name,
+                         sample1.sample_name)
+        self.assertEqual(res.project_list[0].sample_list[1].sample_name,
+                         sample2.sample_name)
+        self.assertEqual(res.project_list[1].sample_list[0].sample_name,
+                         sample3.sample_name)

@@ -108,7 +108,7 @@ class TestConfig(unittest.TestCase):
         :return:
         """
         # set up config
-        config.set_config_file(os.path.join(path_to_module, "example_config.conf"))
+        config.set_config_file(os.path.join(path_to_module, "test_config.conf"))
         config.setup()
         # Test that all the parameters loaded from file are correct
         self.assertEqual(config.read_config_option('client_id'), 'uploader')
@@ -125,7 +125,7 @@ class TestConfig(unittest.TestCase):
         :return:
         """
         # set up config
-        config.set_config_file(os.path.join(path_to_module, "example_config.conf"))
+        config.set_config_file(os.path.join(path_to_module, "test_config.conf"))
         config.setup()
         # Make sure id is initially set to what we expect
         self.assertEqual(config.read_config_option('client_id'), 'uploader')

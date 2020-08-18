@@ -1,11 +1,9 @@
 import ast
-import itertools
 import json
 import logging
 import threading
 
 from http import HTTPStatus
-from os import path
 from rauth import OAuth2Service
 from requests import ConnectionError
 from requests.adapters import HTTPAdapter
@@ -259,10 +257,33 @@ class ApiCalls(object):
         except StopIteration:
             logging.debug(target_key + " not found in links. Available links: "
                           ", ".join([str(link["rel"]) for link in links_list]))
-            raise exceptions.IridaKeyError(target_key + " not found in links. Available links: "
+            raise exceptions.IridaKeyError(target_key + " not found in links. Available links: " + ""
                                            ", ".join([str(link["rel"]) for link in links_list]))
 
         return ret_val
+
+    def _get_upload_url(self, base_url, run_type_str):
+        """
+        Concatenates a base url with the run type for constructing the upload url path
+        :param base_url: Upload url
+        :param run_type_str: Type of sequencing run that is being uploaded
+        :return: url
+        """
+
+        """TODO:
+        There is currently an issue in the IRIDA API with finding links for different sequencer routes
+        once that is fixed, the following should be written as:
+
+        seq_run_url = self._get_link(base_url, "sequencingRuns")
+        return urljoin(seq_run_url, run_type_str)
+
+        or better yet:
+
+        seq_run_url = self._get_link(base_url, "sequencingRuns")
+        return self._get_link(seq_run_url, run_type_str)
+        """
+        seq_run_url = self._get_link(base_url, "sequencingRuns")
+        return urljoin(seq_run_url + "/", run_type_str)
 
     @staticmethod
     def _get_irida_exception(response):
@@ -394,7 +415,7 @@ class ApiCalls(object):
 
         arguments:
 
-            sample_name -- the sample id to get from irida, relative to a project
+            sample_name -- the sample name identifier to get from irida, relative to a project
             project_id -- the id of the project the sample is on
 
         returns list of sequencefile dictionary for given sample_id
@@ -430,6 +451,91 @@ class ApiCalls(object):
         # This response should be parsed into SequenceFile objects
         # This is a bit tricky because Forward and Reverse reads are different files in the returned resources
         result = response.json()["resource"]["resources"]
+
+        return result
+
+    def get_assemblies_files(self, project_id, sample_name):
+        """
+        API call to api/projects/project_id/sample_id/assemblies
+        We fetch the assemblies files through the project id on this route
+
+        arguments:
+
+            sample_name -- the sample name identifier to get from irida, relative to a project
+            project_id -- the id of the project the sample is on
+
+        returns list of assemblies files dictionary for given sample_id
+        """
+
+        logging.info("Getting assemblies files from sample '{}' on project '{}'".format(sample_name, project_id))
+
+        try:
+            project_url = self._get_link(self.base_url, "projects")
+            sample_url = self._get_link(project_url, "project/samples",
+                                        target_dict={
+                                            "key": "identifier",
+                                            "value": project_id
+                                        })
+
+        except StopIteration:
+            logging.error("The given project ID doesn't exist: ".format(project_id))
+            raise exceptions.IridaResourceError("The given project ID doesn't exist", project_id)
+
+        try:
+            url = self._get_link(sample_url, "sample/assemblies",
+                                 target_dict={
+                                     "key": "sampleName",
+                                     "value": sample_name
+                                 })
+            response = self._session.get(url)
+
+        except StopIteration:
+            logging.error("The given sample doesn't exist: ".format(sample_name))
+            raise exceptions.IridaResourceError("The given sample ID doesn't exist", sample_name)
+
+        # todo future development if needed one day
+        # This response should be returned as some sort of file object
+        # This is related to how we return get_sequence_files too, but there is no real use for it at the moment, yagni
+        result = response.json()["resource"]["resources"]
+
+        return result
+
+    def get_metadata(self, sample_name, project_id):
+        """
+        API call to api/samples/{sampleId}/metadata
+        arguments:
+            sample_name
+            project_id
+        returns list of metadata associated with sampleID
+        """
+
+        logging.info("Getting metadata from sample name '{}' found in project ID '{}'".format(sample_name, project_id))
+
+        try:
+            project_url = self._get_link(self.base_url, "projects")
+            sample_url = self._get_link(project_url, "project/samples",
+                                        target_dict={
+                                            "key": "identifier",
+                                            "value": project_id
+                                        })
+
+        except StopIteration:
+            logging.error("The given project ID doesn't exist: ".format(project_id))
+            raise exceptions.IridaResourceError("The given project ID doesn't exist", project_id)
+
+        try:
+            url = self._get_link(sample_url, "sample/metadata",
+                                 target_dict={
+                                     "key": "sampleName",
+                                     "value": sample_name
+                                 })
+            response = self._session.get(url)
+
+        except StopIteration:
+            logging.error("The given sample name doesn't exist: ".format(sample_name))
+            raise exceptions.IridaResourceError("The given sample name doesn't exist", sample_name)
+
+        result = response.json()["resource"]["metadata"]
 
         return result
 
@@ -515,15 +621,18 @@ class ApiCalls(object):
 
         return json_res
 
-    def send_sequence_files(self, sequence_file, sample_name, project_id, upload_id):
+    def send_sequence_files(self, sequence_file, sample_name, project_id, upload_id, assemblies=False):
         """
         post request to send sequence files found in given sample argument
         raises error if either project ID or sample ID found in Sample object
         doesn't exist in irida
 
         arguments:
-            sample -- Sample object
+            sequence_file -- SequenceFile object to send
+            sample_name -- irida sample name identifier to send to
+            project_id -- irida project identifier
             upload_id -- the run to upload the files to
+            assemblies -- default:False -- upload as assemblies instead of regular sequence files
 
         returns result of post request.
         """
@@ -543,23 +652,9 @@ class ApiCalls(object):
                                          })
         except StopIteration:
             raise exceptions.IridaResourceError("The given project ID doesn't exist", project_id)
-        # verify the sample exists
-        try:
-            seq_url = self._get_link(samples_url, "sample/sequenceFiles",
-                                     target_dict={
-                                         "key": "sampleName",
-                                         "value": sample_name
-                                     })
-        except StopIteration:
-            logging.error("The given sample '{}' does not exist on that project".format(sample_name))
-            raise exceptions.IridaResourceError("The given sample ID does not exist on that project", sample_name)
-        # get paired or single end url
-        if sequence_file.is_paired_end():
-            logging.debug("api_calls: sending paired-end file")
-            url = self._get_link(seq_url, "sample/sequenceFiles/pairs")
-        else:
-            logging.debug("api_calls: sending single-end file")
-            url = seq_url
+
+        # Get upload url
+        url = self._get_sample_upload_url(sequence_file, samples_url, sample_name, assemblies)
 
         # Get the data encoder
         data_pkg = self._get_sequence_data_pkg(sequence_file, upload_id)
@@ -587,6 +682,92 @@ class ApiCalls(object):
             raise self._get_irida_exception(response)
 
         return json_res
+
+    def send_metadata(self, metadata, project_id, sample_name):
+        """
+        Put request to add metadata to specific sample ID
+
+        :param metadata: Metadata object
+        :param project_id: id of project sample id is in
+        :param sample_name: name of sample in project to add metadata to
+        :return: json response from server
+        """
+
+        logging.info("Adding metadata to sample '{}' found in project '{}' on IRIDA.".format(sample_name, project_id))
+
+        try:
+            project_url = self._get_link(self.base_url, "projects")
+            sample_url = self._get_link(project_url, "project/samples",
+                                        target_dict={
+                                            "key": "identifier",
+                                            "value": project_id
+                                        })
+
+        except StopIteration:
+            logging.error("The given project ID doesn't exist: ".format(project_id))
+            raise exceptions.IridaResourceError("The given project ID doesn't exist", project_id)
+
+        try:
+            url = self._get_link(sample_url, "sample/metadata",
+                                 target_dict={
+                                     "key": "sampleName",
+                                     "value": sample_name
+                                 })
+
+        except StopIteration:
+            logging.error("The given sample doesn't exist: ".format(sample_name))
+            raise exceptions.IridaResourceError("The given sample doesn't exist", sample_name)
+
+        json_obj = json.dumps(metadata.get_uploadable_dict())
+
+        headers_pkg = {'Content-Type': 'application/json'}
+
+        response = self._session.put(url, data=json_obj, headers=headers_pkg)
+
+        if response.status_code == 200:  # 200
+            json_res = json.loads(response.text)
+        else:
+            logging.error("Did not add metadata to sample. Response code is '{}' and error message is '{}'"
+                          "".format(response.status_code, response.text))
+            raise self._get_irida_exception(response)
+
+        return json_res
+
+    def _get_sample_upload_url(self, sequence_file, samples_url, sample_name, assemblies):
+        """
+        Gets the appropriate url for single end, paired end, or assemblies files.
+        :param sequence_file: Sequence Fle to upload
+        :param samples_url: Sample Url to upload to
+        :param sample_name: Sample Name (identifier) to upload to
+        :param assemblies: Boolean for indicating assemblies files
+        :return:
+        """
+        try:
+            if assemblies:
+                url = self._get_link(samples_url, "sample/assemblies",
+                                     target_dict={
+                                         "key": "sampleName",
+                                         "value": sample_name
+                                     })
+            else:
+                part_url = self._get_link(samples_url, "sample/sequenceFiles",
+                                          target_dict={
+                                              "key": "sampleName",
+                                              "value": sample_name
+                                          })
+                # get paired or single end url
+                if sequence_file.is_paired_end():
+                    logging.debug("api_calls: sending paired-end file")
+                    url = self._get_link(part_url, "sample/sequenceFiles/pairs")
+                else:
+                    logging.debug("api_calls: sending single-end file")
+                    url = part_url
+
+        except StopIteration:
+            logging.error("The given sample '{}' does not exist on that project".format(sample_name))
+            raise exceptions.IridaResourceError("The given sample ID does not exist on that project", sample_name)
+
+        return url
 
     def _send_file_callback(self, monitor):
         """
@@ -631,6 +812,9 @@ class ApiCalls(object):
             file_name_b = sequence_file.file_list[1]
 
             file_metadata = sequence_file.properties_dict
+            # miseqRunId is what irida uses to parse the upload id
+            # we should think about renaming this in irida,
+            # but when we do it will break compatibility with all older uploaders
             file_metadata["miseqRunId"] = str(upload_id)
             file_metadata_json = json.dumps(file_metadata)
 
@@ -649,6 +833,9 @@ class ApiCalls(object):
             file_name = sequence_file.file_list[0]
 
             file_metadata = sequence_file.properties_dict
+            # miseqRunId is what irida uses to parse the upload id
+            # we should think about renaming this in irida,
+            # but when we do it will break compatibility with all older uploaders
             file_metadata["miseqRunId"] = str(upload_id)
             file_metadata_json = json.dumps(file_metadata)
 
@@ -662,7 +849,7 @@ class ApiCalls(object):
 
             return m_encoder
 
-    def create_seq_run(self, metadata):
+    def create_seq_run(self, metadata, sequencing_run_type):
         """
         Create a sequencing run.
 
@@ -674,6 +861,7 @@ class ApiCalls(object):
 
         arguments:
             metadata -- SequencingRun's metadata
+            sequencing_run_type -- string: used as the identifier for the type of sequencing run being uploaded
 
         returns: the sequencing run identifier for the sequencing run that was created
         """
@@ -685,10 +873,10 @@ class ApiCalls(object):
         if 'workflow' not in metadata_dict:
             metadata_dict['workflow'] = 'workflow'
 
-        seq_run_url = self._get_link(self.base_url, "sequencingRuns")
         # todo: we upload everything as miseq, should change when new sequencers are added to IRIDA
         # The easiest way to do this would be to add a sequencer type param to the metadata when parsing the sample
-        url = self._get_link(seq_run_url, "sequencingRun/miseq")
+        # here
+        url = self._get_upload_url(self.base_url, sequencing_run_type)
 
         headers = {
             "headers": {

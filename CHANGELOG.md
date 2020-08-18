@@ -1,10 +1,59 @@
 Changes
 =======
 
-version tbd
------------
+Beta 0.5.0
+----------
+Added functionality:
+* Added `nanopore_assemblies` as an alias for directory uploads
 * Added mode `readonly`, controlled with config option `readonly` and cli argument `--readonly` / `-r`
-    * This mode uploads without writing status and log files to the sequencing run directory.
+  * This mode uploads without writing status and log files to the sequencing run directory.
+
+Developer changes:
+* Changed `api` to post to `<base_url>/sequencingrun/<sequencing_run_type>` instead of `<base_url>/sequencingrun/miseqrun`
+  * Added `sequencing_run_type` to the `parser -> model -> api` chain
+* Switched to new build sequence to be more pythonic
+  * Restructured Makefile to use `pip -e` instead of manual installation with requirements files when installing from source
+  * Consolidated `run_upload.py` and `upload_gui.py` into `core/cli.py` and `gui/gui.py` (new file, not old gui.py)
+  * Moved `gui/gui.py` to `gui/main_dialog.py`
+  * GUI code can now be installed from `setup.py`/`pip` by using the extra `[GUI]` when installing
+  * Makefile now uses extra `[GUI]` when installing gui with command `make gui`
+* Dropped support for command line only windows build
+  * As before, command line can still be used with the windows gui build
+* Moved all example files to a new folder `examples`
+* Bash scripts for running uploader have been simplified, renamed, and moved
+  * Bash scripts now use the `setup.py` defined entry points for parity with `pip`
+  * `irida-uploader.sh` -> `scripts/upload.sh`
+  * `gui-uploader.sh` -> `scripts/gui.sh`
+* Changed integration tests build/startup to follow the `setup.py` flow
+  * Moved `start_integration_tests.py` to `iridauploader/tests_integration`
+  * added `[TEST]` as an `extra` to `setup.py` for build simplicity
+  * added `integration-test` as an entry point when building with `[Test]`, which `Makefile` now uses
+  * Makefile command for integration tests has changed from:
+    * `make integrationtests` ----> `make integrationtests branch=master`
+    * `make integrationtestsdev` -> `make integrationtests branch=development`
+    * any IRIDA github branch can be specified with the `branch` argument
+* Makefile has been simplified for easier readability
+
+Beta 0.4.3
+----------
+Added functionality:
+* `directory` parsers now support full file paths for upload.
+
+Developer changes:
+* Added method `get_metadata(self, sample_name, project_id)` to allow other metadata to be fetched from the `api` module
+* Added method `send_metadata(self, metadata, project_id, sample_name)` to allow other metadata to be sent using the `api` module
+* Added model `Metadata` to support `send_metadata` method
+
+Beta 0.4.2
+----------
+Added functionality:
+* Added support for uploading assemblies. Use `-a` / `--assemblies` or the checkbox on the GUI
+
+Developer changes:
+* Added support for cloud deployment by using the `iridauploader` available on `pip`
+* Added version updater script to the `scripts` directory
+* Added argument `assemblies=False` to `send_sequence_files(...)` to allow for assemblies upload from the `api` module
+* Added method `get_assemblies_files(self, project_id, sample_name)` to allow for fetching assemblies from the `api` module
 
 Beta 0.4.1
 ----------

@@ -9,7 +9,7 @@ in `parser/my-parser` create your main python parser file `parser.py`
 
 Create a `__init__.py` in `parser/my-parser` with the line:
 ```
-from .parser import Parser
+from iridauploader.parsers.my-parser.parser import Parser
 ```
 This is so the parser will be able to be grabbed by the `parser` module.
 

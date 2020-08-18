@@ -21,7 +21,7 @@ The file structure for a miniseq / iseq run should be correct by default, but if
 └── <other files>
 ```
 
-Example files can be found: `/example_sample_sheets/miniseq_run/`
+Example files can be found: `/examples/miniseq_run/`
 
 ## Preparing your miniseq / iseq sample sheet
 Before using the uploader, you must prepare your sequencing run with IRIDA-specific project IDs. You must do this manually after a run completes by editing `SampleSheet.csv` with Microsoft Excel or Windows Notepad.
