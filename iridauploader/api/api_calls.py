@@ -19,7 +19,9 @@ import iridauploader.progress as progress
 
 from . import exceptions
 
-
+# These strings are used to determine which upload mode is being used when uploading sequence files
+# They are included in the `api` __init__.py s.t. they can be used by the other modules without interacting with the
+# api layer
 MODE_DEFAULT = "default"
 MODE_ASSEMBLIES = "assemblies"
 MODE_FAST5 = "fast5"
