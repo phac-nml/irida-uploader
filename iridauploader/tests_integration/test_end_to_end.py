@@ -281,7 +281,7 @@ class TestEndToEnd(unittest.TestCase):
             password=tests_integration.password,
             base_url=tests_integration.base_url,
             parser="miseq",
-            readonly="True"
+            readonly=True
         )
 
         # instance an api
@@ -378,7 +378,7 @@ class TestEndToEnd(unittest.TestCase):
             password=tests_integration.password,
             base_url=tests_integration.base_url,
             parser="miseq",
-            readonly="False"
+            readonly=False
         )
 
         # instance an api
