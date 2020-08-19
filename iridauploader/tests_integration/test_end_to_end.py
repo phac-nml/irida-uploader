@@ -280,7 +280,8 @@ class TestEndToEnd(unittest.TestCase):
             username=tests_integration.username,
             password=tests_integration.password,
             base_url=tests_integration.base_url,
-            parser="miseq"
+            parser="miseq",
+            readonly="True"
         )
 
         # instance an api
@@ -306,7 +307,7 @@ class TestEndToEnd(unittest.TestCase):
         # Do the upload
         upload_result = upload_run_single_entry(path.join(path_to_module, "fake_ngs_data_read_only"),
                                                 force_upload=False,
-                                                read_only_mode=True)
+                                                upload_mode=api.MODE_DEFAULT)
 
         # Make sure the upload was a success
         self.assertEqual(upload_result.exit_code, 0)
@@ -376,7 +377,8 @@ class TestEndToEnd(unittest.TestCase):
             username=tests_integration.username,
             password=tests_integration.password,
             base_url=tests_integration.base_url,
-            parser="miseq"
+            parser="miseq",
+            readonly="False"
         )
 
         # instance an api
@@ -396,14 +398,12 @@ class TestEndToEnd(unittest.TestCase):
         project_description = "test_project_description"
         project = model.Project(name=project_name, description=project_description)
         test_api.send_project(project)
-        # We always upload to project "1" so that tests will be consistent no matter how many / which tests are run
-        project_id = "1"
 
         # fail the upload
         with self.assertRaises(PermissionError):
-            upload_result = upload_run_single_entry(path.join(path_to_module, "fake_ngs_data_read_only"),
-                                                    force_upload=False,
-                                                    read_only_mode=False)
+            upload_run_single_entry(path.join(path_to_module, "fake_ngs_data_read_only"),
+                                    force_upload=False,
+                                    upload_mode=api.MODE_DEFAULT)
 
     def test_valid_directory_upload(self):
         """
@@ -491,7 +491,8 @@ class TestEndToEnd(unittest.TestCase):
             username=tests_integration.username,
             password=tests_integration.password,
             base_url=tests_integration.base_url,
-            parser="directory"
+            parser="directory",
+            readonly="False"
         )
 
         # instance an api
@@ -540,7 +541,8 @@ class TestEndToEnd(unittest.TestCase):
             username=tests_integration.username,
             password=tests_integration.password,
             base_url=tests_integration.base_url,
-            parser="directory"
+            parser="directory",
+            readonly="False"
         )
 
         # instance an api

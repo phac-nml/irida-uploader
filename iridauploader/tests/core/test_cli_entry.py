@@ -128,7 +128,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         cli_entry.upload_run_single_entry(my_directory, force_upload=True, upload_mode=MODE_ASSEMBLIES)
 
         # Make sure directory status is init
-        mock_progress.write_directory_status.assert_called_with(stub_directory_status)
+        mock_progress.write_directory_status.assert_called_with(stub_directory_status, None)
         # Make sure parsing and validation is done
         mock_parsing_handler.parse_and_validate.assert_called_with(my_directory)
         # api must be initialized
@@ -176,7 +176,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         cli_entry.upload_run_single_entry(my_directory, force_upload=True, upload_mode=MODE_FAST5)
 
         # Make sure directory status is init
-        mock_progress.write_directory_status.assert_called_with(stub_directory_status)
+        mock_progress.write_directory_status.assert_called_with(stub_directory_status, None)
         # Make sure parsing and validation is done
         mock_parsing_handler.parse_and_validate.assert_called_with(my_directory)
         # api must be initialized
