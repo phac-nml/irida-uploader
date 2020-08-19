@@ -8,6 +8,7 @@
 * Directory Parsing
 * Batch Uploads
 * Assemblies Uploads
+* Fast5 Uploads
 * Can be used with cron/windows task scheduler for automated uploads
 * GUI
 
@@ -62,7 +63,17 @@ You can also install and run the GUI in the same way
 
 If you would prefer to build the uploader from source code, please see the README on [GitHub](https://github.com/phac-nml/irida-uploader)
     
-*Please Note: You will need to configure your uploader to connect to IRIDA before running.*
+*Please Note: You will need to configure your uploader to connect to IRIDA before running. See Configuration section below.*
+
+### Upload Modes
+
+By default, the IRIDA Uploader will upload fastq sequence files, but it can also upload Assemblies (fasta), and Fast5 data
+
+When uploading from the command line, use the `--upload_mode=<mode>`, with `assemblies` or `fast5` to upload those file types.
+
+See the `--help` command for more details.
+
+You can also select an upload mode when using the GUI via a drop down menu on the main screen.
 
 ### Configuration
 
