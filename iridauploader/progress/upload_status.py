@@ -33,10 +33,18 @@ def get_directory_status(directory, required_file_list):
     """
     result = DirectoryStatus(directory)
 
+    # Verify directory is readable
     if not os.access(directory, os.R_OK):
         result.status = DirectoryStatus.INVALID
-        result.message = 'Directory cannot be accessed. Please check permissions'
+        result.message = 'Directory cannot be read. Please check permissions'
         return result
+
+    # If readonly is not set, verify directory is writable
+    if config.read_config_option("readonly", bool, False) is False:
+        if not os.access(directory, os.W_OK):
+            result.status = DirectoryStatus.INVALID
+            result.message = 'Directory cannot be written to. Please check permissions or use readonly mode'
+            return result
 
     file_list = next(os.walk(directory))[2]  # Gets the list of files in the directory
 

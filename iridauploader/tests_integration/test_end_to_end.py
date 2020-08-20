@@ -399,11 +399,13 @@ class TestEndToEnd(unittest.TestCase):
         project = model.Project(name=project_name, description=project_description)
         test_api.send_project(project)
 
-        # fail the upload
-        with self.assertRaises(PermissionError):
-            upload_run_single_entry(path.join(path_to_module, "fake_ngs_data_read_only"),
-                                    force_upload=False,
-                                    upload_mode=api.MODE_DEFAULT)
+        # try the upload
+        upload_result = upload_run_single_entry(path.join(path_to_module, "fake_ngs_data_read_only"),
+                                                force_upload=False,
+                                                upload_mode=api.MODE_DEFAULT)
+
+        # Make sure the upload was a failure
+        self.assertEqual(upload_result.exit_code, 1)
 
     def test_valid_directory_upload(self):
         """
