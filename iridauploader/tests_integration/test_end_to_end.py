@@ -367,6 +367,7 @@ class TestEndToEnd(unittest.TestCase):
         # but one will be made in the case this is the only test being run
         project_name = "test_project_assemblies"
         project_description = "test_project_description_assemblies"
+        sample_name = "my-sample-1"
         project = model.Project(name=project_name, description=project_description)
         test_api.send_project(project)
         # We always upload to project "1" so that tests will be consistent no matter how many / which tests are run
@@ -374,17 +375,65 @@ class TestEndToEnd(unittest.TestCase):
 
         # Do the upload
         upload_result = upload_run_single_entry(directory=path.join(path_to_module, "fake_assemblies_data"),
-                                                upload_assemblies=True)
+                                                force_upload=True,
+                                                upload_mode=api.MODE_ASSEMBLIES)
 
         # Make sure the upload was a success
         self.assertEqual(upload_result.exit_code, 0)
 
         # Verify the files were uploaded
-        sample_list = test_api.get_samples(project_id)
-        test_sample = sample_list[0]
-        sequence_files = test_api.get_assemblies_files(project_id, test_sample.sample_name)
+        sequence_files = test_api.get_assemblies_files(project_id, sample_name)
         self.assertEqual(len(sequence_files), 1)
         self.assertEqual(sequence_files[0]['fileName'], 'file_1.fasta')
+
+    def test_valid_fast5_directory_upload(self):
+        """
+        Test a valid directory of fast5 for upload end to end
+        :return:
+        """
+        # Set our sample config file to use miseq parser and the correct irida credentials
+        self.write_to_config_file(
+            client_id=tests_integration.client_id,
+            client_secret=tests_integration.client_secret,
+            username=tests_integration.username,
+            password=tests_integration.password,
+            base_url=tests_integration.base_url,
+            parser="directory"
+        )
+
+        # instance an api
+        test_api = api.ApiCalls(
+            client_id=tests_integration.client_id,
+            client_secret=tests_integration.client_secret,
+            base_url=tests_integration.base_url,
+            username=tests_integration.username,
+            password=tests_integration.password
+        )
+
+        # Create a test project, the uploader does not make new projects on its own
+        # so one must exist to upload samples into
+        # This may not be the project that the files get uploaded to,
+        # but one will be made in the case this is the only test being run
+        project_name = "test_project_fast5"
+        project_description = "test_project_description_fast5"
+        sample_name = "my-sample-1"
+        project = model.Project(name=project_name, description=project_description)
+        test_api.send_project(project)
+        # We always upload to project "1" so that tests will be consistent no matter how many / which tests are run
+        project_id = "1"
+
+        # Do the upload
+        upload_result = upload_run_single_entry(directory=path.join(path_to_module, "fake_fast5_data"),
+                                                force_upload=True,
+                                                upload_mode=api.MODE_FAST5)
+
+        # Make sure the upload was a success
+        self.assertEqual(upload_result.exit_code, 0)
+
+        # Verify the files were uploaded
+        sequence_files = test_api.get_fast5_files(project_id, sample_name)
+        self.assertEqual(len(sequence_files), 1)
+        self.assertEqual(sequence_files[0]['file']['fileName'], 'file_1.fast5')
 
     def test_valid_miniseq_upload(self):
         """

@@ -4,6 +4,7 @@ import PyQt5.QtWidgets as QtWidgets
 import PyQt5.QtCore as QtCore
 import PyQt5.QtGui as QtGui
 
+from iridauploader.api import UPLOAD_MODES
 from iridauploader.config import config
 from iridauploader.model import DirectoryStatus
 
@@ -94,10 +95,11 @@ class MainDialog(QtWidgets.QDialog):
         # refresh
         self._refresh_button = QtWidgets.QPushButton(self)
         self._refresh_button.setText("Refresh")
-        # assemblies
-        self._assemblies_label = QtWidgets.QLabel("Upload as assemblies: ")
-        self._assemblies_checkbox = QtWidgets.QCheckBox(self)
-        self._assemblies_checkbox.setCheckState(QtCore.Qt.Unchecked)
+        # upload mode
+        self._upload_mode_label = QtWidgets.QLabel("Upload Mode: ")
+        self._upload_mode_combobox = QtWidgets.QComboBox(self)
+        self._upload_mode_combobox.addItems(UPLOAD_MODES)
+        self._upload_mode_combobox.setCurrentIndex(0)
         # Info lines, these start out as hidden
         self._info_line = QtWidgets.QLineEdit(self)
         self._info_line.setReadOnly(True)
@@ -143,13 +145,13 @@ class MainDialog(QtWidgets.QDialog):
         dir_layout.addWidget(self._dir_line)
         layout.addLayout(dir_layout)
 
-        # Config selection & assemblies & refresh
+        # Config selection & upload mode & refresh
         config_layout = QtWidgets.QHBoxLayout()
         config_layout.addWidget(self._config_button)
-        assemblies_layout = QtWidgets.QHBoxLayout()
-        assemblies_layout.addWidget(self._assemblies_label)
-        assemblies_layout.addWidget(self._assemblies_checkbox)
-        config_layout.addLayout(assemblies_layout)
+        upload_mode_layout = QtWidgets.QHBoxLayout()
+        upload_mode_layout.addWidget(self._upload_mode_label)
+        upload_mode_layout.addWidget(self._upload_mode_combobox)
+        config_layout.addLayout(upload_mode_layout)
         config_layout.addWidget(self._refresh_button)
         layout.addLayout(config_layout)
 
@@ -327,8 +329,8 @@ class MainDialog(QtWidgets.QDialog):
         self._upload_button.set_uploading()
         self._uploading = True
         # start upload
-        upload_as_assemblies = self._assemblies_checkbox.isChecked()
-        self._upload_thread.set_vars(self._run_dir, self._force_state, upload_as_assemblies)
+        upload_mode = self._upload_mode_combobox.currentText()
+        self._upload_thread.set_vars(self._run_dir, self._force_state, upload_mode)
         self._upload_thread.start()
 
     ##########################
