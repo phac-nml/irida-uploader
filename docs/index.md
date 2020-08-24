@@ -153,14 +153,6 @@ The `--force` option can be used with the `--batch` option
 
 ##### WARNING! When uploading `nextseq` data and using `--batch` upload with an auto-upload script, incomplete fastq files could be uploaded if `bcl2fastq` has not finished when the upload begins.
 
-## Assemblies Uploading
-
-You can upload assemblies by using the `--assemblies` option while running the uploader, or by clicking the assemblies checkbox in the GUI.
-
-It is recommended that you use the Directory Upload structure to upload assemblies.
-
-Please note that assemblies can not be uploaded as paired files.
-
 ## Logging
 
 Logs about individual runs are written to the sequencing run directory that they are uploaded from.
