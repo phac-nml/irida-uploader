@@ -58,7 +58,7 @@ class Parser(BaseParser):
         logging.info("Looking for sample sheet in {}".format(directory))
 
         # Checks if we can access to the given directory, return empty and log a warning if we cannot.
-        if not os.access(directory, os.R_OK):
+        if common.cannot_read_directory(directory):
             logging.error(("The directory is not accessible, can not parse samples from this directory {}"
                            "".format(directory), directory))
             raise exceptions.DirectoryError("The directory is not accessible, "

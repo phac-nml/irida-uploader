@@ -54,7 +54,7 @@ def find_directory_list(directory):
     """
 
     # Checks if we can access to the given directory, return empty and log a warning if we cannot.
-    if not os.access(directory, os.R_OK):
+    if cannot_read_directory(directory):
         raise exceptions.DirectoryError("The directory is not readable, "
                                         "can not upload samples from this directory {}".format(directory),
                                         directory)
@@ -111,3 +111,12 @@ def get_file_list(directory):
     # Create a file list of the directory, only hit the os once
     file_list = next(os.walk(directory))[2]
     return file_list
+
+
+def cannot_read_directory(directory):
+    """
+    Checks if a directory is missing the filesystem Readable flag,
+    :param directory:
+    :return: True if unreadable, False otherwise
+    """
+    return not os.access(directory, os.R_OK)
