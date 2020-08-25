@@ -3,6 +3,7 @@ import logging
 from pprint import pformat
 
 import iridauploader.api as api
+import iridauploader.config as config
 import iridauploader.parsers as parsers
 import iridauploader.progress as progress
 from iridauploader.model import DirectoryStatus
@@ -255,9 +256,10 @@ def _set_and_write_directory_status(directory_status, status, message=None):
     :param message: string
     :return:
     """
-    directory_status.status = status
-    directory_status.message = message
-    progress.write_directory_status(directory_status)
+    if config.read_config_option("readonly", bool, False) is False:
+        directory_status.status = status
+        directory_status.message = message
+        progress.write_directory_status(directory_status)
 
 
 def exit_error(error):
@@ -283,7 +285,8 @@ def logging_start_block(directory):
     Includes the uploader version number set in this module
     :return:
     """
-    logger.add_log_to_directory(directory)
+    if config.read_config_option("readonly", bool, False) is False:
+        logger.add_log_to_directory(directory)
     logging.info("==================================================")
     logging.info("---------------STARTING UPLOAD RUN----------------")
     logging.info("Uploader Version {}".format(VERSION_NUMBER))
@@ -299,4 +302,5 @@ def logging_end_block():
     logging.info("==================================================")
     logging.info("----------------ENDING UPLOAD RUN-----------------")
     logging.info("==================================================")
-    logger.remove_directory_logger()
+    if config.read_config_option("readonly", bool, False) is False:
+        logger.remove_directory_logger()

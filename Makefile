@@ -44,6 +44,7 @@ preintegration:
 	mkdir iridauploader/tests_integration/tmp/reference-files
 	mkdir iridauploader/tests_integration/tmp/sequence-files
 	mkdir iridauploader/tests_integration/tmp/assembly-files
+	chmod -R 555 iridauploader/tests_integration/fake_ngs_data_read_only
 
 integrationtests: clean env preintegration
 	source .virtualenv/bin/activate

@@ -112,13 +112,13 @@ You can upload with the following commands
 
 Open a Command Prompt terminal and use the `iridauploader` command to upload
 
-`C:\Users\username> iridauploader \path\to\my\samples\`
+`C:\Users\username> iridauploader -d \path\to\my\samples\`
 
 ### Linux:
 
 Use the `irida-uploader.sh` script included with the source code to upload.
 
-`./irida-uploader.sh /path/to/the/sequencing/run/`
+`./irida-uploader.sh -d /path/to/the/sequencing/run/`
 
 
 #### Note:
@@ -166,6 +166,12 @@ Full debug logs are written to your system default logging directory
 #### Windows
 
 `C:\Users\<username>\AppData\Local\irida-uploader\irida-uploader\Logs`
+
+## Read Only Mode
+
+You can upload in read-only mode with the config option, the `--readonly` / `-r` command line option, or the checkbox on the GUI.
+
+In this mode, the status file and the logging file will not be created in the sequencing run directory during upload.
 
 # Problems?
 

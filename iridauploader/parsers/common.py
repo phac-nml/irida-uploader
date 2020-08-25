@@ -54,8 +54,8 @@ def find_directory_list(directory):
     """
 
     # Checks if we can access to the given directory, return empty and log a warning if we cannot.
-    if not os.access(directory, os.W_OK):
-        raise exceptions.DirectoryError("The directory is not writeable, "
+    if not os.access(directory, os.R_OK):
+        raise exceptions.DirectoryError("The directory is not readable, "
                                         "can not upload samples from this directory {}".format(directory),
                                         directory)
 
