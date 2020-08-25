@@ -1,9 +1,9 @@
 SHELL=/bin/bash
 IRIDA_VERSION?=master
 
-all: clean requirements
-gui: clean requirementsgui
-guidev: clean requirementsguidev
+requirements: clean env
+	source .virtualenv/bin/activate
+	pip3 install -e .
 
 clean:
 	rm -rf iridauploader/.cache
@@ -15,39 +15,26 @@ clean:
 	rm -rf iridauploader/tests_integration/repos/
 	rm -rf iridauploader/tests_integration/tmp
 
-requirements:
+env:
 	python3 -m venv .virtualenv
 	source .virtualenv/bin/activate
-	pip3 install --upgrade wheel
-	pip3 install -r requirements.txt
+	pip3 install --upgrade wheel pip
 
-windows: clean requirements
+gui: clean env
 	source .virtualenv/bin/activate
-	python -m nsist windows-installer.cfg
+	pip3 install -e .[GUI]
 
-requirementsgui:
-	python3 -m venv .virtualenv
+windows: clean env
 	source .virtualenv/bin/activate
-	pip3 install --upgrade wheel
-	pip3 install -r requirements.txt
-	pip3 install -r requirementsgui.txt
-
-requirementsguidev:
-	python3 -m venv .virtualenv
-	source .virtualenv/bin/activate
-	pip3 install --upgrade wheel
-	pip3 install -r requirements.txt
-	pip3 install -r requirementsguidev.txt
+	pip3 install -e .[WINDOWS]
+	python3 -m nsist windows-installer.cfg
 
 wheel: clean
 	python3 setup.py sdist bdist_wheel
 
-windowsgui: clean requirementsgui
+unittests: clean env
 	source .virtualenv/bin/activate
-	python -m nsist windows-gui-installer.cfg
-
-unittests: clean requirements
-	source .virtualenv/bin/activate
+	pip3 install -e .[TEST]
 	export IRIDA_UPLOADER_TEST='True'
 	python3 -m unittest discover -s tests -t iridauploader
 
@@ -56,20 +43,18 @@ preintegration:
 	mkdir iridauploader/tests_integration/tmp/output-files
 	mkdir iridauploader/tests_integration/tmp/reference-files
 	mkdir iridauploader/tests_integration/tmp/sequence-files
+	mkdir iridauploader/tests_integration/tmp/assembly-files
 
-integrationtests: clean requirements preintegration
+integrationtests: clean env preintegration
 	source .virtualenv/bin/activate
+	pip3 install -e .[TEST]
 	export IRIDA_UPLOADER_TEST='True'
-	xvfb-run --auto-servernum --server-num=1 python3 start_integration_tests.py master
+	xvfb-run --auto-servernum --server-num=1 integration-test $(branch)
 
-integrationtestsdev: clean requirements preintegration
+pep8: clean env
 	source .virtualenv/bin/activate
-	export IRIDA_UPLOADER_TEST='True'
-	xvfb-run --auto-servernum --server-num=1 python3 start_integration_tests.py development
-
-pep8: clean requirements
-	source .virtualenv/bin/activate
-	pycodestyle --show-source --exclude=".git","bin",".idea","docs",".github","site",".virtualenv" --ignore="E501" .
+	pip3 install pycodestyle
+	pycodestyle --show-source --exclude=".git","bin",".idea","docs",".github","site",".virtualenv","iridauploader/build" --ignore="E501" .
 
 docs: requirements
 	source .virtualenv/bin/activate

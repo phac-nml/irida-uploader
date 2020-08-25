@@ -121,24 +121,27 @@ class UploadThread(QtCore.QThread):
         super().__init__()
         self._run_dir = ""
         self._force_state = False
+        self._upload_mode = None
         self._exit_return = None
 
-    def set_vars(self, run_dir, force_state):
+    def set_vars(self, run_dir, force_state, upload_mode):
         """
         Sets the variables in the object to the ones passed in
         :param run_dir:
         :param force_state:
+        :param upload_mode
         :return:
         """
         self._run_dir = run_dir
         self._force_state = force_state
+        self._upload_mode = upload_mode
 
     def run(self):
         """
         This runs when the threads start call is done
         :return:
         """
-        self._exit_return = cli_entry.upload_run_single_entry(self._run_dir, self._force_state)
+        self._exit_return = cli_entry.upload_run_single_entry(self._run_dir, self._force_state, self._upload_mode)
         pass
 
     def is_success(self):

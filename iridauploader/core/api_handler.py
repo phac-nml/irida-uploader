@@ -123,7 +123,7 @@ def prepare_and_validate_for_upload(sequencing_run):
     return validation_result
 
 
-def upload_sequencing_run(sequencing_run, directory_status):
+def upload_sequencing_run(sequencing_run, directory_status, upload_mode):
     """
     Handles uploading a sequencing run
 
@@ -134,13 +134,14 @@ def upload_sequencing_run(sequencing_run, directory_status):
 
     :param sequencing_run: run to upload
     :param directory_status: DirectoryStatus object to update as files get uploaded
-    :return: None
+    :param upload_mode: mode of upload
+    :return:
     """
     # get api
     api_instance = _get_api_instance()
 
     # create a seq run
-    run_id = api_instance.create_seq_run(sequencing_run.metadata)
+    run_id = api_instance.create_seq_run(sequencing_run.metadata, sequencing_run.sequencing_run_type)
     logging.info("Sequencing run id '{}' has been created for upload".format(run_id))
     # Update directory status file
     directory_status.run_id = run_id
@@ -158,7 +159,8 @@ def upload_sequencing_run(sequencing_run, directory_status):
                 api_instance.send_sequence_files(sequence_file=sample.sequence_file,
                                                  sample_name=sample.sample_name,
                                                  project_id=project.id,
-                                                 upload_id=run_id)
+                                                 upload_id=run_id,
+                                                 upload_mode=upload_mode)
                 # Update status file on progress
                 directory_status.set_sample_uploaded(sample_name=sample.sample_name,
                                                      project_id=project.id,
@@ -207,3 +209,21 @@ def send_project(project):
     except api.exceptions.IridaConnectionError as e:
         logging.error("Failed to send project to IRIDA")
         raise e
+
+
+def get_upload_modes():
+    """
+    Returns all the upload modes the api supports for sequence files
+
+    :return: List of Strings
+    """
+    return api.UPLOAD_MODES
+
+
+def get_default_upload_mode():
+    """
+    Returns the string for the default upload mode
+
+    :return: Default upload mode string
+    """
+    return api.MODE_DEFAULT

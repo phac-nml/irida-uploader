@@ -46,6 +46,7 @@ class SetupIridaData:
         output_files = "tests_integration/tmp/output-files"
         reference_file = "tests_integration/tmp/reference-files"
         sequence_files = "tests_integration/tmp/sequence-files"
+        assembly_files = "tests_integration/tmp/assembly-files"
 
         self.IRIDA_CMD = ['mvn', 'clean', 'jetty:run', '--quiet',
                           '-Djdbc.url=jdbc:mysql://localhost:3306/' + db_name,
@@ -56,7 +57,8 @@ class SetupIridaData:
                           '-Dirida.it.rootdirectory={}'.format(root_dir),
                           '-Dsequence.file.base.directory={}'.format(sequence_files),
                           '-Dreference.file.base.directory={}'.format(reference_file),
-                          '-Doutput.file.base.directory={}'.format(output_files)
+                          '-Doutput.file.base.directory={}'.format(output_files),
+                          '-Dassembly.file.base.directory={}'.format(assembly_files)
                           ]
 
         self.IRIDA_STOP = 'mvn jetty:stop'
@@ -123,12 +125,12 @@ class SetupIridaData:
 
     def login(self):
         self.driver.get(self.base_url + "/login")
-        self.driver.find_element_by_id("emailTF").clear()
-        self.driver.find_element_by_id("emailTF").send_keys(self.user)
-        self.driver.find_element_by_id("passwordTF").clear()
-        self.driver.find_element_by_id("passwordTF").send_keys(self.password)
+        self.driver.find_element_by_id("loginForm_username").clear()
+        self.driver.find_element_by_id("loginForm_username").send_keys(self.user)
+        self.driver.find_element_by_id("loginForm_password").clear()
+        self.driver.find_element_by_id("loginForm_password").send_keys(self.password)
         with self.wait_for_page_load(timeout=10):
-            self.driver.find_element_by_id("submitBtn").click()
+            self.driver.find_element_by_id("t-submit-btn").click()
 
     def set_new_admin_pw(self):
         self.driver.find_element_by_id("password").clear()

@@ -15,7 +15,7 @@ matrix:
       python: 3.6
     - env: "TEST_SUITE=unittests"
       python: 3.7
-    - env: "TEST_SUITE=integrationtests"
+    - env: "TEST_SUITE=integrationtests branch=master"
       python: 3.6
       before_script:
         - java -version
@@ -27,8 +27,15 @@ matrix:
         - export PATH=${JAVA_HOME}/bin:$PATH
         - java -version
         - echo $JAVA_HOME
-        - ln -s /usr/lib/chromium-browser/chromedriver ~/bin/chromedriver
-    - env: "TEST_SUITE=integrationtestsdev"
+        - CHROME_DRIVER_VERSION=`curl -sS https://chromedriver.storage.googleapis.com/LATEST_RELEASE`
+        - echo chromedriverversion
+        - echo $CHROME_DRIVER_VERSION
+        - wget -N https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip -P ~/
+        - unzip ~/chromedriver_linux64.zip -d ~/
+        - rm ~/chromedriver_linux64.zip
+        - sudo mv -f ~/chromedriver ~/bin/chromedriver
+        - sudo chmod 777 ~/bin/chromedriver
+    - env: "TEST_SUITE=integrationtests branch=development"
       python: 3.6
       before_script:
         - java -version
@@ -40,7 +47,14 @@ matrix:
         - export PATH=${JAVA_HOME}/bin:$PATH
         - java -version
         - echo $JAVA_HOME
-        - ln -s /usr/lib/chromium-browser/chromedriver ~/bin/chromedriver
+        - CHROME_DRIVER_VERSION=`curl -sS https://chromedriver.storage.googleapis.com/LATEST_RELEASE`
+        - echo chromedriverversion
+        - echo $CHROME_DRIVER_VERSION
+        - wget -N https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip -P ~/
+        - unzip ~/chromedriver_linux64.zip -d ~/
+        - rm ~/chromedriver_linux64.zip
+        - sudo mv -f ~/chromedriver ~/bin/chromedriver
+        - sudo chmod 777 ~/bin/chromedriver
     - env: "TEST_SUITE=pep8"
       python: 3.6
 
@@ -54,7 +68,6 @@ services:
 addons:
   apt:
     packages:
-      - chromium-chromedriver
       - xvfb
   chrome: stable
 

@@ -9,10 +9,10 @@ from iridauploader.model import DirectoryStatus
 
 from . import api_handler, parsing_handler, logger, exit_return
 
-VERSION_NUMBER = "0.4.1"
+VERSION_NUMBER = "0.5.0"
 
 
-def upload_run_single_entry(directory, force_upload=False):
+def upload_run_single_entry(directory, force_upload=False, upload_mode=None):
     """
     This function acts as a single point of entry for uploading a directory
 
@@ -20,6 +20,7 @@ def upload_run_single_entry(directory, force_upload=False):
 
     :param directory: Directory of the sequencing run to upload
     :param force_upload: When set to true, the upload status file will be ignored and file will attempt to be uploaded
+    :param upload_mode: String with upload mode to use. When None, default is used.
     :return: ExitReturn
     """
     directory_status = parsing_handler.get_run_status(directory)
@@ -41,10 +42,14 @@ def upload_run_single_entry(directory, force_upload=False):
             logging.error(error_msg)
             return exit_error(error_msg)
 
-    return _validate_and_upload(directory_status)
+    # get default upload mode if None
+    if upload_mode is None:
+        upload_mode = api_handler.get_default_upload_mode()
+
+    return _validate_and_upload(directory_status, upload_mode)
 
 
-def batch_upload_single_entry(batch_directory, force_upload=False):
+def batch_upload_single_entry(batch_directory, force_upload=False, upload_mode=None):
     """
     This function acts as a single point of entry for batch uploading run directories
 
@@ -54,6 +59,7 @@ def batch_upload_single_entry(batch_directory, force_upload=False):
 
     :param batch_directory: Directory containing sequencing run directories to upload
     :param force_upload: When set to true, the upload status file will be ignored and file will attempt to be uploaded
+    :param upload_mode: String with upload mode to use. When None, default is used.
     :return: ExitReturn
     """
     logging.debug("batch_upload_single_entry:Starting {} with force={}".format(batch_directory, force_upload))
@@ -77,11 +83,15 @@ def batch_upload_single_entry(batch_directory, force_upload=False):
         upload_list = [x for x in directory_status_list if x.status_equals(DirectoryStatus.NEW)]
         logging.info("Starting upload for all new runs. {} run(s) found.".format(len(upload_list)))
 
+    # get default upload mode if None
+    if upload_mode is None:
+        upload_mode = api_handler.get_default_upload_mode()
+
     # run upload, keep track of which directories did not upload
     error_list = []
     for directory_status in upload_list:
         logging.info("Starting upload for {}".format(directory_status.directory))
-        result = _validate_and_upload(directory_status)
+        result = _validate_and_upload(directory_status, upload_mode)
         if result.exit_code == exit_return.EXIT_CODE_ERROR:
             error_list.append(directory_status.directory)
 
@@ -94,7 +104,7 @@ def batch_upload_single_entry(batch_directory, force_upload=False):
     return exit_success()
 
 
-def _validate_and_upload(directory_status):
+def _validate_and_upload(directory_status, upload_mode):
     """
     This function attempts to upload a single run directory
 
@@ -105,6 +115,7 @@ def _validate_and_upload(directory_status):
     Starts the upload
 
     :param directory_status: DirectoryStatus object that has directory to try upload
+    :param upload_mode: String, mode to use when uploading assemblies
     :return: ExitReturn
     """
     logging_start_block(directory_status.directory)
@@ -138,6 +149,18 @@ def _validate_and_upload(directory_status):
         logging.info("Samples not uploaded!")
         full_error = error_msg + ", " + error_list_msg
         _set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
+        return exit_error(e)
+
+    # Check if upload_mode is valid
+    # Todo: This should get split into another block when resume upload gets added
+    # Keep this simple for now until the bigger refactor
+    valid_upload_mode_list = api_handler.get_upload_modes()
+    if upload_mode not in valid_upload_mode_list:
+        e = "Upload mode '{}' is not valid, upload mode must be one of {}".format(
+            upload_mode,
+            valid_upload_mode_list
+        )
+        logging.error(e)
         return exit_error(e)
 
     # Init status file with file list and write
@@ -186,7 +209,7 @@ def _validate_and_upload(directory_status):
     # Start upload
     logging.info("*** Starting Upload ***")
     try:
-        api_handler.upload_sequencing_run(sequencing_run, directory_status)
+        run_id = api_handler.upload_sequencing_run(sequencing_run=sequencing_run, directory_status=directory_status, upload_mode=upload_mode)
     except api.exceptions.IridaConnectionError as e:
         logging.error("Lost connection to Irida")
         logging.error("Errors: " + pformat(e.args))

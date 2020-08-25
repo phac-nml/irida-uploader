@@ -9,6 +9,7 @@ This will start a xvfb instance to run the tests inside
 """
 
 import argparse
+import sys
 
 import iridauploader.tests_integration.tests_integration as tests_integration
 
@@ -21,8 +22,8 @@ def main():
     # parse argument
     args = argument_parser.parse_args()
     # Start integration tests on specified branch
-    tests_integration.start(args.branch)
+    return tests_integration.start(args.branch)
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
