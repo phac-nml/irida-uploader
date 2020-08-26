@@ -12,6 +12,9 @@ Added functionality:
     * `assemblies`: Sends to `assemblies`, this replaces `--assemblies`
     * `fast5`: Sends to `fast5`, this is a new feature
   * GUI now has a dropdown box to select upload mode
+* Added mode `readonly`, controlled with config option `readonly` and cli argument `--readonly` / `-r`
+  * This mode uploads without writing status and log files to the sequencing run directory.
+  * `readonly` checkbox has been added to the GUI config page.
 
 Developer changes:
 * Changed `api` to post to `<base_url>/sequencingrun/<sequencing_run_type>` instead of `<base_url>/sequencingrun/miseqrun`

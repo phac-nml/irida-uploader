@@ -117,6 +117,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(config.read_config_option('password'), 'password1')
         self.assertEqual(config.read_config_option('base_url'), 'http://localhost:8080/irida-latest/api/')
         self.assertEqual(config.read_config_option('parser'), 'miseq')
+        self.assertEqual(config.read_config_option('readonly', bool), False)
 
     def test_set_config_options(self):
         """
