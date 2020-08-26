@@ -44,7 +44,8 @@ def _init_config_parser():
                         SettingsDefault._make(["username", ""]),
                         SettingsDefault._make(["password", ""]),
                         SettingsDefault._make(["base_url", ""]),
-                        SettingsDefault._make(["parser", "directory"])]
+                        SettingsDefault._make(["parser", "directory"]),
+                        SettingsDefault._make(["readonly", False])]
     # add defaults to config parser
     for config in default_settings:
         _conf_parser.set("Settings", config.setting, config.default_value)
@@ -108,7 +109,8 @@ def set_config_options(client_id=None,
                        username=None,
                        password=None,
                        base_url=None,
-                       parser=None):
+                       parser=None,
+                       readonly=None):
     """
     Updates the config options for all not None parameters
     :param client_id:
@@ -117,6 +119,7 @@ def set_config_options(client_id=None,
     :param password:
     :param base_url:
     :param parser:
+    :param readonly:
     :return:
     """
     global _conf_parser
@@ -142,6 +145,10 @@ def set_config_options(client_id=None,
     if parser:
         logging.debug("Setting 'parser' config to {}".format(parser))
         _update_config_option("parser", parser)
+    # since readonly is a bool and not a string, we need to check that is is not None, not just not True
+    if readonly is not None:
+        logging.debug("Setting 'readonly' config to {}".format(readonly))
+        _update_config_option("readonly", readonly)
 
 
 def setup():
@@ -196,8 +203,15 @@ def read_config_option(key, expected_type=None, default_value=None):
             logging.debug("Got configuration for key {}: {}".format(key, value))
             return _conf_parser.get("Settings", key)
         elif expected_type is bool:
-            return _conf_parser.getboolean("Settings", key)
-    except (ValueError, NoOptionError):
+            res = _conf_parser.get("Settings", key)
+            # Return bool, or string evaluated to bool, or NameError exception otherwise
+            if type(res) is bool:
+                return res
+            elif type(res) is str:
+                return eval(res)
+            else:
+                raise NameError
+    except (ValueError, NameError, NoOptionError):
         if default_value:
             return default_value
         else:
@@ -212,6 +226,7 @@ def _update_config_option(field_name, field_value):
     :return:
     """
     global _conf_parser
+    logging.debug("Setting [" + field_name + "] to [" + str(field_value) + "]")
     _conf_parser.set("Settings", field_name, field_value)
 
 

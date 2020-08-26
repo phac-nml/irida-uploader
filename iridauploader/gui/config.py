@@ -1,5 +1,6 @@
 import logging
 # PyQt needs to be imported like this because for whatever reason they decided not to include a __all__ = [...]
+import PyQt5.QtCore as QtCore
 import PyQt5.QtWidgets as QtWidgets
 
 from iridauploader.config import config
@@ -38,6 +39,8 @@ class ConfigDialog(QtWidgets.QDialog):
         self._parser_label = QtWidgets.QLabel("Parser")
         self._parser = QtWidgets.QComboBox()
         self._parser.addItems(supported_parsers)
+        self._read_only_mode = QtWidgets.QCheckBox()
+        self._read_only_mode_label = QtWidgets.QLabel("Read Only Mode")
 
         self._btn_check_settings = QtWidgets.QPushButton("Save and Test Settings")
         self._settings_status = QtWidgets.QLineEdit()
@@ -97,6 +100,11 @@ class ConfigDialog(QtWidgets.QDialog):
         parser_layout.addWidget(self._parser_label)
         parser_layout.addWidget(self._parser)
         layout.addLayout(parser_layout)
+        # Read Only
+        read_only_layout = QtWidgets.QHBoxLayout()
+        read_only_layout.addWidget(self._read_only_mode_label)
+        read_only_layout.addWidget(self._read_only_mode)
+        layout.addLayout(read_only_layout)
         # Buttons
         status_layout = QtWidgets.QHBoxLayout()
         status_layout.addWidget(self._btn_check_settings)
@@ -138,6 +146,9 @@ class ConfigDialog(QtWidgets.QDialog):
         self._base_url.setText(config.read_config_option('base_url'))
         index = self._parser.findText(config.read_config_option('parser'))
         self._parser.setCurrentIndex(index)
+        read_only_bool = config.read_config_option("readonly", bool, False)
+        read_only_state = QtCore.Qt.Checked if read_only_bool else QtCore.Qt.Unchecked
+        self._read_only_mode.setCheckState(read_only_state)
 
     def _write_settings_to_file(self):
         """
@@ -149,7 +160,8 @@ class ConfigDialog(QtWidgets.QDialog):
                                   username=self._username.text(),
                                   password=self._password.text(),
                                   base_url=self._base_url.text(),
-                                  parser=self._parser.currentText())
+                                  parser=self._parser.currentText(),
+                                  readonly=self._read_only_mode.isChecked())
         config.write_config_options_to_file()
 
     def _contact_irida(self):
