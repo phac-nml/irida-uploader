@@ -1,3 +1,8 @@
+import time
+
+import iridauploader.config as config
+
+
 class DirectoryStatus:
     """
     When looking for runs in a directory (or list of directories) this object is used to
@@ -8,7 +13,10 @@ class DirectoryStatus:
 
     # New runs, ready to upload
     NEW = 'new'
-    # Used when a run directory does not have the base requirements to act as a run
+    # Delayed runs are new runs that have been discovered as new, but must wait before upload
+    # When a run is found with the Delayed status, The uploader will check if enough time has passed to start the upload
+    DELAYED = 'delayed'
+    # Invalid is used when a run directory does not have the base requirements to act as a run
     # Never written to a status file
     INVALID = 'invalid'
     # Parsing/Upload has started/partially completed for this run
@@ -20,11 +28,22 @@ class DirectoryStatus:
 
     VALID_STATUS_LIST = [
         NEW,
+        DELAYED,
         INVALID,
         PARTIAL,
         ERROR,
         COMPLETE
     ]
+
+    # Status field for a sequencing run
+    JSON_STATUS_FIELD = "Upload Status"
+    JSON_DIRECTORY_FIELD = "Directory"
+    JSON_DATE_TIME_FIELD = "Date Time"
+    JSON_DATE_TIME_FORMAT = "%Y-%m-%d %H:%M"
+    JSON_RUN_ID_FIELD = "Run ID"
+    JSON_IRIDA_INSTANCE_FIELD = "IRIDA Instance"
+    JSON_MESSAGE_FIELD = "Message"
+    JSON_SAMPLES_UPLOADED_FIELD = "Sample Status"
 
     def __init__(self, directory):
         """
@@ -37,6 +56,8 @@ class DirectoryStatus:
         self._message = None
         self._run_id = None
         self._sample_status_list = None
+        self._time = None
+        self._irida_instance = None
 
     def init_file_status_list_from_sequencing_run(self, sequencing_run):
         """
@@ -122,13 +143,74 @@ class DirectoryStatus:
     def message(self, message):
         self._message = message
 
+    @property
+    def time(self):
+        if self._time is None:
+            return None
+        return self._time.strftime(self.JSON_DATE_TIME_FORMAT)
+
+    @time.setter
+    def time(self, formatted_time):
+        self._time = time.strptime(formatted_time, self.JSON_DATE_TIME_FORMAT)
+
+    @property
+    def irida_instance(self):
+        if self._irida_instance is None:
+            self._irida_instance = config.read_config_option('base_url')
+        return self._irida_instance
+
+    @irida_instance.setter
+    def irida_instance(self, irida_instance):
+        self._irida_instance = irida_instance
+
+    def to_json_dict(self):
+        sample_status_dict = self.sample_status_to_dict()
+
+        json_dict = {
+            self.JSON_STATUS_FIELD: self.status,
+            self.JSON_DIRECTORY_FIELD: self.directory,
+            self.JSON_MESSAGE_FIELD: self.message,
+            self.JSON_DATE_TIME_FIELD: time.strftime(self.JSON_DATE_TIME_FORMAT),  # Generate a new timestamp
+            self.JSON_RUN_ID_FIELD: self.run_id if self.run_id is not None else "",
+            self.JSON_IRIDA_INSTANCE_FIELD: self.irida_instance,
+            self.JSON_SAMPLES_UPLOADED_FIELD: sample_status_dict if sample_status_dict is not None else "",
+        }
+
+        return json_dict
+
+    @staticmethod
+    def init_from_json_dict(json_dict):
+        new_directory_status = DirectoryStatus(json_dict[DirectoryStatus.JSON_DIRECTORY_FIELD])
+        new_directory_status.status = json_dict[DirectoryStatus.JSON_STATUS_FIELD]
+        new_directory_status.message = json_dict[DirectoryStatus.JSON_MESSAGE_FIELD]
+        new_directory_status.time = json_dict[DirectoryStatus.JSON_DATE_TIME_FIELD]
+        new_directory_status.run_id = json_dict[DirectoryStatus.JSON_RUN_ID_FIELD]
+        new_directory_status.irida_instance = json_dict[DirectoryStatus.JSON_IRIDA_INSTANCE_FIELD]
+
+        new_sample_status_list = []
+
+        for sample_dict in json_dict[DirectoryStatus.JSON_SAMPLES_UPLOADED_FIELD]:
+            new_sample_status_list.append(DirectoryStatus.SampleStatus(
+                sample_name=sample_dict[DirectoryStatus.SampleStatus.SAMPLE_NAME_FIELD],
+                project_id=sample_dict[DirectoryStatus.SampleStatus.SAMPLE_NAME_FIELD],
+                uploaded=sample_dict[DirectoryStatus.SampleStatus.SAMPLE_NAME_FIELD],
+            ))
+
+        new_directory_status._sample_status_list = new_sample_status_list
+
+        return new_directory_status
+
     class SampleStatus:
         """
         Contains a sample name, project id and upload status
         This is used to simply jsonify the directory status info
         """
 
-        def __init__(self, sample_name, project_id):
+        SAMPLE_NAME_FIELD = "Sample Name"
+        PROJECT_ID_FIELD = "Project ID"
+        UPLOADER_FIELD = "Uploaded"
+
+        def __init__(self, sample_name, project_id, uploaded=False):
             """
             Init SampleStatus Object, initializes uploaded to False
 
@@ -137,7 +219,7 @@ class DirectoryStatus:
             """
             self._sample_name = sample_name
             self._project_id = project_id
-            self._uploaded = False
+            self._uploaded = uploaded
 
         @property
         def uploaded(self):
@@ -171,7 +253,7 @@ class DirectoryStatus:
             :return:
             """
             return {
-                "Sample Name": self.sample_name,
-                "Project ID": self.project_id,
-                "Uploaded": str(self.uploaded)
+                self.SAMPLE_NAME_FIELD: self.sample_name,
+                self.PROJECT_ID_FIELD: self.project_id,
+                self.UPLOADER_FIELD: str(self.uploaded)
             }

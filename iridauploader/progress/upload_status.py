@@ -1,5 +1,4 @@
 import json
-import time
 import os
 
 import iridauploader.config as config
@@ -14,40 +13,35 @@ from . import exceptions
 # File name
 STATUS_FILE_NAME = "irida_uploader_status.info"
 
-# Status field for a sequencing run
-STATUS_FIELD = "Upload Status"
-DATE_TIME_FIELD = "Date Time"
-RUN_ID_FIELD = "Run ID"
-IRIDA_INSTANCE_FIELD = "IRIDA Instance"
-MESSAGE_FIELD = "Message"
-SAMPLES_UPLOADED_FIELD = "Samples Uploaded"
-
 
 def get_directory_status(directory, required_file_list):
     """
     Gets the directory status based off using 'irida_uploader_status.info' files to track progress
+
+    Returns as soon as it finds the case that applies
 
     :param directory: the directory to search for a run
     :param required_file_list: optional param: a list of required files that
         are required for that run to be considered valid. Example: ['SampleSheet.csv']
     :return: directory and status dictionary
     """
-    result = DirectoryStatus(directory)
-
     # Verify directory is readable
     if not os.access(directory, os.R_OK):
-        result.status = DirectoryStatus.INVALID
-        result.message = 'Directory cannot be read. Please check permissions'
-        return result
+        directory_status = DirectoryStatus(directory)
+        directory_status.status = DirectoryStatus.INVALID
+        directory_status.message = 'Directory cannot be read. Please check permissions'
+        return directory_status
 
     # If readonly is not set, verify directory is writable
     if config.read_config_option("readonly", bool, False) is False:
         if not os.access(directory, os.W_OK):
-            result.status = DirectoryStatus.INVALID
-            result.message = 'Directory cannot be written to. Please check permissions or use readonly mode'
-            return result
+            directory_status = DirectoryStatus(directory)
+            directory_status.status = DirectoryStatus.INVALID
+            directory_status.message = 'Directory cannot be written to. Please check permissions or use readonly mode'
+            return directory_status
 
-    file_list = next(os.walk(directory))[2]  # Gets the list of files in the directory
+    # Gets the list of files in the directory
+    file_list = next(os.walk(directory))[2]
 
     # Legacy upload catch
     # When the irida-miseq-uploader (old uploader) ran it generated a .miseqUploaderInfo file
@@ -55,36 +49,41 @@ def get_directory_status(directory, required_file_list):
     # By default they will not be picked up automatically with --batch because they are set to COMPLETE,
     # but they can still be uploaded using the --force option
     if '.miseqUploaderInfo' in file_list:
-        result.status = DirectoryStatus.COMPLETE
-        result.message = "Legacy uploader run. Set to complete to avoid uploading duplicate data."
-        return result
+        directory_status = DirectoryStatus(directory)
+        directory_status.status = DirectoryStatus.COMPLETE
+        directory_status.message = "Legacy uploader run. Set to complete to avoid uploading duplicate data."
+        return directory_status
 
     for file_name in required_file_list:
         if file_name not in file_list:
-            result.status = DirectoryStatus.INVALID
-            result.message = 'Directory is missing required file with filename {}'.format(file_name)
-            return result
+            directory_status = DirectoryStatus(directory)
+            directory_status.status = DirectoryStatus.INVALID
+            directory_status.message = 'Directory is missing required file with filename {}'.format(file_name)
+            return directory_status
 
-    if STATUS_FILE_NAME not in file_list:  # no irida_uploader_status.info file yet, has not been uploaded
-        result.status = DirectoryStatus.NEW
-        return result
+    # All pre-validation passed
+    # Determine if status file already exists, or if the run is brand new
+    if STATUS_FILE_NAME in file_list:  # Status file already exists, use it.
+        directory_status = read_directory_status_from_file(directory)
+        return directory_status
+    else:  # no irida_uploader_status.info file yet, has not been uploaded
+        directory_status = DirectoryStatus(directory)
+        directory_status.status = DirectoryStatus.NEW
+        return directory_status
 
-    # Must check status of upload to determine if upload is completed
+
+def read_directory_status_from_file(directory):
     uploader_info_file = os.path.join(directory, STATUS_FILE_NAME)
     with open(uploader_info_file, "rb") as reader:
         data = reader.read().decode()
-    info_file = json.loads(data)
-    status = info_file[STATUS_FIELD]
-    if status in DirectoryStatus.VALID_STATUS_LIST:
-        result.status = status
-        if MESSAGE_FIELD in info_file:
-            result.message = info_file[MESSAGE_FIELD]
-        else:
-            result.message = None
-    else:  # the status found in the file is not in the defined list
-        raise exceptions.DirectoryError("Invalid Status in status file", directory)
+    json_dict = json.loads(data)
 
-    return result
+    directory_status = DirectoryStatus.init_from_json_dict(json_dict)
+
+    if directory_status.status not in DirectoryStatus.VALID_STATUS_LIST:
+        raise exceptions.DirectoryError("Invalid Status File", directory)
+
+    return directory_status
 
 
 def write_directory_status(directory_status):
@@ -101,26 +100,9 @@ def write_directory_status(directory_status):
     if not os.access(directory_status.directory, os.W_OK):  # Cannot access upload directory
         raise exceptions.DirectoryError("Cannot access directory", directory_status.directory)
 
-    sample_status_dict = directory_status.sample_status_to_dict()
-
-    json_data = {
-        STATUS_FIELD: directory_status.status,
-        MESSAGE_FIELD: directory_status.message,
-        DATE_TIME_FIELD: _get_date_time_field(),
-        RUN_ID_FIELD: directory_status.run_id if directory_status.run_id is not None else "",
-        IRIDA_INSTANCE_FIELD: config.read_config_option('base_url'),
-        SAMPLES_UPLOADED_FIELD: sample_status_dict if sample_status_dict is not None else ""
-    }
+    json_data = directory_status.to_json_dict()
 
     uploader_info_file = os.path.join(directory_status.directory, STATUS_FILE_NAME)
     with open(uploader_info_file, "w") as json_file:
         json.dump(json_data, json_file, indent=4, sort_keys=True)
         json_file.write("\n")
-
-
-def _get_date_time_field():
-    """
-    Returns the current date and time as a string
-    :return:
-    """
-    return time.strftime("%Y-%m-%d %H:%M")
