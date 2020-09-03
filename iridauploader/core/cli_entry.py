@@ -1,7 +1,5 @@
 import logging
 
-from pprint import pformat
-
 import iridauploader.api as api
 import iridauploader.config as config
 import iridauploader.parsers as parsers

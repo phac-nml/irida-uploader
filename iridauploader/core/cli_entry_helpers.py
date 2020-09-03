@@ -10,11 +10,11 @@ import logging
 from pprint import pformat
 
 from iridauploader import api
-import iridauploader.core.api_handler as api_handler
-import iridauploader.core.parsing_handler as parsing_handler
 import iridauploader.parsers as parsers
 import iridauploader.progress as progress
 from iridauploader.model import DirectoryStatus
+
+from . import api_handler, parsing_handler
 
 
 def _set_and_write_directory_status(directory_status, status, message=None):
