@@ -101,13 +101,13 @@ def write_directory_status(directory_status):
     :param directory_status: DirectoryStatus object containing status to write to directory
     :return: None
     """
+    if config.read_config_option("readonly", bool, False) is False:
+        if not os.access(directory_status.directory, os.W_OK):  # Cannot access upload directory
+            raise exceptions.DirectoryError("Cannot access directory", directory_status.directory)
 
-    if not os.access(directory_status.directory, os.W_OK):  # Cannot access upload directory
-        raise exceptions.DirectoryError("Cannot access directory", directory_status.directory)
+        json_data = directory_status.to_json_dict()
 
-    json_data = directory_status.to_json_dict()
-
-    uploader_info_file = os.path.join(directory_status.directory, STATUS_FILE_NAME)
-    with open(uploader_info_file, "w") as json_file:
-        json.dump(json_data, json_file, indent=4, sort_keys=True)
-        json_file.write("\n")
+        uploader_info_file = os.path.join(directory_status.directory, STATUS_FILE_NAME)
+        with open(uploader_info_file, "w") as json_file:
+            json.dump(json_data, json_file, indent=4, sort_keys=True)
+            json_file.write("\n")
