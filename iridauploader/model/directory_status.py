@@ -151,7 +151,12 @@ class DirectoryStatus:
 
     @time.setter
     def time(self, formatted_time):
-        self._time = time.strptime(formatted_time, self.JSON_DATE_TIME_FORMAT)
+        if formatted_time is None:
+            self._time = None
+        elif type(formatted_time) is not str:
+            raise TypeError("Time given is not a string: {}".format(formatted_time))
+        else:
+            self._time = time.strptime(formatted_time, self.JSON_DATE_TIME_FORMAT)
 
     @property
     def irida_instance(self):
@@ -180,25 +185,44 @@ class DirectoryStatus:
 
     @staticmethod
     def init_from_json_dict(json_dict):
-        new_directory_status = DirectoryStatus(json_dict[DirectoryStatus.JSON_DIRECTORY_FIELD])
-        new_directory_status.status = json_dict[DirectoryStatus.JSON_STATUS_FIELD]
-        new_directory_status.message = json_dict[DirectoryStatus.JSON_MESSAGE_FIELD]
-        new_directory_status.time = json_dict[DirectoryStatus.JSON_DATE_TIME_FIELD]
-        new_directory_status.run_id = json_dict[DirectoryStatus.JSON_RUN_ID_FIELD]
-        new_directory_status.irida_instance = json_dict[DirectoryStatus.JSON_IRIDA_INSTANCE_FIELD]
+        new_directory_status = DirectoryStatus(DirectoryStatus._get_field_or_none(
+            json_dict, DirectoryStatus.JSON_DIRECTORY_FIELD))
+        new_directory_status.status = DirectoryStatus._get_field_or_none(
+            json_dict, DirectoryStatus.JSON_STATUS_FIELD)
+        new_directory_status.message = DirectoryStatus._get_field_or_none(
+            json_dict, DirectoryStatus.JSON_MESSAGE_FIELD)
+        new_directory_status.time = DirectoryStatus._get_field_or_none(
+            json_dict, DirectoryStatus.JSON_DATE_TIME_FIELD)
+        new_directory_status.run_id = DirectoryStatus._get_field_or_none(
+            json_dict, DirectoryStatus.JSON_RUN_ID_FIELD)
+        new_directory_status.irida_instance = DirectoryStatus._get_field_or_none(
+            json_dict, DirectoryStatus.JSON_IRIDA_INSTANCE_FIELD)
 
-        new_sample_status_list = []
-
-        for sample_dict in json_dict[DirectoryStatus.JSON_SAMPLES_UPLOADED_FIELD]:
-            new_sample_status_list.append(DirectoryStatus.SampleStatus(
-                sample_name=sample_dict[DirectoryStatus.SampleStatus.SAMPLE_NAME_FIELD],
-                project_id=sample_dict[DirectoryStatus.SampleStatus.SAMPLE_NAME_FIELD],
-                uploaded=sample_dict[DirectoryStatus.SampleStatus.SAMPLE_NAME_FIELD],
-            ))
-
-        new_directory_status._sample_status_list = new_sample_status_list
+        new_directory_status._sample_status_list = DirectoryStatus._get_sample_status_list_from_json(
+            json_dict, DirectoryStatus.JSON_SAMPLES_UPLOADED_FIELD)
 
         return new_directory_status
+
+    @staticmethod
+    def _get_field_or_none(json_dict, field):
+        return json_dict[field] if field in json_dict else None
+
+    @staticmethod
+    def _get_sample_status_list_from_json(json_dict, samples_field):
+        new_sample_status_list = []
+
+        samples_uploaded_field = DirectoryStatus._get_field_or_none(
+            json_dict, samples_field)
+
+        if samples_uploaded_field is not None:
+            for sample_dict in json_dict[samples_field]:
+                new_sample_status_list.append(DirectoryStatus.SampleStatus(
+                    sample_name=sample_dict[DirectoryStatus.SampleStatus.SAMPLE_NAME_FIELD],
+                    project_id=sample_dict[DirectoryStatus.SampleStatus.SAMPLE_NAME_FIELD],
+                    uploaded=sample_dict[DirectoryStatus.SampleStatus.SAMPLE_NAME_FIELD],
+                ))
+
+        return new_sample_status_list
 
     class SampleStatus:
         """

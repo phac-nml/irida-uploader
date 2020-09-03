@@ -78,10 +78,15 @@ def read_directory_status_from_file(directory):
         data = reader.read().decode()
     json_dict = json.loads(data)
 
-    directory_status = DirectoryStatus.init_from_json_dict(json_dict)
-
-    if directory_status.status not in DirectoryStatus.VALID_STATUS_LIST:
-        raise exceptions.DirectoryError("Invalid Status File", directory)
+    try:
+        directory_status = DirectoryStatus.init_from_json_dict(json_dict)
+        if directory_status.status not in DirectoryStatus.VALID_STATUS_LIST:
+            raise KeyError("Invalid directory status: {}".format(directory_status.status))
+    except KeyError as e:
+        # If status file is invalid, create a new directory status with invalid and error message to return instead
+        directory_status = DirectoryStatus(directory)
+        directory_status.status = DirectoryStatus.INVALID
+        directory_status.message = str(e)
 
     return directory_status
 
