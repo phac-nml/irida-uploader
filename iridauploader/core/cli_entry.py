@@ -122,127 +122,151 @@ def _validate_and_upload(directory_status, upload_mode):
     logging_start_block(directory_status.directory)
     logging.debug("upload_run_single_entry:Starting {}".format(directory_status.directory))
 
-    # Add progress file to directory
     try:
-        cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.PARTIAL)
-    except progress.exceptions.DirectoryError as e:
-        logging.error("ERROR! Error while trying to write status file to directory {} with error message: {}"
-                      "".format(e.directory, e.message))
-        logging.info("Samples not uploaded!")
+        # Starting upload process: Parse and do offline verification
+        sequencing_run = cli_entry_helpers.parse_and_validate(directory_status)
+        cli_entry_helpers.verify_upload_mode(upload_mode)
+        cli_entry_helpers.init_file_status_list_from_sequencing_run(sequencing_run, directory_status)
+
+        # Initialize api, run pre upload preparation and validation
+        cli_entry_helpers.initialize_api(directory_status)
+        cli_entry_helpers.irida_prep_and_validation(sequencing_run, directory_status)
+
+        # Upload run
+        cli_entry_helpers.upload_sequencing_run(sequencing_run, directory_status, upload_mode)
+
+    except (progress.exceptions.DirectoryError,
+            parsers.exceptions.ValidationError,
+            parsers.exceptions.DirectoryError,
+            api.exceptions.IridaConnectionError,
+            api.exceptions.IridaResourceError,
+            api.exceptions.FileError,
+            Exception
+            ) as e:
         return exit_error(e)
 
-    # Do parsing (Also offline validation)
-    try:
-        sequencing_run = parsing_handler.parse_and_validate(directory_status.directory)
-    except parsers.exceptions.DirectoryError as e:
-        # Directory was not valid for some reason
-        full_error = "ERROR! An error occurred with directory '{}', with message: {}".format(e.directory, e.message)
-        logging.error(full_error)
-        logging.info("Samples not uploaded!")
-        cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
-        return exit_error(e)
-    except parsers.exceptions.ValidationError as e:
-        # Sequencing Run / SampleSheet was not valid for some reason
-        error_msg = "ERROR! Errors occurred during validation with message: {}".format(e.message)
-        logging.error(error_msg)
-        error_list_msg = "Error list: " + pformat(e.validation_result.error_list)
-        logging.error(error_list_msg)
-        logging.info("Samples not uploaded!")
-        full_error = error_msg + ", " + error_list_msg
-        cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
-        return exit_error(e)
 
-    # Check if upload_mode is valid
-    # Todo: This should get split into another block when resume upload gets added
-    # Keep this simple for now until the bigger refactor
-    valid_upload_mode_list = api_handler.get_upload_modes()
-    if upload_mode not in valid_upload_mode_list:
-        e = "Upload mode '{}' is not valid, upload mode must be one of {}".format(
-            upload_mode,
-            valid_upload_mode_list
-        )
-        logging.error(e)
-        return exit_error(e)
-
-    # Init status file with file list and write
-    try:
-        directory_status.init_file_status_list_from_sequencing_run(sequencing_run)
-        cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.PARTIAL)
-    except progress.exceptions.DirectoryError as e:
-        logging.error("ERROR! Error while trying to write status file to directory {} with error message: {}"
-                      "".format(e.directory, e.message))
-        logging.info("Samples not uploaded!")
-        return exit_error(e)
-
-    # Initialize the api for first use
-    logging.info("*** Connecting to IRIDA ***")
-    try:
-        api_handler.initialize_api_from_config()
-    except api.exceptions.IridaConnectionError as e:
-        logging.error("ERROR! Could not initialize irida api.")
-        logging.error("Errors: " + pformat(e.args))
-        logging.info("Samples not uploaded!")
-        full_error = "ERROR! Could not initialize irida api. Errors: " + pformat(e.args)
-        cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
-        return exit_error(e)
-    logging.info("*** Connected ***")
-
-    logging.info("*** Verifying run (online validation) ***")
-    try:
-        validation_result = api_handler.prepare_and_validate_for_upload(sequencing_run)
-    except api.exceptions.IridaConnectionError as e:
-        logging.error("Lost connection to Irida")
-        logging.error("Errors: " + pformat(e.args))
-        full_error = "Lost connection to Irida. Errors: " + pformat(e.args)
-        cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
-        return exit_error(e)
-
-    if not validation_result.is_valid():
-        logging.error("Sequencing run can not be uploaded")
-        logging.error("Sequencing run can not be uploaded. Encountered {} errors"
-                      "".format(validation_result.error_count()))
-        logging.error("Errors: " + pformat(validation_result.error_list))
-        full_error = "Sequencing run can not be uploaded, Errors: " + pformat(validation_result.error_list)
-        cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
-        return exit_error(full_error)
-    logging.info("*** Run Verified ***")
-
-    # Start upload
-    logging.info("*** Starting Upload ***")
-    try:
-        api_handler.upload_sequencing_run(
-            sequencing_run=sequencing_run,
-            directory_status=directory_status,
-            upload_mode=upload_mode
-        )
-    except api.exceptions.IridaConnectionError as e:
-        logging.error("Lost connection to Irida")
-        logging.error("Errors: " + pformat(e.args))
-        full_error = "Lost connection to Irida. Errors: " + pformat(e.args)
-        cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
-        return exit_error(e)
-    except api.exceptions.IridaResourceError as e:
-        logging.error("Could not access IRIDA resource")
-        logging.error("Errors: " + pformat(e.args))
-        full_error = "Could not access IRIDA resource Errors: " + pformat(e.args)
-        cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
-        return exit_error(e)
-    except api.exceptions.FileError as e:
-        logging.error("Could not upload file to IRIDA")
-        logging.error("Errors: " + pformat(e.args))
-        full_error = "Could not upload file to IRIDA. Errors: " + pformat(e.args)
-        cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
-        return exit_error(e)
-    logging.info("*** Upload Complete ***")
-
-    # Set progress file to complete
-    try:
-        cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.COMPLETE)
-    except progress.exceptions.DirectoryError as e:
-        # this is an exceptionally rare case (successful upload, but fails to write progress)
-        logging.ERROR("ERROR! Error while trying to write status file to directory {} with error message: {}"
-                      "".format(e.directory, e.message))
-        logging.info("Samples were uploaded, but progress file may be incorrect!")
+    # # Add progress file to directory
+    # try:
+    #     cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.PARTIAL)
+    # except progress.exceptions.DirectoryError as e:
+    #     logging.error("ERROR! Error while trying to write status file to directory {} with error message: {}"
+    #                   "".format(e.directory, e.message))
+    #     logging.info("Samples not uploaded!")
+    #     return exit_error(e)
+    #
+    # # Do parsing (Also offline validation)
+    # try:
+    #     sequencing_run = parsing_handler.parse_and_validate(directory_status.directory)
+    # except parsers.exceptions.DirectoryError as e:
+    #     # Directory was not valid for some reason
+    #     full_error = "ERROR! An error occurred with directory '{}', with message: {}".format(e.directory, e.message)
+    #     logging.error(full_error)
+    #     logging.info("Samples not uploaded!")
+    #     cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
+    #     return exit_error(e)
+    # except parsers.exceptions.ValidationError as e:
+    #     # Sequencing Run / SampleSheet was not valid for some reason
+    #     error_msg = "ERROR! Errors occurred during validation with message: {}".format(e.message)
+    #     logging.error(error_msg)
+    #     error_list_msg = "Error list: " + pformat(e.validation_result.error_list)
+    #     logging.error(error_list_msg)
+    #     logging.info("Samples not uploaded!")
+    #     full_error = error_msg + ", " + error_list_msg
+    #     cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
+    #     return exit_error(e)
+    #
+    # # Check if upload_mode is valid
+    # # Todo: This should get split into another block when resume upload gets added
+    # # Keep this simple for now until the bigger refactor
+    # valid_upload_mode_list = api_handler.get_upload_modes()
+    # if upload_mode not in valid_upload_mode_list:
+    #     e = "Upload mode '{}' is not valid, upload mode must be one of {}".format(
+    #         upload_mode,
+    #         valid_upload_mode_list
+    #     )
+    #     logging.error(e)
+    #     return exit_error(e)
+    #
+    # # Init status file with file list and write
+    # try:
+    #     directory_status.init_file_status_list_from_sequencing_run(sequencing_run)
+    #     cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.PARTIAL)
+    # except progress.exceptions.DirectoryError as e:
+    #     logging.error("ERROR! Error while trying to write status file to directory {} with error message: {}"
+    #                   "".format(e.directory, e.message))
+    #     logging.info("Samples not uploaded!")
+    #     return exit_error(e)
+    #
+    # # Initialize the api for first use
+    # logging.info("*** Connecting to IRIDA ***")
+    # try:
+    #     api_handler.initialize_api_from_config()
+    # except api.exceptions.IridaConnectionError as e:
+    #     logging.error("ERROR! Could not initialize irida api.")
+    #     logging.error("Errors: " + pformat(e.args))
+    #     logging.info("Samples not uploaded!")
+    #     full_error = "ERROR! Could not initialize irida api. Errors: " + pformat(e.args)
+    #     cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
+    #     return exit_error(e)
+    # logging.info("*** Connected ***")
+    #
+    # logging.info("*** Verifying run (online validation) ***")
+    # try:
+    #     validation_result = api_handler.prepare_and_validate_for_upload(sequencing_run)
+    # except api.exceptions.IridaConnectionError as e:
+    #     logging.error("Lost connection to Irida")
+    #     logging.error("Errors: " + pformat(e.args))
+    #     full_error = "Lost connection to Irida. Errors: " + pformat(e.args)
+    #     cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
+    #     return exit_error(e)
+    #
+    # if not validation_result.is_valid():
+    #     logging.error("Sequencing run can not be uploaded")
+    #     logging.error("Sequencing run can not be uploaded. Encountered {} errors"
+    #                   "".format(validation_result.error_count()))
+    #     logging.error("Errors: " + pformat(validation_result.error_list))
+    #     full_error = "Sequencing run can not be uploaded, Errors: " + pformat(validation_result.error_list)
+    #     cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
+    #     return exit_error(full_error)
+    # logging.info("*** Run Verified ***")
+    #
+    # # Start upload
+    # logging.info("*** Starting Upload ***")
+    # try:
+    #     api_handler.upload_sequencing_run(
+    #         sequencing_run=sequencing_run,
+    #         directory_status=directory_status,
+    #         upload_mode=upload_mode
+    #     )
+    # except api.exceptions.IridaConnectionError as e:
+    #     logging.error("Lost connection to Irida")
+    #     logging.error("Errors: " + pformat(e.args))
+    #     full_error = "Lost connection to Irida. Errors: " + pformat(e.args)
+    #     cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
+    #     return exit_error(e)
+    # except api.exceptions.IridaResourceError as e:
+    #     logging.error("Could not access IRIDA resource")
+    #     logging.error("Errors: " + pformat(e.args))
+    #     full_error = "Could not access IRIDA resource Errors: " + pformat(e.args)
+    #     cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
+    #     return exit_error(e)
+    # except api.exceptions.FileError as e:
+    #     logging.error("Could not upload file to IRIDA")
+    #     logging.error("Errors: " + pformat(e.args))
+    #     full_error = "Could not upload file to IRIDA. Errors: " + pformat(e.args)
+    #     cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
+    #     return exit_error(e)
+    # logging.info("*** Upload Complete ***")
+    #
+    # # Set progress file to complete
+    # try:
+    #     cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.COMPLETE)
+    # except progress.exceptions.DirectoryError as e:
+    #     # this is an exceptionally rare case (successful upload, but fails to write progress)
+    #     logging.ERROR("ERROR! Error while trying to write status file to directory {} with error message: {}"
+    #                   "".format(e.directory, e.message))
+    #     logging.info("Samples were uploaded, but progress file may be incorrect!")
 
     logging.info("Samples in directory '{}' have finished uploading!".format(directory_status.directory))
 
