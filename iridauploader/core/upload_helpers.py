@@ -1,5 +1,5 @@
 """
-This file holds helper functions that assist cli_entry.py
+This file holds helper functions that assist upload.py
 
 Each function handles it's own try/except block, and updates the directory status
 as they progress through their respective tasks
@@ -34,6 +34,24 @@ def _set_and_write_directory_status(directory_status, status, message=None):
         logging.error("ERROR! Error while trying to write status file to directory {} with error message: {}"
                       "".format(e.directory, e.message))
         raise e
+
+
+# ****************************************************************
+# upload_single_entry / batch_upload_single_entry helper functions
+# ****************************************************************
+
+
+def set_run_delayed(directory_status):
+    _set_and_write_directory_status(directory_status, DirectoryStatus.DELAYED)
+
+
+def delayed_time_has_passed(directory_status, delay_minutes):
+    print("do some math here")
+
+
+# *************************************
+# _validate_and_upload helper functions
+# *************************************
 
 
 def parse_and_validate(directory_status):

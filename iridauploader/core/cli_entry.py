@@ -1,3 +1,10 @@
+"""
+This file contains the single entry functions to upload data that are called via the command line and the gui
+These functions return exit codes that get passed up the chain to whatever function calls the uploader (i.e. bash)
+
+It also contains the functions for starting/stopping logging to a directory
+"""
+
 import logging
 
 import iridauploader.api as api
@@ -6,7 +13,7 @@ import iridauploader.parsers as parsers
 import iridauploader.progress as progress
 from iridauploader.model import DirectoryStatus
 
-from . import api_handler, parsing_handler, logger, exit_return, cli_entry_helpers
+from . import api_handler, parsing_handler, logger, exit_return, upload_helpers
 
 VERSION_NUMBER = "0.5.0"
 
@@ -22,29 +29,44 @@ def upload_run_single_entry(directory, force_upload=False, upload_mode=None):
     :param upload_mode: String with upload mode to use. When None, default is used.
     :return: ExitReturn
     """
+
     directory_status = parsing_handler.get_run_status(directory)
+    delay_minutes = config.read_config_option("delay")
+
     # Check if a run is invalid, an invalid run cannot be uploaded.
     if directory_status.status_equals(DirectoryStatus.INVALID):
         error_msg = "ERROR! Run in directory {} is invalid. Returned with message: '{}'".format(
             directory_status.directory, directory_status.message)
         logging.error(error_msg)
         return exit_error(error_msg)
-
-    # Only upload if run is new, or force_upload is True
-    if not force_upload:
-        if not directory_status.status_equals(DirectoryStatus.NEW):
-            error_msg = "ERROR! Run in directory {} is not new. It has either been uploaded, " \
-                        "or an upload was attempted with error. " \
-                        "Please check the status file 'irida_uploader_status.info' " \
-                        "in the run directory for more details. " \
-                        "You can bypass this error by uploading with the --force argument.".format(directory)
-            logging.error(error_msg)
-            return exit_error(error_msg)
+    # Check if run is new, if delay config is > 0, delay the run, exit with success
+    elif directory_status.status_equals(DirectoryStatus.NEW):
+        if delay_minutes > 0:
+            upload_helpers.set_run_delayed(directory_status)
+            logging.info("Run has been delayed for {} minutes.".format(delay_minutes))
+            return exit_success()
+    # If run was delayed, check if run can now be uploaded, if not, exit with success
+    elif directory_status.status_equals(DirectoryStatus.DELAYED):
+        if upload_helpers.delayed_time_has_passed(directory_status, delay_minutes):
+            logging.info("Delayed run is ready for upload. Continuing...")
+        else:
+            logging.info("Delayed run is still not ready for upload.")
+            return exit_success()
+    # other statuses are error, partial, and complete runs, force upload allows theses
+    elif not force_upload:
+        error_msg = "ERROR! Run in directory {} is not new. It has either been uploaded, " \
+                    "or an upload was attempted with error. " \
+                    "Please check the status file 'irida_uploader_status.info' " \
+                    "in the run directory for more details. " \
+                    "You can bypass this error by uploading with the --force argument.".format(directory)
+        logging.error(error_msg)
+        return exit_error(error_msg)
 
     # get default upload mode if None
     if upload_mode is None:
         upload_mode = api_handler.get_default_upload_mode()
 
+    # upload
     return _validate_and_upload(directory_status, upload_mode)
 
 
@@ -62,6 +84,10 @@ def batch_upload_single_entry(batch_directory, force_upload=False, upload_mode=N
     :return: ExitReturn
     """
     logging.debug("batch_upload_single_entry:Starting {} with force={}".format(batch_directory, force_upload))
+
+    # get delay
+    delay_minutes = config.read_config_option("delay")
+
     # get all potential directories to upload
     directory_status_list = parsing_handler.get_run_status_list(batch_directory)
     # list info about directories found
@@ -72,14 +98,42 @@ def batch_upload_single_entry(batch_directory, force_upload=False, upload_mode=N
                      "%30sDETAILS: %s"
                      % (directory_status.directory, "", directory_status.status, "", directory_status.message))
 
-    # if `force` is on, only don't upload invalid runs
+    upload_list = []
+    delayed_list = []
+    for directory_status in directory_status_list:
+        logging.info("Analysing directory: {}".format(directory_status.directory))
+        # ignore invalid directories
+        if directory_status.status_equals(DirectoryStatus.INVALID):
+            continue
+        # Check if run is new, if delay config is > 0, delay the run, else add to upload list
+        elif directory_status.status_equals(DirectoryStatus.NEW):
+            if delay_minutes > 0:
+                upload_helpers.set_run_delayed(directory_status)
+                logging.info("Run has been delayed for {} minutes.".format(delay_minutes))
+                delayed_list.append(directory_status)
+            else:
+                upload_list.append(directory_status)
+        # If run was delayed, check if run can now be uploaded, else it's still delayed
+        elif directory_status.status_equals(DirectoryStatus.DELAYED):
+            if upload_helpers.delayed_time_has_passed(directory_status, delay_minutes):
+                logging.info("Delayed run is ready for upload. Continuing...")
+                upload_list.append(directory_status)
+            else:
+                logging.info("Delayed run is still not ready for upload.")
+                delayed_list.append(directory_status)
+        # other statuses are error, partial, and complete runs, force upload allows theses
+        elif force_upload:
+            upload_list.append(directory_status)
+
+    # Display delayed run count to the user
+    if len(delayed_list) > 0:
+        logging.info("{} run(s) have been delayed.".format(len(delayed_list)))
+
+    # Display runs to upload count to the user
     if force_upload:
-        upload_list = [x for x in directory_status_list if not x.status_equals(DirectoryStatus.INVALID)]
-        logging.info("Starting upload for all non invalid runs. {} run(s) found. "
+        logging.info("Starting upload for all non invalid and non delayed runs. {} run(s) found. "
                      "(Running with --force)".format(len(upload_list)))
-    # without `force` only upload new runs
     else:
-        upload_list = [x for x in directory_status_list if x.status_equals(DirectoryStatus.NEW)]
         logging.info("Starting upload for all new runs. {} run(s) found.".format(len(upload_list)))
 
     # get default upload mode if None
@@ -92,12 +146,12 @@ def batch_upload_single_entry(batch_directory, force_upload=False, upload_mode=N
         logging.info("Starting upload for {}".format(directory_status.directory))
         result = _validate_and_upload(directory_status, upload_mode)
         if result.exit_code == exit_return.EXIT_CODE_ERROR:
-            error_list.append(directory_status.directory)
+            error_list.append(directory_status)
 
     logging.info("Uploads completed with {} error(s)".format(len(error_list)))
-    for directory in error_list:
+    for directory_status in error_list:
         logging.warning("Directory '{}' upload exited with ERROR, check log and status file for details"
-                        "".format(directory))
+                        "".format(directory_status.directory))
 
     logging.info("Batch upload complete, Exiting!")
     return exit_success()
@@ -122,16 +176,16 @@ def _validate_and_upload(directory_status, upload_mode):
 
     try:
         # Starting upload process: Parse and do offline verification
-        sequencing_run = cli_entry_helpers.parse_and_validate(directory_status)
-        cli_entry_helpers.verify_upload_mode(upload_mode)
-        cli_entry_helpers.init_file_status_list_from_sequencing_run(sequencing_run, directory_status)
+        sequencing_run = upload_helpers.parse_and_validate(directory_status)
+        upload_helpers.verify_upload_mode(upload_mode)
+        upload_helpers.init_file_status_list_from_sequencing_run(sequencing_run, directory_status)
 
         # Initialize api, run pre upload preparation and validation
-        cli_entry_helpers.initialize_api(directory_status)
-        cli_entry_helpers.irida_prep_and_validation(sequencing_run, directory_status)
+        upload_helpers.initialize_api(directory_status)
+        upload_helpers.irida_prep_and_validation(sequencing_run, directory_status)
 
         # Upload run
-        cli_entry_helpers.upload_sequencing_run(sequencing_run, directory_status, upload_mode)
+        upload_helpers.upload_sequencing_run(sequencing_run, directory_status, upload_mode)
 
     except (progress.exceptions.DirectoryError,
             parsers.exceptions.ValidationError,
@@ -142,129 +196,6 @@ def _validate_and_upload(directory_status, upload_mode):
             Exception
             ) as e:
         return exit_error(e)
-
-
-    # # Add progress file to directory
-    # try:
-    #     cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.PARTIAL)
-    # except progress.exceptions.DirectoryError as e:
-    #     logging.error("ERROR! Error while trying to write status file to directory {} with error message: {}"
-    #                   "".format(e.directory, e.message))
-    #     logging.info("Samples not uploaded!")
-    #     return exit_error(e)
-    #
-    # # Do parsing (Also offline validation)
-    # try:
-    #     sequencing_run = parsing_handler.parse_and_validate(directory_status.directory)
-    # except parsers.exceptions.DirectoryError as e:
-    #     # Directory was not valid for some reason
-    #     full_error = "ERROR! An error occurred with directory '{}', with message: {}".format(e.directory, e.message)
-    #     logging.error(full_error)
-    #     logging.info("Samples not uploaded!")
-    #     cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
-    #     return exit_error(e)
-    # except parsers.exceptions.ValidationError as e:
-    #     # Sequencing Run / SampleSheet was not valid for some reason
-    #     error_msg = "ERROR! Errors occurred during validation with message: {}".format(e.message)
-    #     logging.error(error_msg)
-    #     error_list_msg = "Error list: " + pformat(e.validation_result.error_list)
-    #     logging.error(error_list_msg)
-    #     logging.info("Samples not uploaded!")
-    #     full_error = error_msg + ", " + error_list_msg
-    #     cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
-    #     return exit_error(e)
-    #
-    # # Check if upload_mode is valid
-    # # Todo: This should get split into another block when resume upload gets added
-    # # Keep this simple for now until the bigger refactor
-    # valid_upload_mode_list = api_handler.get_upload_modes()
-    # if upload_mode not in valid_upload_mode_list:
-    #     e = "Upload mode '{}' is not valid, upload mode must be one of {}".format(
-    #         upload_mode,
-    #         valid_upload_mode_list
-    #     )
-    #     logging.error(e)
-    #     return exit_error(e)
-    #
-    # # Init status file with file list and write
-    # try:
-    #     directory_status.init_file_status_list_from_sequencing_run(sequencing_run)
-    #     cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.PARTIAL)
-    # except progress.exceptions.DirectoryError as e:
-    #     logging.error("ERROR! Error while trying to write status file to directory {} with error message: {}"
-    #                   "".format(e.directory, e.message))
-    #     logging.info("Samples not uploaded!")
-    #     return exit_error(e)
-    #
-    # # Initialize the api for first use
-    # logging.info("*** Connecting to IRIDA ***")
-    # try:
-    #     api_handler.initialize_api_from_config()
-    # except api.exceptions.IridaConnectionError as e:
-    #     logging.error("ERROR! Could not initialize irida api.")
-    #     logging.error("Errors: " + pformat(e.args))
-    #     logging.info("Samples not uploaded!")
-    #     full_error = "ERROR! Could not initialize irida api. Errors: " + pformat(e.args)
-    #     cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
-    #     return exit_error(e)
-    # logging.info("*** Connected ***")
-    #
-    # logging.info("*** Verifying run (online validation) ***")
-    # try:
-    #     validation_result = api_handler.prepare_and_validate_for_upload(sequencing_run)
-    # except api.exceptions.IridaConnectionError as e:
-    #     logging.error("Lost connection to Irida")
-    #     logging.error("Errors: " + pformat(e.args))
-    #     full_error = "Lost connection to Irida. Errors: " + pformat(e.args)
-    #     cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
-    #     return exit_error(e)
-    #
-    # if not validation_result.is_valid():
-    #     logging.error("Sequencing run can not be uploaded")
-    #     logging.error("Sequencing run can not be uploaded. Encountered {} errors"
-    #                   "".format(validation_result.error_count()))
-    #     logging.error("Errors: " + pformat(validation_result.error_list))
-    #     full_error = "Sequencing run can not be uploaded, Errors: " + pformat(validation_result.error_list)
-    #     cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
-    #     return exit_error(full_error)
-    # logging.info("*** Run Verified ***")
-    #
-    # # Start upload
-    # logging.info("*** Starting Upload ***")
-    # try:
-    #     api_handler.upload_sequencing_run(
-    #         sequencing_run=sequencing_run,
-    #         directory_status=directory_status,
-    #         upload_mode=upload_mode
-    #     )
-    # except api.exceptions.IridaConnectionError as e:
-    #     logging.error("Lost connection to Irida")
-    #     logging.error("Errors: " + pformat(e.args))
-    #     full_error = "Lost connection to Irida. Errors: " + pformat(e.args)
-    #     cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
-    #     return exit_error(e)
-    # except api.exceptions.IridaResourceError as e:
-    #     logging.error("Could not access IRIDA resource")
-    #     logging.error("Errors: " + pformat(e.args))
-    #     full_error = "Could not access IRIDA resource Errors: " + pformat(e.args)
-    #     cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
-    #     return exit_error(e)
-    # except api.exceptions.FileError as e:
-    #     logging.error("Could not upload file to IRIDA")
-    #     logging.error("Errors: " + pformat(e.args))
-    #     full_error = "Could not upload file to IRIDA. Errors: " + pformat(e.args)
-    #     cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
-    #     return exit_error(e)
-    # logging.info("*** Upload Complete ***")
-    #
-    # # Set progress file to complete
-    # try:
-    #     cli_entry_helpers.set_and_write_directory_status(directory_status, DirectoryStatus.COMPLETE)
-    # except progress.exceptions.DirectoryError as e:
-    #     # this is an exceptionally rare case (successful upload, but fails to write progress)
-    #     logging.ERROR("ERROR! Error while trying to write status file to directory {} with error message: {}"
-    #                   "".format(e.directory, e.message))
-    #     logging.info("Samples were uploaded, but progress file may be incorrect!")
 
     logging.info("Samples in directory '{}' have finished uploading!".format(directory_status.directory))
 

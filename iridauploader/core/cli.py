@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+"""
+This file is the entry point for the command line interface for both bash and windows
+
+It uses argparse, getpass, as well as os to keep the interface operating system agnostic
+"""
 
 import argparse
 import getpass
@@ -93,6 +98,13 @@ def init_argparser():
     argument_parser.add_argument('-r', '--readonly',
                                  action='store_true',  # This line makes it not parse a variable
                                  help='Upload in Read Only mode, does not write status or log file to run directory.')
+    argument_parser.add_argument('-cd', '--delay',
+                                 action='store',
+                                 default='0',
+                                 help='Accepts an Integer for minutes to delay. When set, new runs will have their  '
+                                      'status set to delayed. When uploading a run with the delayed status, the run '
+                                      'will only upload if the given amount of minutes has passes since it was set to '
+                                      'delayed. Default = 0: When set to 0, runs will not be given delayed status.')
     return argument_parser
 
 
@@ -151,13 +163,16 @@ def _set_config_override(args):
     if args.readonly is True:
         readonly = args.readonly
 
+    delay = int(args.delay)
+
     config.set_config_options(client_id=client_id,
                               client_secret=client_secret,
                               username=username,
                               password=password,
                               base_url=base_url,
                               parser=parser,
-                              readonly=readonly)
+                              readonly=readonly,
+                              delay=delay)
 
 
 def _config_uploader(args):
