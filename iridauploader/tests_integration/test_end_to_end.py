@@ -9,7 +9,7 @@ import iridauploader.api as api
 import iridauploader.model as model
 import iridauploader.progress as progress
 
-from iridauploader.core.cli_entry import upload_run_single_entry, batch_upload_single_entry
+from iridauploader.core.upload import upload_run_single_entry, batch_upload_single_entry
 
 
 path_to_module = path.dirname(__file__)

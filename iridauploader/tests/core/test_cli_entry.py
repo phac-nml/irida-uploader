@@ -4,7 +4,7 @@ from os import path
 import os
 
 from iridauploader.api import UPLOAD_MODES, MODE_DEFAULT, MODE_FAST5, MODE_ASSEMBLIES
-from iridauploader.core import cli_entry, logger, exit_return
+from iridauploader.core import upload, logger, exit_return
 from iridauploader.config import config
 from iridauploader.model import DirectoryStatus
 from iridauploader.parsers.exceptions import DirectoryError
@@ -17,8 +17,8 @@ if len(path_to_module) == 0:
 
 class TestUploadRunSingleEntry(unittest.TestCase):
     """
-    Tests the core.cli_entry.upload_run_single_entry function
-    Indirectly does testing on core.cli_entry._validate_and_upload function too
+    Tests the core.upload.upload_run_single_entry function
+    Indirectly does testing on core.upload._validate_and_upload function too
     """
 
     def setUp(self):
@@ -40,9 +40,9 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         if logger.directory_logger:
             logger.remove_directory_logger()
 
-    @patch("iridauploader.core.cli_entry.progress")
-    @patch("iridauploader.core.cli_entry.api_handler")
-    @patch("iridauploader.core.cli_entry.parsing_handler")
+    @patch("iridauploader.core.upload.progress")
+    @patch("iridauploader.core.upload.api_handler")
+    @patch("iridauploader.core.upload.parsing_handler")
     def test_valid_all_functions_called(self, mock_parsing_handler, mock_api_handler, mock_progress):
         """
         Makes sure that all functions are called when a valid directory in given
@@ -74,7 +74,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.get_upload_modes.side_effect = [UPLOAD_MODES]
         mock_progress.write_directory_status.side_effect = [None, None]
 
-        cli_entry.upload_run_single_entry(my_directory, force_upload=False)
+        upload.upload_run_single_entry(my_directory, force_upload=False)
 
         # Make sure directory status is init
         mock_progress.write_directory_status.assert_called_with(stub_directory_status, None)
@@ -91,9 +91,9 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.upload_sequencing_run.assert_called_with(sequencing_run="Fake Sequencing Run",
                                                                   upload_mode=MODE_DEFAULT)
 
-    @patch("iridauploader.core.cli_entry.progress")
-    @patch("iridauploader.core.cli_entry.api_handler")
-    @patch("iridauploader.core.cli_entry.parsing_handler")
+    @patch("iridauploader.core.upload.progress")
+    @patch("iridauploader.core.upload.api_handler")
+    @patch("iridauploader.core.upload.parsing_handler")
     def test_valid_assemblies_all_functions_called(self, mock_parsing_handler, mock_api_handler, mock_progress):
         """
         Makes sure that all functions are called when a valid directory in given
@@ -125,7 +125,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.get_upload_modes.side_effect = [UPLOAD_MODES]
         mock_progress.write_directory_status.side_effect = [None, None]
 
-        cli_entry.upload_run_single_entry(my_directory, force_upload=True, upload_mode=MODE_ASSEMBLIES)
+        upload.upload_run_single_entry(my_directory, force_upload=True, upload_mode=MODE_ASSEMBLIES)
 
         # Make sure directory status is init
         mock_progress.write_directory_status.assert_called_with(stub_directory_status, None)
@@ -139,9 +139,9 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.upload_sequencing_run.assert_called_with(sequencing_run="Fake Sequencing Run",
                                                                   upload_mode=MODE_ASSEMBLIES)
 
-    @patch("iridauploader.core.cli_entry.progress")
-    @patch("iridauploader.core.cli_entry.api_handler")
-    @patch("iridauploader.core.cli_entry.parsing_handler")
+    @patch("iridauploader.core.upload.progress")
+    @patch("iridauploader.core.upload.api_handler")
+    @patch("iridauploader.core.upload.parsing_handler")
     def test_valid_fast5_all_functions_called(self, mock_parsing_handler, mock_api_handler, mock_progress):
         """
         Makes sure that all functions are called when a valid directory in given
@@ -173,7 +173,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.get_upload_modes.side_effect = [UPLOAD_MODES]
         mock_progress.write_directory_status.side_effect = [None, None]
 
-        cli_entry.upload_run_single_entry(my_directory, force_upload=True, upload_mode=MODE_FAST5)
+        upload.upload_run_single_entry(my_directory, force_upload=True, upload_mode=MODE_FAST5)
 
         # Make sure directory status is init
         mock_progress.write_directory_status.assert_called_with(stub_directory_status, None)
@@ -187,9 +187,9 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.upload_sequencing_run.assert_called_with(sequencing_run="Fake Sequencing Run",
                                                                   upload_mode=MODE_FAST5)
 
-    @patch("iridauploader.core.cli_entry.progress")
-    @patch("iridauploader.core.cli_entry.api_handler")
-    @patch("iridauploader.core.cli_entry.parsing_handler")
+    @patch("iridauploader.core.upload.progress")
+    @patch("iridauploader.core.upload.api_handler")
+    @patch("iridauploader.core.upload.parsing_handler")
     def test_log_file_created(self, mock_parsing_handler, mock_api_handler, mock_progress):
         """
         Makes sure that all functions are called when a valid directory in given
@@ -204,14 +204,14 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         # Check that log file does not exist before starting
         self.assertFalse(path.exists(log_file))
 
-        cli_entry._validate_and_upload(directory_status, False)
+        upload._validate_and_upload(directory_status, False)
 
         # Make sure log file is created
         self.assertTrue(path.exists(log_file))
 
-    @patch("iridauploader.core.cli_entry.progress")
-    @patch("iridauploader.core.cli_entry.api_handler")
-    @patch("iridauploader.core.cli_entry.parsing_handler")
+    @patch("iridauploader.core.upload.progress")
+    @patch("iridauploader.core.upload.api_handler")
+    @patch("iridauploader.core.upload.parsing_handler")
     def test_invalid_at_api_sequencing_run(self, mock_parsing_handler, mock_api_handler, mock_progress):
         """
         Makes sure that all functions are called when a invalid directory in given
@@ -253,16 +253,16 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.get_default_upload_mode.side_effect = [MODE_DEFAULT]
         mock_api_handler.get_upload_modes.side_effect = [UPLOAD_MODES]
 
-        cli_entry.upload_run_single_entry(directory)
+        upload.upload_run_single_entry(directory)
 
         # Make sure the validation is tried
         mock_api_handler.prepare_and_validate_for_upload.assert_called_with("Fake Sequencing Run")
         # make sure the upload is NOT done, as validation is invalid
         mock_api_handler.upload_sequencing_run.assert_not_called()
 
-    @patch("iridauploader.core.cli_entry.progress")
-    @patch("iridauploader.core.cli_entry.api_handler")
-    @patch("iridauploader.core.cli_entry.parsing_handler")
+    @patch("iridauploader.core.upload.progress")
+    @patch("iridauploader.core.upload.api_handler")
+    @patch("iridauploader.core.upload.parsing_handler")
     def test_invalid_before_parsing_sequencing_run(self, mock_parsing_handler, mock_api_handler, mock_progress):
         """
         Makes sure that all functions are called when a invalid directory in given
@@ -289,7 +289,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
 
         directory = path.join(path_to_module, "fake_ngs_data")
 
-        cli_entry.upload_run_single_entry(directory)
+        upload.upload_run_single_entry(directory)
 
         # Check that run status was found
         mock_parsing_handler.get_run_status.assert_called_with(directory)
@@ -299,9 +299,9 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.prepare_and_validate_for_upload.assert_not_called()
         mock_api_handler.upload_sequencing_run.assert_not_called()
 
-    @patch("iridauploader.core.cli_entry.progress")
-    @patch("iridauploader.core.cli_entry.api_handler")
-    @patch("iridauploader.core.cli_entry.parsing_handler")
+    @patch("iridauploader.core.upload.progress")
+    @patch("iridauploader.core.upload.api_handler")
+    @patch("iridauploader.core.upload.parsing_handler")
     def test_invalid_at_parsing_sequencing_run(self, mock_parsing_handler, mock_api_handler, mock_progress):
         """
         Makes sure that all functions are called when a invalid directory in given
@@ -327,7 +327,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.get_default_upload_mode.side_effect = [MODE_DEFAULT]
         mock_api_handler.get_upload_modes.side_effect = [UPLOAD_MODES]
 
-        cli_entry.upload_run_single_entry(directory)
+        upload.upload_run_single_entry(directory)
 
         # Check that run status was found
         mock_parsing_handler.get_run_status.assert_called_with(directory)
@@ -338,9 +338,9 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.prepare_and_validate_for_upload.assert_not_called()
         mock_api_handler.upload_sequencing_run.assert_not_called()
 
-    @patch("iridauploader.core.cli_entry.progress")
-    @patch("iridauploader.core.cli_entry.api_handler")
-    @patch("iridauploader.core.cli_entry.parsing_handler")
+    @patch("iridauploader.core.upload.progress")
+    @patch("iridauploader.core.upload.api_handler")
+    @patch("iridauploader.core.upload.parsing_handler")
     def test_valid_force_upload(self, mock_parsing_handler, mock_api_handler, mock_progress):
         """
         Makes sure that all functions are called when a valid directory in given
@@ -371,7 +371,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.get_default_upload_mode.side_effect = [MODE_DEFAULT]
         mock_api_handler.get_upload_modes.side_effect = [UPLOAD_MODES]
 
-        cli_entry.upload_run_single_entry(directory, True)
+        upload.upload_run_single_entry(directory, True)
 
         # Check that run status was found
         mock_parsing_handler.get_run_status.assert_called_with(directory)
@@ -387,9 +387,9 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.upload_sequencing_run.assert_called_with(sequencing_run="Fake Sequencing Run",
                                                                   upload_mode=MODE_DEFAULT)
 
-    @patch("iridauploader.core.cli_entry.progress")
-    @patch("iridauploader.core.cli_entry.api_handler")
-    @patch("iridauploader.core.cli_entry.parsing_handler")
+    @patch("iridauploader.core.upload.progress")
+    @patch("iridauploader.core.upload.api_handler")
+    @patch("iridauploader.core.upload.parsing_handler")
     def test_valid_new_status_file_upload(self, mock_parsing_handler, mock_api_handler, mock_progress):
         """
         Makes sure that all functions are called when a valid directory in given
@@ -419,7 +419,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.get_default_upload_mode.side_effect = [MODE_DEFAULT]
         mock_api_handler.get_upload_modes.side_effect = [UPLOAD_MODES]
 
-        cli_entry.upload_run_single_entry(directory, False)
+        upload.upload_run_single_entry(directory, False)
 
         # Check that run status was found
         mock_parsing_handler.get_run_status.assert_called_with(directory)
@@ -435,9 +435,9 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.upload_sequencing_run.assert_called_with(sequencing_run="Fake Sequencing Run",
                                                                   upload_mode=MODE_DEFAULT)
 
-    @patch("iridauploader.core.cli_entry.progress")
-    @patch("iridauploader.core.cli_entry.api_handler")
-    @patch("iridauploader.core.cli_entry.parsing_handler")
+    @patch("iridauploader.core.upload.progress")
+    @patch("iridauploader.core.upload.api_handler")
+    @patch("iridauploader.core.upload.parsing_handler")
     def test_valid_already_uploaded(self, mock_parsing_handler, mock_api_handler, mock_progress):
         """
         Makes sure that all functions are called when a valid directory in given
@@ -469,7 +469,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.get_default_upload_mode.side_effect = [MODE_DEFAULT]
         mock_api_handler.get_upload_modes.side_effect = [UPLOAD_MODES]
 
-        cli_entry.upload_run_single_entry(directory, False)
+        upload.upload_run_single_entry(directory, False)
 
         # Check that run status was found
         mock_parsing_handler.get_run_status.assert_called_with(directory)
@@ -480,9 +480,9 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         # make sure the upload is NOT done, as validation is invalid
         mock_api_handler.upload_sequencing_run.assert_not_called()
 
-    @patch("iridauploader.core.cli_entry.progress")
-    @patch("iridauploader.core.cli_entry.api_handler")
-    @patch("iridauploader.core.cli_entry.parsing_handler")
+    @patch("iridauploader.core.upload.progress")
+    @patch("iridauploader.core.upload.api_handler")
+    @patch("iridauploader.core.upload.parsing_handler")
     def test_valid_connection_error_during_upload(self, mock_parsing_handler, mock_api_handler, mock_progress):
         """
         Makes sure no crash occurs and program exits with error when IridaConnectionError occurs during upload
@@ -515,7 +515,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.get_upload_modes.side_effect = [UPLOAD_MODES]
         mock_progress.write_directory_status.side_effect = [None, None]
 
-        result = cli_entry.upload_run_single_entry(my_directory, force_upload=False)
+        result = upload.upload_run_single_entry(my_directory, force_upload=False)
 
         # Check that the run failed to upload
         self.assertEqual(result.exit_code, exit_return.EXIT_CODE_ERROR)
@@ -531,9 +531,9 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.upload_sequencing_run.assert_called_with(sequencing_run="Fake Sequencing Run",
                                                                   upload_mode=MODE_DEFAULT)
 
-    @patch("iridauploader.core.cli_entry.progress")
-    @patch("iridauploader.core.cli_entry.api_handler")
-    @patch("iridauploader.core.cli_entry.parsing_handler")
+    @patch("iridauploader.core.upload.progress")
+    @patch("iridauploader.core.upload.api_handler")
+    @patch("iridauploader.core.upload.parsing_handler")
     def test_valid_resourse_error_during_upload(self, mock_parsing_handler, mock_api_handler, mock_progress):
         """
         Makes sure no crash occurs and program exits with error when IridaResourceError occurs during upload
@@ -566,7 +566,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.get_upload_modes.side_effect = [UPLOAD_MODES]
         mock_progress.write_directory_status.side_effect = [None, None]
 
-        result = cli_entry.upload_run_single_entry(my_directory, force_upload=False)
+        result = upload.upload_run_single_entry(my_directory, force_upload=False)
 
         # Check that the run failed to upload
         self.assertEqual(result.exit_code, exit_return.EXIT_CODE_ERROR)
@@ -582,9 +582,9 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.upload_sequencing_run.assert_called_with(sequencing_run="Fake Sequencing Run",
                                                                   upload_mode=MODE_DEFAULT)
 
-    @patch("iridauploader.core.cli_entry.progress")
-    @patch("iridauploader.core.cli_entry.api_handler")
-    @patch("iridauploader.core.cli_entry.parsing_handler")
+    @patch("iridauploader.core.upload.progress")
+    @patch("iridauploader.core.upload.api_handler")
+    @patch("iridauploader.core.upload.parsing_handler")
     def test_valid_file_error_during_upload(self, mock_parsing_handler, mock_api_handler, mock_progress):
         """
         Makes sure no crash occurs and program exits with error when FileError occurs during upload
@@ -617,7 +617,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_api_handler.get_upload_modes.side_effect = [UPLOAD_MODES]
         mock_progress.write_directory_status.side_effect = [None, None]
 
-        result = cli_entry.upload_run_single_entry(my_directory, force_upload=False)
+        result = upload.upload_run_single_entry(my_directory, force_upload=False)
 
         # Check that the run failed to upload
         self.assertEqual(result.exit_code, exit_return.EXIT_CODE_ERROR)
@@ -636,14 +636,14 @@ class TestUploadRunSingleEntry(unittest.TestCase):
 
 class TestBatchUploadSingleEntry(unittest.TestCase):
     """
-    Tests the core.cli_entry.batch_upload_single_entry function
+    Tests the core.upload.batch_upload_single_entry function
     """
 
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)
 
-    @patch("iridauploader.core.cli_entry._validate_and_upload")
-    @patch("iridauploader.core.cli_entry.parsing_handler")
+    @patch("iridauploader.core.upload._validate_and_upload")
+    @patch("iridauploader.core.upload.parsing_handler")
     def test_valid(self, mock_parsing_handler, mock_validate_and_upload):
         """
         Makes sure that _validate_and_upload is only called on a new run
@@ -673,13 +673,13 @@ class TestBatchUploadSingleEntry(unittest.TestCase):
         mock_parsing_handler.parse_and_validate.side_effect = ["Fake Sequencing Run"]
 
         # start
-        cli_entry.batch_upload_single_entry("fake_directory", upload_mode=MODE_DEFAULT)
+        upload.batch_upload_single_entry("fake_directory", upload_mode=MODE_DEFAULT)
 
         # validate calls only happen once
         mock_validate_and_upload.assert_called_once_with(stub_directory_status_valid, MODE_DEFAULT)
 
-    @patch("iridauploader.core.cli_entry._validate_and_upload")
-    @patch("iridauploader.core.cli_entry.parsing_handler")
+    @patch("iridauploader.core.upload._validate_and_upload")
+    @patch("iridauploader.core.upload.parsing_handler")
     def test_valid_force(self, mock_parsing_handler, mock_validate_and_upload):
         """
         Makes sure that _validate_and_upload is called on all runs except invalid
@@ -709,7 +709,7 @@ class TestBatchUploadSingleEntry(unittest.TestCase):
         mock_parsing_handler.parse_and_validate.side_effect = ["Fake Sequencing Run"]
 
         # start
-        cli_entry.batch_upload_single_entry("fake_directory", force_upload=True)
+        upload.batch_upload_single_entry("fake_directory", force_upload=True)
 
         # assert calls are what we expect
         self.assertEqual(mock_validate_and_upload.call_count, 3, "Expected 3 calls to mock_validate_and_upload")

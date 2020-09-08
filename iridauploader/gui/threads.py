@@ -4,7 +4,7 @@ import PyQt5.QtCore as QtCore
 
 from pprint import pformat
 
-from iridauploader.core import cli_entry, parsing_handler, exit_return
+from iridauploader.core import upload, parsing_handler, exit_return
 from iridauploader.parsers import exceptions
 
 
@@ -141,7 +141,7 @@ class UploadThread(QtCore.QThread):
         This runs when the threads start call is done
         :return:
         """
-        self._exit_return = cli_entry.upload_run_single_entry(self._run_dir, self._force_state, self._upload_mode)
+        self._exit_return = upload.upload_run_single_entry(self._run_dir, self._force_state, self._upload_mode)
         pass
 
     def is_success(self):

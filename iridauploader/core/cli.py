@@ -218,7 +218,7 @@ def upload(run_directory, force_upload, upload_mode):
     :param upload_mode
     :return: exit code 0 or 1
     """
-    return core.cli_entry.upload_run_single_entry(run_directory, force_upload, upload_mode).exit_code
+    return core.upload.upload_run_single_entry(run_directory, force_upload, upload_mode).exit_code
 
 
 def upload_batch(batch_directory, force_upload, upload_mode):
@@ -229,7 +229,7 @@ def upload_batch(batch_directory, force_upload, upload_mode):
     :param upload_mode
     :return: exit code 0 or 1
     """
-    return core.cli_entry.batch_upload_single_entry(batch_directory, force_upload, upload_mode).exit_code
+    return core.upload.batch_upload_single_entry(batch_directory, force_upload, upload_mode).exit_code
 
 
 # This is called when the program is run for the first time
