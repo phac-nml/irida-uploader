@@ -32,7 +32,7 @@ def upload_run_single_entry(directory, force_upload=False, upload_mode=None):
     """
 
     directory_status = parsing_handler.get_run_status(directory)
-    delay_minutes = config.read_config_option("delay")
+    delay_minutes = config.read_config_option("delay", expected_type=int)
 
     # Check if a run is invalid, an invalid run cannot be uploaded.
     if directory_status.status_equals(DirectoryStatus.INVALID):
@@ -87,7 +87,8 @@ def batch_upload_single_entry(batch_directory, force_upload=False, upload_mode=N
     logging.debug("batch_upload_single_entry:Starting {} with force={}".format(batch_directory, force_upload))
 
     # get delay
-    delay_minutes = config.read_config_option("delay")
+    delay_minutes = config.read_config_option("delay", expected_type=int)
+    logging.debug("delay_minutes is set to: " + str(delay_minutes))
 
     # get all potential directories to upload
     directory_status_list = parsing_handler.get_run_status_list(batch_directory)

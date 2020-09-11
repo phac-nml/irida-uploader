@@ -121,6 +121,7 @@ def _set_config_override(args):
     base_url = None
     parser = None
     readonly = None
+    delay = None
 
     if args.config_client_id is True:
         print("Enter Client ID:")
@@ -163,7 +164,8 @@ def _set_config_override(args):
     if args.readonly is True:
         readonly = args.readonly
 
-    delay = int(args.delay)
+    if args.delay is True:
+        delay = int(args.delay)
 
     config.set_config_options(client_id=client_id,
                               client_secret=client_secret,

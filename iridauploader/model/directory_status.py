@@ -147,7 +147,7 @@ class DirectoryStatus:
     def time(self):
         if self._time is None:
             return None
-        return self._time.strftime(self.JSON_DATE_TIME_FORMAT)
+        return self._time
 
     @time.setter
     def time(self, formatted_time):
