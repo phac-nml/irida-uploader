@@ -28,7 +28,7 @@ setuptools.setup(
                       ],
     extras_require={
         "GUI": ["PyQt5==5.12.1", "PyQt5-stubs==5.12.1"],
-        "TEST": ["selenium"],
+        "TEST": ["selenium", "pytest"],
         "WINDOWS": ["PyQt5==5.12.1", "pynsist"],
     },
     entry_points={

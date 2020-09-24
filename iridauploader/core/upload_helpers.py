@@ -7,10 +7,12 @@ as they progress through their respective tasks
 
 import logging
 import time
+import os
 
 from pprint import pformat
 
 from iridauploader import api
+import iridauploader.config as config
 import iridauploader.parsers as parsers
 import iridauploader.progress as progress
 from iridauploader.model import DirectoryStatus
@@ -40,6 +42,19 @@ def _set_and_write_directory_status(directory_status, status, message=None):
 # ****************************************************************
 # upload_single_entry / batch_upload_single_entry helper functions
 # ****************************************************************
+
+def directory_has_readonly_conflict(directory):
+    """
+    Returns True if directory is not writable and readonly is not True
+    Else returns False
+    :param directory:
+    :return: boolean
+    """
+    if (config.read_config_option("readonly", bool, False) is False and
+       not os.access(directory, os.W_OK)):
+            return True
+    else:
+        return False
 
 
 def set_run_delayed(directory_status):

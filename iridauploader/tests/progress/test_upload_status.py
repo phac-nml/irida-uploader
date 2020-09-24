@@ -4,6 +4,7 @@ import os
 
 import iridauploader.progress as progress
 from iridauploader.model import DirectoryStatus
+from iridauploader.config import config
 
 path_to_module = path.abspath(path.dirname(__file__))
 if len(path_to_module) == 0:
@@ -103,6 +104,7 @@ class TestWriteDirectoryStatus(unittest.TestCase):
 
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)
+        config._init_config_parser()
 
     def tearDown(self):
         # remove status file after using it
@@ -145,3 +147,20 @@ class TestWriteDirectoryStatus(unittest.TestCase):
         # Check that file matches what we wrote
         status = progress.get_directory_status(self.directory, ["SampleSheet.csv"])
         self.assertEqual(DirectoryStatus.COMPLETE, status.status)
+
+    def test_write_with_readonly_is_true_file(self):
+        # set readonly to True in config
+        config.set_config_options(readonly=True)
+        # File does not exist yet
+        self.assertFalse(path.exists(self.status_file))
+
+        # Create DirectoryStatus to use for writing
+        directory_status = DirectoryStatus(self.directory)
+
+        # Try write to file (WRITE COMPLETE)
+        directory_status.status = DirectoryStatus.COMPLETE
+        progress.write_directory_status(directory_status)
+        # Check that file matches what we wrote
+        # We should find it as NEW as we have readonly=True
+        status = progress.get_directory_status(self.directory, ["SampleSheet.csv"])
+        self.assertEqual(DirectoryStatus.NEW, status.status)

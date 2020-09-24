@@ -10,6 +10,7 @@ import getpass
 import os
 import textwrap
 
+from iridauploader import VERSION_NUMBER
 import iridauploader.config as config
 import iridauploader.core as core
 from iridauploader.api import UPLOAD_MODES
@@ -45,7 +46,7 @@ def init_argparser():
     # help='Location of sequencing run to upload. Directory must be writable.')
     # Add the version argument
     argument_parser.add_argument('--version',
-                                 action='version', version='IRIDA Uploader {}'.format(core.VERSION_NUMBER))
+                                 action='version', version='IRIDA Uploader {}'.format(VERSION_NUMBER))
     # Optional argument, for using an alternative config file.
     argument_parser.add_argument('-c', '--config',
                                  action='store',

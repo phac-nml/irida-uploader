@@ -14,6 +14,6 @@ sed -i "s/version=.*\,/version='$newversion',/" "$setuppy"
 wininstall=windows-installer.cfg
 sed -i -z "s/version=.\..\../version=$newversion/" "$wininstall"
 
-core=iridauploader/core/__init__.py
-sed -i "s/VERSION_NUMBER = \".\..\..\"/VERSION_NUMBER = \"$newversion\"/" "$core"
+main=iridauploader/__init__.py
+sed -i "s/VERSION_NUMBER = \".\..\..\"/VERSION_NUMBER = \"$newversion\"/" "$main"
 

@@ -7,13 +7,14 @@ It also contains the functions for starting/stopping logging to a directory
 
 import logging
 
+from iridauploader import VERSION_NUMBER
 import iridauploader.api as api
 import iridauploader.config as config
 import iridauploader.parsers as parsers
 import iridauploader.progress as progress
 from iridauploader.model import DirectoryStatus
 
-from . import api_handler, parsing_handler, logger, exit_return, upload_helpers, VERSION_NUMBER
+from . import api_handler, parsing_handler, logger, exit_return, upload_helpers
 
 
 def upload_run_single_entry(directory, force_upload=False, upload_mode=None):
@@ -31,8 +32,13 @@ def upload_run_single_entry(directory, force_upload=False, upload_mode=None):
     directory_status = parsing_handler.get_run_status(directory)
     delay_minutes = config.read_config_option("delay", expected_type=int)
 
+    # Check that directory is writeable, or readonly mode is enabled
+    if upload_helpers.directory_has_readonly_conflict(directory_status.directory):
+        error_msg = 'Directory cannot be written to. Please check permissions or use readonly mode'
+        logging.error(error_msg)
+        return exit_error(error_msg)
     # Check if a run is invalid, an invalid run cannot be uploaded.
-    if directory_status.status_equals(DirectoryStatus.INVALID):
+    elif directory_status.status_equals(DirectoryStatus.INVALID):
         error_msg = "ERROR! Run in directory {} is invalid. Returned with message: '{}'".format(
             directory_status.directory, directory_status.message)
         logging.error(error_msg)
