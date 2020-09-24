@@ -1,14 +1,12 @@
 import unittest
-from unittest.mock import patch, MagicMock, Mock, call
+from unittest.mock import patch, call
 from os import path
 import os
 
-from iridauploader.api import UPLOAD_MODES, MODE_DEFAULT, MODE_FAST5, MODE_ASSEMBLIES
+from iridauploader.api import MODE_DEFAULT
 from iridauploader.core import upload, logger, exit_return
 from iridauploader.config import config
 from iridauploader.model import DirectoryStatus
-from iridauploader.parsers.exceptions import DirectoryError
-from iridauploader.api.exceptions import FileError, IridaResourceError, IridaConnectionError
 
 path_to_module = path.abspath(path.dirname(__file__))
 if len(path_to_module) == 0:
@@ -164,7 +162,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         # verify calls occurred
         mock_parsing_handler.get_run_status.assert_called_with(stub_directory_status.directory)
 
-        # ensure upload did not occur
+        # ensure upload
         mock_validate_and_upload.assert_not_called()
 
     @patch("iridauploader.core.upload._validate_and_upload")
@@ -191,7 +189,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         # verify calls occurred
         mock_parsing_handler.get_run_status.assert_called_with(stub_directory_status.directory)
 
-        # ensure upload did not occur
+        # ensure upload
         mock_validate_and_upload.assert_called_with(stub_directory_status, "mock_mode")
 
     @patch("iridauploader.core.upload._validate_and_upload")
@@ -218,7 +216,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         # verify calls occurred
         mock_parsing_handler.get_run_status.assert_called_with(stub_directory_status.directory)
 
-        # ensure upload did not occur
+        # ensure upload
         mock_validate_and_upload.assert_called_with(stub_directory_status, "mock_mode")
 
     @patch("iridauploader.core.upload._validate_and_upload")
@@ -245,7 +243,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         # verify calls occurred
         mock_parsing_handler.get_run_status.assert_called_with(stub_directory_status.directory)
 
-        # ensure upload did not occur
+        # ensure upload
         mock_validate_and_upload.assert_called_with(stub_directory_status, "mock_mode")
 
     @patch("iridauploader.core.upload._validate_and_upload")
@@ -272,7 +270,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         # verify calls occurred
         mock_parsing_handler.get_run_status.assert_called_with(stub_directory_status.directory)
 
-        # ensure upload did not occur
+        # ensure upload occurs
         mock_validate_and_upload.assert_called_with(stub_directory_status, "mock_mode")
 
     @patch("iridauploader.core.upload.upload_helpers")
@@ -302,6 +300,68 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         # verify calls occurred
         mock_parsing_handler.get_run_status.assert_called_with(stub_directory_status.directory)
         mock_upload_helpers.set_run_delayed.assert_called_with(stub_directory_status)
+
+        # ensure upload did not occur
+        mock_validate_and_upload.assert_not_called()
+
+    @patch("iridauploader.core.upload.upload_helpers")
+    @patch("iridauploader.core.upload._validate_and_upload")
+    @patch("iridauploader.core.upload.api_handler")
+    @patch("iridauploader.core.upload.parsing_handler")
+    def test_delay_time_has_passed_directory_status(self, mock_parsing_handler, mock_api_handler,
+                                                    mock_validate_and_upload, mock_upload_helpers):
+        """
+        Checks that function exits with success when directory status is delayed and the delay has passed
+        :return:
+        """
+        # set a delay for 0 as time has passed
+        config.set_config_options(delay=0)
+
+        stub_directory_status = self.StubDirectoryStatus()
+        stub_directory_status._status = DirectoryStatus.DELAYED
+
+        mock_parsing_handler.get_run_status.side_effect = [stub_directory_status]
+        mock_api_handler.get_default_upload_mode.side_effect = ["mock_mode"]
+        mock_validate_and_upload.side_effect = ["mock_result"]
+
+        result = upload.upload_run_single_entry(stub_directory_status.directory)
+
+        # verify result
+        self.assertEqual(result, "mock_result")
+
+        # verify calls occurred
+        mock_parsing_handler.get_run_status.assert_called_with(stub_directory_status.directory)
+
+        # ensure upload occurs
+        mock_validate_and_upload.assert_called_with(stub_directory_status, "mock_mode")
+
+    @patch("iridauploader.core.upload.upload_helpers")
+    @patch("iridauploader.core.upload._validate_and_upload")
+    @patch("iridauploader.core.upload.api_handler")
+    @patch("iridauploader.core.upload.parsing_handler")
+    def test_delay_not_passed_directory_status(self, mock_parsing_handler, mock_api_handler,
+                                                    mock_validate_and_upload, mock_upload_helpers):
+        """
+        Checks that function exits with success when directory status is delayed and there is still delay time
+        :return:
+        """
+        # set a delay
+        config.set_config_options(delay=1)
+
+        stub_directory_status = self.StubDirectoryStatus()
+        stub_directory_status._status = DirectoryStatus.DELAYED
+
+        mock_parsing_handler.get_run_status.side_effect = [stub_directory_status]
+        mock_upload_helpers.delayed_time_has_passed.side_effect = [False]
+
+        result = upload.upload_run_single_entry(stub_directory_status.directory)
+
+        # verify result
+        self.assertEqual(result.exit_code, exit_return.EXIT_CODE_SUCCESS)
+
+        # verify calls occurred
+        mock_parsing_handler.get_run_status.assert_called_with(stub_directory_status.directory)
+        mock_upload_helpers.delayed_time_has_passed.assert_called_with(stub_directory_status, 1)
 
         # ensure upload did not occur
         mock_validate_and_upload.assert_not_called()
