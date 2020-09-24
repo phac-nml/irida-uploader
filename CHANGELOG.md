@@ -1,7 +1,7 @@
 Changes
 =======
 
-Beta 0.X.X
+Beta 0.6.0
 ----------
 Added functionality:
 * Added `--delay=[Integer]` argument/config option to allow runs to be delayed when they are found.
@@ -13,7 +13,6 @@ Added functionality:
   * Includes a list of all samples to be uploaded and progress for them.
     * If a run stops mid upload, you can now clearly see which files where uploaded from the directory status file.
   * Added an IRIDA Instance field to the directory status file so where the files have been sent is recorded.
-
 
 Developer changes:
 * Refactored `core/cli_entry.py`
