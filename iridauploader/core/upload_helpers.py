@@ -50,9 +50,8 @@ def directory_has_readonly_conflict(directory):
     :param directory:
     :return: boolean
     """
-    if (config.read_config_option("readonly", bool, False) is False and
-       not os.access(directory, os.W_OK)):
-            return True
+    if (config.read_config_option("readonly", bool, False) is False and not os.access(directory, os.W_OK)):
+        return True
     else:
         return False
 
