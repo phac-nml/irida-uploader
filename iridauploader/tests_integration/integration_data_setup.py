@@ -155,7 +155,7 @@ class SetupIridaData:
 
     def get_irida_secret(self):
 
-        self.driver.get(self.base_url + "/clients")
+        self.driver.get(self.base_url + "/admin/clients")
         self.driver.find_element_by_xpath(
             "//*[contains(text(), '" + self.IRIDA_AUTH_CODE_ID + "')]").click()
         secret = self.driver.find_element_by_id(
