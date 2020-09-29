@@ -246,7 +246,19 @@ class ApiCalls(object):
 
         if target_dict:  # we are targeting specific resources in the response
 
-            resources_list = response.json()["resource"]["resources"]
+            # TODO: This try except block has been added to log a crash that has occurred, to find the source.
+            try:
+                resources_list = response.json()["resource"]["resources"]
+            except KeyError as e:
+                # This is occurring for an unknown reason.
+                # Once docs can be gathered displaying information, we can determine the source of the bug and fix it.
+                logging.error("Dumping json response from IRIDA:")
+                logging.error(str(response.json()))
+                logging.error("Dumping python KeyError:")
+                logging.error(e)
+                error_txt = "Response from IRIDA Could not be parsed. Please show the log to your IRIDA Administrator."
+                logging.error(error_txt)
+                raise exceptions.IridaKeyError(error_txt)
             # try to get all keys from target_dict to our list or links
             try:
                 links_list = next(
