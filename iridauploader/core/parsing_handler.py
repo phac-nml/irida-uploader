@@ -14,7 +14,7 @@ def get_parser_from_config():
     :return:
     """
     parser_instance = config.read_config_option("parser")
-    return parsers.Parser.factory(parser_instance)
+    return parsers.parser_factory(parser_instance)
 
 
 def parse_and_validate(directory):

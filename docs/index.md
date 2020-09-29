@@ -8,6 +8,7 @@
 * Directory Parsing
 * Batch Uploads
 * Assemblies Uploads
+* Fast5 Uploads
 * Can be used with cron/windows task scheduler for automated uploads
 * GUI
 
@@ -22,60 +23,57 @@
 
 You can find a tutorial and walkthrough on the phac-nml github https://github.com/phac-nml/irida-uploader-tutorial
 
-## Download / Install / Setup
-
-### Download
-
-The IRIDA Uploader can be run on any operating system that supports Python.
-
-You can download the source code on [GitHub](https://github.com/phac-nml/irida-uploader).
-
-You can download pre-built packages for Windows from our [GitHub releases page](https://github.com/phac-nml/irida-uploader/releases).
+## Install / Setup
 
 ### Installation
 
 #### Windows
 
+You can download pre-built packages for Windows from our [GitHub releases page](https://github.com/phac-nml/irida-uploader/releases).
+
 Run an installer (links above) and follow along with the install wizard.
 
 You will need to configure your uploader before running. See [Configuration](configuration.md) for details
 
+If you would prefer to build a windows installer from source code, please see the README on [GitHub](https://github.com/phac-nml/irida-uploader)
+
 #### Linux
 
-Make sure Python 3.5 or newer is installed
+The IRIDA Uploader requires Python version 3.5 or newer
 
     $ python3 --version
 
-If python3 is not installed, install with
+Ensure that `pip`, and `setuptools` are up to date
 
-    $ sudo apt-get install python3
-
-Install pip:
-
-    $ sudo apt-get install python3-pip
-
-### virtualenv usage  
-
-Install virtualenv and setuptools
-
-    $ pip install virtualenv
-    $ pip install setuptools
-
-If you already have these packages installed, ensure they are up to date
-
-    $ pip install virtualenv -U
+    $ pip install pip -U
     $ pip install setuptools -U
 
-Download the source code
+Install the latest release with `pip`
 
-    $ git clone https://github.com/phac-nml/irida-uploader
-    $ cd irida-uploader
+    $ pip3 install iridauploader
 
-Build a virtualenv and install the dependencies automatically with `make`:
+Run the uploader
 
-    $ make
+    $ irida-uploader
+
+You can also install and run the GUI in the same way
+
+    $ pip3 install iridauploader[GUI]
+    # irida-uploader-gui
+
+If you would prefer to build the uploader from source code, please see the README on [GitHub](https://github.com/phac-nml/irida-uploader)
     
-You will need to configure your uploader before running.
+*Please Note: You will need to configure your uploader to connect to IRIDA before running. See Configuration section below.*
+
+### Upload Modes
+
+By default, the IRIDA Uploader will upload fastq sequence files, but it can also upload Assemblies (fasta), and Fast5 data
+
+When uploading from the command line, use the `--upload_mode=<mode>`, with `assemblies` or `fast5` to upload those file types.
+
+See the `--help` command for more details.
+
+You can also select an upload mode when using the GUI via a drop down menu on the main screen.
 
 ### Configuration
 
@@ -114,13 +112,13 @@ You can upload with the following commands
 
 Open a Command Prompt terminal and use the `iridauploader` command to upload
 
-`C:\Users\username> iridauploader \path\to\my\samples\`
+`C:\Users\username> iridauploader -d \path\to\my\samples\`
 
 ### Linux:
 
 Use the `irida-uploader.sh` script included with the source code to upload.
 
-`./irida-uploader.sh /path/to/the/sequencing/run/`
+`./irida-uploader.sh -d /path/to/the/sequencing/run/`
 
 
 #### Note:
@@ -155,14 +153,6 @@ The `--force` option can be used with the `--batch` option
 
 ##### WARNING! When uploading `nextseq` data and using `--batch` upload with an auto-upload script, incomplete fastq files could be uploaded if `bcl2fastq` has not finished when the upload begins.
 
-## Assemblies Uploading
-
-You can upload assemblies by using the `--assemblies` option while running the uploader, or by clicking the assemblies checkbox in the GUI.
-
-It is recommended that you use the Directory Upload structure to upload assemblies.
-
-Please note that assemblies can not be uploaded as paired files.
-
 ## Logging
 
 Logs about individual runs are written to the sequencing run directory that they are uploaded from.
@@ -176,6 +166,12 @@ Full debug logs are written to your system default logging directory
 #### Windows
 
 `C:\Users\<username>\AppData\Local\irida-uploader\irida-uploader\Logs`
+
+## Read Only Mode
+
+You can upload in read-only mode with the config option, the `--readonly` / `-r` command line option, or the checkbox on the GUI.
+
+In this mode, the status file and the logging file will not be created in the sequencing run directory during upload.
 
 # Problems?
 
@@ -198,7 +194,7 @@ import iridauploader.api as api
 import iridauploader.parsers as parsers
 
 api_instance = api.ApiCalls(client_id, client_secret, base_url, username, password, max_wait_time)
-parser_instance = parsers.Parser.factory("miseq")
+parser_instance = parsers.parser_factory("miseq")
 ```
 
 Want to create a parser for a sequencer that we don't yet support or have an idea for an IRIDA related project?

@@ -54,8 +54,8 @@ def find_directory_list(directory):
     """
 
     # Checks if we can access to the given directory, return empty and log a warning if we cannot.
-    if not os.access(directory, os.W_OK):
-        raise exceptions.DirectoryError("The directory is not writeable, "
+    if cannot_read_directory(directory):
+        raise exceptions.DirectoryError("The directory is not readable, "
                                         "can not upload samples from this directory {}".format(directory),
                                         directory)
 
@@ -66,12 +66,13 @@ def find_directory_list(directory):
     return full_dir_list
 
 
-def build_sequencing_run_from_samples(sample_list, metadata):
+def build_sequencing_run_from_samples(sample_list, metadata, sequence_run_type):
     """
     Create a SequencingRun object with full project/sample/sequence_file structure
 
     :param sample_list: List of Sample objects
     :param metadata: metadata dict to add to the run
+    :param sequence_run_type: string identifier for sequencer type when generating api route
     :return: SequencingRun
     """
 
@@ -90,7 +91,9 @@ def build_sequencing_run_from_samples(sample_list, metadata):
 
         project.add_sample(sample)
 
-    sequence_run = model.SequencingRun(metadata, project_list)
+    sequence_run = model.SequencingRun(metadata=metadata,
+                                       project_list=project_list,
+                                       sequencing_run_type=sequence_run_type)
     logging.debug("SequencingRun built")
     return sequence_run
 
@@ -108,3 +111,12 @@ def get_file_list(directory):
     # Create a file list of the directory, only hit the os once
     file_list = next(os.walk(directory))[2]
     return file_list
+
+
+def cannot_read_directory(directory):
+    """
+    Checks if a directory is missing the filesystem Readable flag,
+    :param directory:
+    :return: True if unreadable, False otherwise
+    """
+    return not os.access(directory, os.R_OK)

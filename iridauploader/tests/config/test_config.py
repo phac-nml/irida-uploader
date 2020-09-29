@@ -108,7 +108,7 @@ class TestConfig(unittest.TestCase):
         :return:
         """
         # set up config
-        config.set_config_file(os.path.join(path_to_module, "example_config.conf"))
+        config.set_config_file(os.path.join(path_to_module, "test_config.conf"))
         config.setup()
         # Test that all the parameters loaded from file are correct
         self.assertEqual(config.read_config_option('client_id'), 'uploader')
@@ -117,6 +117,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(config.read_config_option('password'), 'password1')
         self.assertEqual(config.read_config_option('base_url'), 'http://localhost:8080/irida-latest/api/')
         self.assertEqual(config.read_config_option('parser'), 'miseq')
+        self.assertEqual(config.read_config_option('readonly', bool), False)
 
     def test_set_config_options(self):
         """
@@ -124,7 +125,7 @@ class TestConfig(unittest.TestCase):
         :return:
         """
         # set up config
-        config.set_config_file(os.path.join(path_to_module, "example_config.conf"))
+        config.set_config_file(os.path.join(path_to_module, "test_config.conf"))
         config.setup()
         # Make sure id is initially set to what we expect
         self.assertEqual(config.read_config_option('client_id'), 'uploader')

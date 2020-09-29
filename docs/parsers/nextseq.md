@@ -26,7 +26,7 @@ If you are having problems uploading, please verify your file structure is corre
 └── <other files>
 ```
 
-Example files can be found: `/example_sample_sheets/nextseq_run/`
+Example files can be found: `/examples/nextseq_run/`
 
 ## Example NextSeq sample sheet
 

@@ -498,7 +498,9 @@ class TestBuildISeqRun(unittest.TestCase):
         sample_list = sample_parser.parse_sample_list(sample_sheet_file=sheet_file,
                                                       run_data_directory=data_dir,
                                                       run_data_directory_file_list=file_list)
-        sequencing_run = parsers.common.build_sequencing_run_from_samples(sample_list, meta_data)
+        sequence_run_type = 'miniseq'
+
+        sequencing_run = parsers.common.build_sequencing_run_from_samples(sample_list, meta_data, sequence_run_type)
 
         # Returns a SequencingRun
         self.assertEqual(type(sequencing_run), model.SequencingRun)

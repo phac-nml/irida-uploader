@@ -12,7 +12,8 @@ dist/
 site/
 .python-version
 .pytest_cache/
-tests_integration/repos/
+iridauploader/tests_integration/repos/
+iridauploader/tests_integration/test_config.conf
 irida-uploader.log
 irida_uploader_status.info
 .vscode/

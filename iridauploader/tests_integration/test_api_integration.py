@@ -146,7 +146,7 @@ class TestApiIntegration(unittest.TestCase):
         ]
         sequence_file = model.SequenceFile(sequence_file_list)
 
-        upload_id = self.test_api.create_seq_run({'layoutType': 'PAIRED_END'})
+        upload_id = self.test_api.create_seq_run({'layoutType': 'PAIRED_END'}, 'miseq')
 
         self.test_api.send_sequence_files(sequence_file, sample_name, project_identifier, upload_id)
 
@@ -163,7 +163,7 @@ class TestApiIntegration(unittest.TestCase):
         :return:
         """
         # create a new paired end sequencing run on IRIDA
-        run_id = self.test_api.create_seq_run({'layoutType': 'PAIRED_END'})
+        run_id = self.test_api.create_seq_run({'layoutType': 'PAIRED_END'}, 'miseq')
 
         # get a list of all sequencing runs and verify out new one is there and matches
         response = self.test_api.get_seq_runs()
@@ -185,7 +185,7 @@ class TestApiIntegration(unittest.TestCase):
         :return:
         """
         # create a new paired end sequencing run on IRIDA
-        run_id = self.test_api.create_seq_run({'layoutType': 'SINGLE_END'})
+        run_id = self.test_api.create_seq_run({'layoutType': 'SINGLE_END'}, 'miseq')
 
         # get a list of all sequencing runs and verify out new one is there and matches
         response = self.test_api.get_seq_runs()
@@ -215,7 +215,7 @@ class TestApiIntegration(unittest.TestCase):
 
             return s_run
 
-        run_id = self.test_api.create_seq_run({'layoutType': 'PAIRED_END'})
+        run_id = self.test_api.create_seq_run({'layoutType': 'PAIRED_END'}, 'miseq')
 
         seq_run = get_seq_run(run_id)
 
