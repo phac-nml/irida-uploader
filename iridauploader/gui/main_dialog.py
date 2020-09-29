@@ -383,16 +383,23 @@ class MainDialog(QtWidgets.QDialog):
             self._upload_button.set_block()
             # give user info
             self._show_and_fill_info_line("This run directory has already been uploaded. "
-                                          "Click continue to proceed anyway.")
+                                          "Click 'Continue' if you want to proceed anyway.")
             # set force state for if user wants to continue anyways
             self._force_state = True
+
+        elif status.status_equals(DirectoryStatus.DELAYED):
+            # We need to block upload until the user clicks continue
+            self._upload_button.set_block()
+            # give user info
+            self._show_and_fill_info_line("This run directory has been given a delay. "
+                                          "Click 'Continue' if you want to proceed anyway.")
 
         elif status.status_equals(DirectoryStatus.PARTIAL):
             # We need to block upload until the user clicks continue
             self._upload_button.set_block()
             # give user info
             self._show_and_fill_info_line("This run directory may be partially uploaded. "
-                                          "Click continue to proceed anyway.")
+                                          "Click 'Continue' if you want to proceed anyway.")
             # set force state for if user wants to continue anyways
             self._force_state = True
 
@@ -401,7 +408,7 @@ class MainDialog(QtWidgets.QDialog):
             self._upload_button.set_block()
             # give user info
             self._show_and_fill_info_line("This run directory previously had the error(s) below. "
-                                          "Click continue to proceed anyway.")
+                                          "Click 'Continue' if you want to proceed anyway.")
             self._show_previous_error(status.message)
             # set force state for if user wants to continue anyways
             self._force_state = True

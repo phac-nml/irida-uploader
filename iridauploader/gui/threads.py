@@ -5,6 +5,7 @@ import PyQt5.QtCore as QtCore
 from pprint import pformat
 
 from iridauploader.core import upload, parsing_handler, exit_return
+from iridauploader.config import config
 from iridauploader.parsers import exceptions
 
 
@@ -139,9 +140,19 @@ class UploadThread(QtCore.QThread):
     def run(self):
         """
         This runs when the threads start call is done
+
+        Also temporarily sets delay to 0 while uploading to avoid strange interactions.
         :return:
         """
+        # Store the current delay config setting
+        delay_config_int = int(config.read_config_option("delay", 0))
+        # Temporarily set delay to 0, s.t. upload will proceed even if command line is configured to delay runs
+        config.set_config_options(delay=0)
+        # Upload
         self._exit_return = upload.upload_run_single_entry(self._run_dir, self._force_state, self._upload_mode)
+        # Set delay value back to original value.
+        # Note that at no point this this function is the config written to file.
+        config.set_config_options(delay=delay_config_int)
         pass
 
     def is_success(self):

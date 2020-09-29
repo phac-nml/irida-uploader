@@ -8,6 +8,7 @@ Added functionality:
   * When `delay` is set, a new run will be set to Delayed, and will only be available to upload once `delay` minutes have passed
     * Default is 0 minutes, s.t. no delay will occur unless the `delay` argument or config argument is > 0
   * This should be used when automating uploads from a network location where file transfer may be done over a period of time
+  * **NOTE:** GUI Ignores delay when uploading, but will give a warning when loading a Delayed run.
   * Please see the MiSeq Analysis issue for more details on when to use this https://github.com/phac-nml/irida-uploader/issues/76
 * Improved the Directory Status file
   * Includes a list of all samples to be uploaded and progress for them.
@@ -18,7 +19,7 @@ Developer changes:
 * Refactored `core/cli_entry.py`
   * Renamed file to `core/upload.py` as to better fit its functionality (also handles gui uploads)
   * Created helper function file `core/upload_helpers.py` to improve code flow
-  * Code flow for all routines has been simplified and new documentation has been added
+  * Code flow for all routines has been simplified and new unit tests and documentation has been added
 * The `DirectoryStatus` and `upload_status.py` files have been overhauled to support the new delay/upload_status functionality
 
 Beta 0.5.0
