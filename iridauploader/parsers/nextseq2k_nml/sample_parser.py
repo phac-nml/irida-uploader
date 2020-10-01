@@ -23,7 +23,7 @@ def parse_metadata(sample_sheet_file):
     returns a dictionary containing the parsed key:pair values from .csv file
     """
 
-    metadata_dict = {"readLengths": []}
+    metadata_dict = {"readLengths": [], "indexCycles": []}
 
     csv_reader = common.get_csv_reader(sample_sheet_file)
 
@@ -50,12 +50,15 @@ def parse_metadata(sample_sheet_file):
             raise exceptions.SampleSheetError("Sample sheet is missing important sections: no sections were found.",
                                               sample_sheet_file)
         elif section is "reads":
-            metadata_dict["readLengths"].append(line[0])
+            if line[0] == "Read1Cycles" or line[0] == "Read2Cycles":
+                metadata_dict["readLengths"].append(line[1])
+            elif line[0] == "Index1Cycles" or line[0] == "Index2Cycles":
+                metadata_dict["indexCycles"].append(line[1])
 
     # currently sends just the larger readLengths
-    if len(metadata_dict["readLengths"]) == 4:
+    if len(metadata_dict["readLengths"]) == 2:
         metadata_dict["layoutType"] = "PAIRED_END"
-    elif len(metadata_dict["readLengths"]) == 2:
+    elif len(metadata_dict["readLengths"]) == 1:
         metadata_dict["layoutType"] = "SINGLE_END"
     else:
         logging.debug("The sample sheet has invalid [Reads] sections: [Reads] section should have 2 or 4 entries.")
@@ -63,6 +66,7 @@ def parse_metadata(sample_sheet_file):
                                           "[Reads] section should have 2 or 4 entries.",
                                           sample_sheet_file)
     metadata_dict["readLengths"] = max(metadata_dict["readLengths"])
+    metadata_dict["indexCycles"] = max(metadata_dict["indexCycles"])
 
     return metadata_dict
 
