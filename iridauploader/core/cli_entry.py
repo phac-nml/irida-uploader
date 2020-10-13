@@ -10,7 +10,7 @@ from iridauploader.model import DirectoryStatus
 
 from . import api_handler, parsing_handler, logger, exit_return
 
-VERSION_NUMBER = "0.5.0"
+VERSION_NUMBER = "0.5.1"
 
 
 def upload_run_single_entry(directory, force_upload=False, upload_mode=None):
