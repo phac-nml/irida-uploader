@@ -22,6 +22,13 @@ Developer changes:
   * Code flow for all routines has been simplified and new unit tests and documentation has been added
 * The `DirectoryStatus` and `upload_status.py` files have been overhauled to support the new delay/upload_status functionality
 
+Beta 0.5.1
+----------
+Changes
+* Added notes about version compatibility to README
+* Added more error logging to api_calls.py
+* Fixed integration tests compatibility with IRIDA Version 20.05
+
 Beta 0.5.0
 ----------
 Added functionality:
