@@ -27,10 +27,9 @@ def get_directory_status(directory, required_file_list):
     """
     # Verify directory is readable
     if not os.access(directory, os.R_OK):
-        directory_status = DirectoryStatus(directory)
-        directory_status.status = DirectoryStatus.INVALID
-        directory_status.message = 'Directory cannot be read. Please check permissions'
-        return directory_status
+        return DirectoryStatus(directory=directory,
+                               status=DirectoryStatus.INVALID,
+                               message='Directory cannot be read. Please check permissions')
 
     # Gets the list of files in the directory
     file_list = next(os.walk(directory))[2]
@@ -41,27 +40,22 @@ def get_directory_status(directory, required_file_list):
     # By default they will not be picked up automatically with --batch because they are set to COMPLETE,
     # but they can still be uploaded using the --force option
     if '.miseqUploaderInfo' in file_list:
-        directory_status = DirectoryStatus(directory)
-        directory_status.status = DirectoryStatus.COMPLETE
-        directory_status.message = "Legacy uploader run. Set to complete to avoid uploading duplicate data."
-        return directory_status
+        return DirectoryStatus(directory=directory,
+                               status=DirectoryStatus.COMPLETE,
+                               message="Legacy uploader run. Set to complete to avoid uploading duplicate data.")
 
     for file_name in required_file_list:
         if file_name not in file_list:
-            directory_status = DirectoryStatus(directory)
-            directory_status.status = DirectoryStatus.INVALID
-            directory_status.message = 'Directory is missing required file with filename {}'.format(file_name)
-            return directory_status
+            return DirectoryStatus(directory=directory,
+                                   status=DirectoryStatus.INVALID,
+                                   message='Directory is missing required file with filename {}'.format(file_name))
 
     # All pre-validation passed
     # Determine if status file already exists, or if the run is brand new
     if STATUS_FILE_NAME in file_list:  # Status file already exists, use it.
-        directory_status = read_directory_status_from_file(directory)
-        return directory_status
+        return read_directory_status_from_file(directory)
     else:  # no irida_uploader_status.info file yet, has not been uploaded
-        directory_status = DirectoryStatus(directory)
-        directory_status.status = DirectoryStatus.NEW
-        return directory_status
+        return DirectoryStatus(directory=directory, status=DirectoryStatus.NEW)
 
 
 def read_directory_status_from_file(directory):
@@ -76,9 +70,7 @@ def read_directory_status_from_file(directory):
             raise KeyError("Invalid directory status: {}".format(directory_status.status))
     except KeyError as e:
         # If status file is invalid, create a new directory status with invalid and error message to return instead
-        directory_status = DirectoryStatus(directory)
-        directory_status.status = DirectoryStatus.INVALID
-        directory_status.message = str(e)
+        directory_status = DirectoryStatus(directory=directory, status=DirectoryStatus.INVALID, message=str(e))
 
     return directory_status
 
