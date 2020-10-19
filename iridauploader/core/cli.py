@@ -99,9 +99,7 @@ def init_argparser():
     argument_parser.add_argument('-r', '--readonly',
                                  action='store_true',  # This line makes it not parse a variable
                                  help='Upload in Read Only mode, does not write status or log file to run directory.')
-    argument_parser.add_argument('-cd', '--delay',
-                                 action='store',
-                                 default='0',
+    argument_parser.add_argument('-cd', '--delay', action='store', nargs='?', const=True, default=False,
                                  help='Accepts an Integer for minutes to delay. When set, new runs will have their  '
                                       'status set to delayed. When uploading a run with the delayed status, the run '
                                       'will only upload if the given amount of minutes has passes since it was set to '
@@ -166,6 +164,9 @@ def _set_config_override(args):
         readonly = args.readonly
 
     if args.delay is True:
+        print("Enter delay in minutes (Integer):")
+        delay = int(input())
+    elif args.delay is not False:
         delay = int(args.delay)
 
     config.set_config_options(client_id=client_id,
