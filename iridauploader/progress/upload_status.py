@@ -1,5 +1,7 @@
 import json
+import logging
 import os
+import time
 
 import iridauploader.config as config
 from iridauploader.model.directory_status import DirectoryStatus
@@ -95,3 +97,68 @@ def write_directory_status(directory_status):
         with open(uploader_info_file, "w") as json_file:
             json.dump(json_data, json_file, indent=4, sort_keys=True)
             json_file.write("\n")
+
+
+def run_is_ready_with_delay(directory_status):
+    """
+    Expects a NEW or DELAYED directory status
+
+    If a NEW run is given, and the config is set to delay new runs, the run will be set to DELAYED, otherwise it's ready
+    If a DELAYED run is given, the run is ready if enough time has passed, otherwise it is not ready yet.
+
+    Writes to directory status file when set to DELAYED
+
+    :param directory_status:
+    :return: True when run is ready for upload, otherwise False
+    """
+    delay_minutes = config.read_config_option("delay", expected_type=int)
+    logging.debug("delay_minutes is set to: " + str(delay_minutes))
+
+    # Check if run is new, check if there's a delay
+    if directory_status.status_equals(DirectoryStatus.NEW):
+        if delay_minutes > 0:
+            directory_status.status = DirectoryStatus.DELAYED
+            write_directory_status(directory_status)
+            logging.info("Run has been delayed for {} minutes.".format(delay_minutes))
+            run_is_ready = False
+        else:
+            logging.info("No delay time given for NEW run. Continuing...")
+            run_is_ready = True
+    # If run was delayed, check if run can now be uploaded
+    elif directory_status.status_equals(DirectoryStatus.DELAYED):
+        if _delayed_time_has_passed(directory_status, delay_minutes):
+            logging.info("Delayed run is now ready for upload. Continuing...")
+            run_is_ready = True
+        else:
+            logging.info("Delayed run is still not ready for upload.")
+            run_is_ready = False
+    # This case should be imposable
+    else:
+        raise Exception("Function called with invalid directory status, This should never happen.")
+
+    return run_is_ready
+
+
+def _delayed_time_has_passed(directory_status, delay_minutes):
+    """
+    Checks if delay_minutes time has passed since directory_status.time
+
+    See time docs for details on time modules functionality
+    https://docs.python.org/3/library/time.html
+    :param directory_status: time.struct_time
+    :param delay_minutes: Integer
+    :return: Boolean
+    """
+    run_found_time = directory_status.time
+
+    if run_found_time is None or delay_minutes == 0:  # No delay, return True
+        return True
+
+    # float representing the time run was found (in seconds)
+    run_found_time_float = time.mktime(run_found_time)
+    # add delay time to found time
+    time_plus_delay_float = run_found_time_float + (delay_minutes * 60)
+    # get current time
+    current_time_float = time.time()
+    # compare current time to time when run is ready
+    return current_time_float > time_plus_delay_float

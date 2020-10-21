@@ -30,7 +30,6 @@ def upload_run_single_entry(directory, force_upload=False, upload_mode=None):
     """
 
     directory_status = parsing_handler.get_run_status(directory)
-    delay_minutes = config.read_config_option("delay", expected_type=int)
 
     # Check that directory is writeable, or readonly mode is enabled
     if upload_helpers.directory_has_readonly_conflict(directory_status.directory):
@@ -43,28 +42,30 @@ def upload_run_single_entry(directory, force_upload=False, upload_mode=None):
             directory_status.directory, directory_status.message)
         logging.error(error_msg)
         return exit_error(error_msg)
-    # Check if run is new, if delay config is > 0, delay the run, exit with success
-    elif directory_status.status_equals(DirectoryStatus.NEW):
-        if delay_minutes > 0:
-            upload_helpers.set_run_delayed(directory_status)
-            logging.info("Run has been delayed for {} minutes.".format(delay_minutes))
-            return exit_success()
-    # If run was delayed, check if run can now be uploaded, if not, exit with success
-    elif directory_status.status_equals(DirectoryStatus.DELAYED):
-        if upload_helpers.delayed_time_has_passed(directory_status, delay_minutes):
-            logging.info("Delayed run is ready for upload. Continuing...")
+    # Check if run is New or Delayed, and then do delay logic
+    elif (directory_status.status_equals(DirectoryStatus.NEW) or
+          directory_status.status_equals(DirectoryStatus.DELAYED)):
+        if progress.run_is_ready_with_delay(directory_status):
+            # Note: This is the "happy path" where upload continues
+            logging.debug("Run is ready to upload, continuing")
         else:
-            logging.info("Delayed run is still not ready for upload.")
+            logging.debug("Run is delayed, exiting")
             return exit_success()
-    # other statuses are error, partial, and complete runs, force upload allows theses
-    elif not force_upload:
-        error_msg = "ERROR! Run in directory {} is not new. It has either been uploaded, " \
-                    "or an upload was attempted with error. " \
-                    "Please check the status file 'irida_uploader_status.info' " \
-                    "in the run directory for more details. " \
-                    "You can bypass this error by uploading with the --force argument.".format(directory)
-        logging.error(error_msg)
-        return exit_error(error_msg)
+    # Check if run is any other status, if force upload is set, continue, otherwise exit
+    elif (directory_status.status_equals(DirectoryStatus.ERROR) or
+          directory_status.status_equals(DirectoryStatus.PARTIAL) or
+          directory_status.status_equals(DirectoryStatus.COMPLETE)):
+        if force_upload:
+            # Note: This is "happy path" 2, where upload continues with force
+            logging.info("Run with status {} is being force uploaded".format(directory_status.status))
+        else:
+            error_msg = "ERROR! Run in directory {} is not new. It has either been uploaded, " \
+                        "or an upload was attempted with error. " \
+                        "Please check the status file 'irida_uploader_status.info' " \
+                        "in the run directory for more details. " \
+                        "You can bypass this error by uploading with the --force argument.".format(directory)
+            logging.error(error_msg)
+            return exit_error(error_msg)
 
     # get default upload mode if None
     if upload_mode is None:
@@ -89,10 +90,6 @@ def batch_upload_single_entry(batch_directory, force_upload=False, upload_mode=N
     """
     logging.debug("batch_upload_single_entry:Starting {} with force={}".format(batch_directory, force_upload))
 
-    # get delay
-    delay_minutes = config.read_config_option("delay", expected_type=int)
-    logging.debug("delay_minutes is set to: " + str(delay_minutes))
-
     # get all potential directories to upload
     directory_status_list = parsing_handler.get_run_status_list(batch_directory)
     # list info about directories found
@@ -110,25 +107,27 @@ def batch_upload_single_entry(batch_directory, force_upload=False, upload_mode=N
         # ignore invalid directories
         if directory_status.status_equals(DirectoryStatus.INVALID):
             continue
-        # Check if run is new, if delay config is > 0, delay the run, else add to upload list
-        elif directory_status.status_equals(DirectoryStatus.NEW):
-            if delay_minutes > 0:
-                upload_helpers.set_run_delayed(directory_status)
-                logging.info("Run has been delayed for {} minutes.".format(delay_minutes))
-                delayed_list.append(directory_status)
-            else:
-                upload_list.append(directory_status)
-        # If run was delayed, check if run can now be uploaded, else it's still delayed
-        elif directory_status.status_equals(DirectoryStatus.DELAYED):
-            if upload_helpers.delayed_time_has_passed(directory_status, delay_minutes):
-                logging.info("Delayed run is ready for upload. Continuing...")
+        # Check if run is New or Delayed, and then do delay logic
+        elif (directory_status.status_equals(DirectoryStatus.NEW) or
+              directory_status.status_equals(DirectoryStatus.DELAYED)):
+            if progress.run_is_ready_with_delay(directory_status):
+                # Note: This is the "happy path" where upload continues
+                logging.debug("BATCH: Run is ready to upload")
                 upload_list.append(directory_status)
             else:
-                logging.info("Delayed run is still not ready for upload.")
+                logging.debug("BATCH: Run is delayed")
                 delayed_list.append(directory_status)
+
         # other statuses are error, partial, and complete runs, force upload allows theses
-        elif force_upload:
-            upload_list.append(directory_status)
+        elif (directory_status.status_equals(DirectoryStatus.ERROR) or
+              directory_status.status_equals(DirectoryStatus.PARTIAL) or
+              directory_status.status_equals(DirectoryStatus.COMPLETE)):
+            if force_upload:
+                logging.debug("BATCH: Run is forced for upload")
+                upload_list.append(directory_status)
+            else:
+                logging.debug("BATCH: Run is skipped")
+                continue
 
     # Display delayed run count to the user
     if len(delayed_list) > 0:
