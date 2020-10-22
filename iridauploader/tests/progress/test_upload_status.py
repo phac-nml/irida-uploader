@@ -1,6 +1,8 @@
 import unittest
+from unittest.mock import patch
 from os import path
 import os
+import time
 
 import iridauploader.progress as progress
 from iridauploader.model import DirectoryStatus
@@ -164,3 +166,59 @@ class TestWriteDirectoryStatus(unittest.TestCase):
         # We should find it as NEW as we have readonly=True
         status = progress.get_directory_status(self.directory, ["SampleSheet.csv"])
         self.assertEqual(DirectoryStatus.NEW, status.status)
+
+
+class TestDelayedTimeHasPassed(unittest.TestCase):
+    """
+    Tests core.upload_helpers.delayed_time_has_passed
+    """
+
+    class StubDirectoryStatus:
+        time = None
+
+    def setUp(self):
+        print("\nStarting " + self.__module__ + ": " + self._testMethodName)
+
+    @patch("time.mktime")
+    def test_has_passed(self, mock_mktime):
+        """
+        Tests that True is returned when enough time has passed
+        :return:
+        """
+        # time.mktime will return the time float from 2 minutes ago
+        mock_mktime.side_effect = [time.time() - (2 * 60)]
+
+        stub_directory_status = self.StubDirectoryStatus()
+        stub_directory_status.time = time.strftime(DirectoryStatus.JSON_DATE_TIME_FORMAT)
+        # run was delayed for 1 minute
+        delay_minutes = 1
+
+        self.assertEqual(True, progress.upload_status._delayed_time_has_passed(stub_directory_status, delay_minutes))
+
+    def test_delay_is_zero(self):
+        """
+        Tests that True is returned when there is no delay
+        :return:
+        """
+        stub_directory_status = self.StubDirectoryStatus()
+        stub_directory_status.time = time.strftime(DirectoryStatus.JSON_DATE_TIME_FORMAT)
+        # run was delayed for 1 minute
+        delay_minutes = 0
+
+        self.assertEqual(True, progress.upload_status._delayed_time_has_passed(stub_directory_status, delay_minutes))
+
+    @patch("time.mktime")
+    def test_has_not_passed(self, mock_mktime):
+        """
+        Tests that False is returned when enough time has not passed
+        :return:
+        """
+        # time.mktime will return the time float from right now
+        mock_mktime.side_effect = [time.time()]
+
+        stub_directory_status = self.StubDirectoryStatus()
+        stub_directory_status.time = time.strftime(DirectoryStatus.JSON_DATE_TIME_FORMAT)
+        # run was delayed for 10 minute
+        delay_minutes = 10
+
+        self.assertEqual(False, progress.upload_status._delayed_time_has_passed(stub_directory_status, delay_minutes))

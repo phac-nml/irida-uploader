@@ -117,8 +117,7 @@ def run_is_ready_with_delay(directory_status):
     # Check if run is new, check if there's a delay
     if directory_status.status_equals(DirectoryStatus.NEW):
         if delay_minutes > 0:
-            directory_status.status = DirectoryStatus.DELAYED
-            write_directory_status(directory_status)
+            _set_run_delayed(directory_status)
             logging.info("Run has been delayed for {} minutes.".format(delay_minutes))
             run_is_ready = False
         else:
@@ -139,6 +138,17 @@ def run_is_ready_with_delay(directory_status):
     return run_is_ready
 
 
+def _set_run_delayed(directory_status):
+    """
+    Helper function to set and write directory status as delayed.
+
+    :param directory_status:
+    :return:
+    """
+    directory_status.status = DirectoryStatus.DELAYED
+    write_directory_status(directory_status)
+
+
 def _delayed_time_has_passed(directory_status, delay_minutes):
     """
     Checks if delay_minutes time has passed since directory_status.time
@@ -149,13 +159,12 @@ def _delayed_time_has_passed(directory_status, delay_minutes):
     :param delay_minutes: Integer
     :return: Boolean
     """
-    run_found_time = directory_status.time
-
-    if run_found_time is None or delay_minutes == 0:  # No delay, return True
+    # Delay Time is not set, run is ready for upload
+    if delay_minutes == 0 or directory_status.time is None:
         return True
 
     # float representing the time run was found (in seconds)
-    run_found_time_float = time.mktime(run_found_time)
+    run_found_time_float = time.mktime(directory_status.time)
     # add delay time to found time
     time_plus_delay_float = run_found_time_float + (delay_minutes * 60)
     # get current time
