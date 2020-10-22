@@ -45,7 +45,9 @@ def upload_run_single_entry(directory, force_upload=False, upload_mode=None):
     # Check if run is New or Delayed, and then do delay logic
     elif (directory_status.status_equals(DirectoryStatus.NEW)
           or directory_status.status_equals(DirectoryStatus.DELAYED)):
-        if progress.run_is_ready_with_delay(directory_status):
+        if force_upload:
+            logging.debug("Run is skipping delay check via force")
+        elif progress.run_is_ready_with_delay(directory_status):
             # Note: This is the "happy path" where upload continues
             logging.debug("Run is ready to upload, continuing")
         else:
@@ -110,6 +112,9 @@ def batch_upload_single_entry(batch_directory, force_upload=False, upload_mode=N
         # Check if run is New or Delayed, and then do delay logic
         elif (directory_status.status_equals(DirectoryStatus.NEW)
               or directory_status.status_equals(DirectoryStatus.DELAYED)):
+            if force_upload:
+                logging.debug("BATCH: Run is being added with force")
+                upload_list.append(directory_status)
             if progress.run_is_ready_with_delay(directory_status):
                 # Note: This is the "happy path" where upload continues
                 logging.debug("BATCH: Run is ready to upload")

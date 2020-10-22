@@ -279,6 +279,36 @@ class TestUploadRunSingleEntry(unittest.TestCase):
     @patch("iridauploader.core.upload._validate_and_upload")
     @patch("iridauploader.core.upload.api_handler")
     @patch("iridauploader.core.upload.parsing_handler")
+    def test_delayed_force_directory_status(self, mock_parsing_handler, mock_api_handler,
+                                            mock_validate_and_upload, mock_upload_helpers):
+        """
+        Checks that function continues with force when directory status is delayed
+        :return:
+        """
+
+        stub_directory_status = self.StubDirectoryStatus()
+        stub_directory_status._status = DirectoryStatus.DELAYED
+
+        mock_parsing_handler.get_run_status.side_effect = [stub_directory_status]
+        mock_api_handler.get_default_upload_mode.side_effect = ["mock_mode"]
+        mock_validate_and_upload.side_effect = ["mock_result"]
+        mock_upload_helpers.directory_has_readonly_conflict.side_effect = [False]
+
+        result = upload.upload_run_single_entry(stub_directory_status.directory, force_upload=True)
+
+        # verify result
+        self.assertEqual(result, "mock_result")
+
+        # verify calls occurred
+        mock_parsing_handler.get_run_status.assert_called_with(stub_directory_status.directory)
+
+        # ensure upload
+        mock_validate_and_upload.assert_called_with(stub_directory_status, "mock_mode")
+
+    @patch("iridauploader.core.upload.upload_helpers")
+    @patch("iridauploader.core.upload._validate_and_upload")
+    @patch("iridauploader.core.upload.api_handler")
+    @patch("iridauploader.core.upload.parsing_handler")
     def test_new_directory_status(self, mock_parsing_handler, mock_api_handler,
                                   mock_validate_and_upload, mock_upload_helpers):
         """

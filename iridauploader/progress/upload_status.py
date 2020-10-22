@@ -62,17 +62,23 @@ def get_directory_status(directory, required_file_list):
 
 def read_directory_status_from_file(directory):
     uploader_info_file = os.path.join(directory, STATUS_FILE_NAME)
-    with open(uploader_info_file, "rb") as reader:
-        data = reader.read().decode()
-    json_dict = json.loads(data)
 
     try:
+        # Read file as json
+        with open(uploader_info_file, "rb") as reader:
+            data = reader.read().decode()
+        json_dict = json.loads(data)
+        # Generate DirectoryStatus from json
         directory_status = DirectoryStatus.init_from_json_dict(json_dict)
         if directory_status.status not in DirectoryStatus.VALID_STATUS_LIST:
             raise KeyError("Invalid directory status: {}".format(directory_status.status))
     except KeyError as e:
         # If status file is invalid, create a new directory status with invalid and error message to return instead
         directory_status = DirectoryStatus(directory=directory, status=DirectoryStatus.INVALID, message=str(e))
+    except Exception:
+        # If the file cannot be read (e.g. invalid json), return invalid
+        message = "Status file '{}' is malformed. Please delete this file and try again.".format(uploader_info_file)
+        return DirectoryStatus(directory=directory, status=DirectoryStatus.INVALID, message=message)
 
     return directory_status
 
