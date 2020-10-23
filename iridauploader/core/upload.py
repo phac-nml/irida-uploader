@@ -115,7 +115,7 @@ def batch_upload_single_entry(batch_directory, force_upload=False, upload_mode=N
             if force_upload:
                 logging.debug("BATCH: Run is being added with force")
                 upload_list.append(directory_status)
-            if progress.run_is_ready_with_delay(directory_status):
+            elif progress.run_is_ready_with_delay(directory_status):
                 # Note: This is the "happy path" where upload continues
                 logging.debug("BATCH: Run is ready to upload")
                 upload_list.append(directory_status)
