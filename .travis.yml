@@ -17,6 +17,8 @@ matrix:
       python: 3.7
     - env: "TEST_SUITE=unittests"
       python: 3.8
+    - env: "TEST_SUITE=unittests"
+      python: 3.9
     - env: "TEST_SUITE=integrationtests branch=master"
       python: 3.6
       before_script:
