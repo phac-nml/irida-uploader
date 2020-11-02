@@ -6,7 +6,6 @@ as they progress through their respective tasks
 """
 
 import logging
-import time
 import os
 
 from pprint import pformat
@@ -63,31 +62,6 @@ def set_run_delayed(directory_status):
     :return:
     """
     _set_and_write_directory_status(directory_status, DirectoryStatus.DELAYED)
-
-
-def delayed_time_has_passed(directory_status, delay_minutes):
-    """
-    Checks if delay_minutes time has passed since directory_status.time
-
-    See time docs for details on time modules functionality
-    https://docs.python.org/3/library/time.html
-    :param directory_status: time.struct_time
-    :param delay_minutes: Integer
-    :return: Boolean
-    """
-    run_found_time = directory_status.time
-
-    if run_found_time is None or delay_minutes == 0:  # No delay, return True
-        return True
-
-    # float representing the time run was found (in seconds)
-    run_found_time_float = time.mktime(run_found_time)
-    # add delay time to found time
-    time_plus_delay_float = run_found_time_float + (delay_minutes * 60)
-    # get current time
-    current_time_float = time.time()
-    # compare current time to time when run is ready
-    return current_time_float > time_plus_delay_float
 
 
 # *************************************
