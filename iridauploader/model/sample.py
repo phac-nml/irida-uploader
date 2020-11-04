@@ -40,7 +40,7 @@ class Sample:
             'required': False
         },
         '_skip': {
-            'type': 'bool',
+            'type': 'boolean',
             'nullable': True,
             'required': False
         }
