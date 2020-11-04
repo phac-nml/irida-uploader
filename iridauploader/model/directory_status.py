@@ -97,6 +97,10 @@ class DirectoryStatus:
     def directory(self):
         return self._directory
 
+    @directory.setter
+    def directory(self, directory):
+        self._directory = directory
+
     @property
     def run_id(self):
         return self._run_id
