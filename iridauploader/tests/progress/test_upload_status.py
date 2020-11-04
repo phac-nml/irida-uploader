@@ -74,6 +74,7 @@ class TestGetDirectoryStatus(unittest.TestCase):
         res = progress.get_directory_status(directory, ["SampleSheet.csv"])
 
         self.assertEqual(res.status, DirectoryStatus.COMPLETE)
+        # self.assertEqual(res.directory, directory)
         self.assertIsNone(res.message)
 
     def test_partial_directory(self):
