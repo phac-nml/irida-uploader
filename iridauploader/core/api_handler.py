@@ -144,7 +144,9 @@ def upload_sequencing_run(sequencing_run, directory_status, upload_mode, run_id=
     # create a new seq run identifier if none is given
     if run_id is None:
         run_id = api_instance.create_seq_run(sequencing_run.metadata, sequencing_run.sequencing_run_type)
-    logging.info("Sequencing run id '{}' has been created for upload".format(run_id))
+        logging.info("Sequencing run id '{}' has been created for this upload.".format(run_id))
+    else:
+        logging.info("Using existing run id '{}' for this upload.".format(run_id))
     # Update directory status file
     directory_status.run_id = run_id
     progress.write_directory_status(directory_status)
@@ -156,18 +158,22 @@ def upload_sequencing_run(sequencing_run, directory_status, upload_mode, run_id=
         for project in sequencing_run.project_list:
             # loop through samples
             for sample in project.sample_list:
-                logging.info("Uploading to Sample {} on Project {}".format(sample.sample_name, project.id))
-                # upload files
-                api_instance.send_sequence_files(sequence_file=sample.sequence_file,
-                                                 sample_name=sample.sample_name,
-                                                 project_id=project.id,
-                                                 upload_id=run_id,
-                                                 upload_mode=upload_mode)
-                # Update status file on progress
-                directory_status.set_sample_uploaded(sample_name=sample.sample_name,
+                if sample.skip:
+                    logging.info("Skipping Sample {} on Project {}, already uploaded."
+                                 "".format(sample.sample_name, project.id))
+                else:
+                    logging.info("Uploading to Sample {} on Project {}".format(sample.sample_name, project.id))
+                    # upload files
+                    api_instance.send_sequence_files(sequence_file=sample.sequence_file,
+                                                     sample_name=sample.sample_name,
                                                      project_id=project.id,
-                                                     uploaded=True)
-                progress.write_directory_status(directory_status)
+                                                     upload_id=run_id,
+                                                     upload_mode=upload_mode)
+                    # Update status file on progress
+                    directory_status.set_sample_uploaded(sample_name=sample.sample_name,
+                                                         project_id=project.id,
+                                                         uploaded=True)
+                    progress.write_directory_status(directory_status)
 
         # set seq run to complete
         api_instance.set_seq_run_complete(run_id)

@@ -100,13 +100,12 @@ def parse_and_validate(directory_status, parse_as_partial):
         raise e
     # When continuing a partial run, filter out already uploaded samples
     if parse_as_partial:
-        sequencing_run = filter_uploaded_samples_from_sequencing_run(sequencing_run,
-                                                                     directory_status.get_sample_status_list())
+        sequencing_run = set_uploaded_samples_to_skip(sequencing_run, directory_status.get_sample_status_list())
 
     return sequencing_run
 
 
-def filter_uploaded_samples_from_sequencing_run(sequencing_run, sample_status_list):
+def set_uploaded_samples_to_skip(sequencing_run, sample_status_list):
     """
     Given a complete sequencing run, remove all samples that have been marked as uploaded in the sample status list
     :param sequencing_run: sequencing run to filter
@@ -115,27 +114,14 @@ def filter_uploaded_samples_from_sequencing_run(sequencing_run, sample_status_li
     """
     # This block looks worse than it is, worst case is O(n^2)
 
-    projects_to_remove = []
     for project in sequencing_run.project_list:
-        # find samples to remove from this project
-        samples_to_remove = []
         for sample in project.sample_list:
             for sample_status in sample_status_list:
-                logging.info("fuckign shit fucker")
                 if (sample_status.uploaded is True
                         and sample_status.sample_name == sample.sample_name
                         and sample_status.project_id == project.id):
-                    samples_to_remove.append(sample)
-        # remove samples
-        for rm_sample in samples_to_remove:
-            project.sample_list.remove(rm_sample)
-        # check if there are still samples in this project
-        if len(project.sample_list) == 0:
-            projects_to_remove.append(project)
-
-    # remove projects without samples
-    for rm_project in projects_to_remove:
-        sequencing_run.project_list.remove(rm_project)
+                    # If a sample has already been uploaded, skip it
+                    sample.skip = True
 
     return sequencing_run
 

@@ -38,6 +38,11 @@ class Sample:
             'anyof_type': ['string', 'integer'],
             'nullable': True,
             'required': False
+        },
+        '_skip': {
+            'type': 'bool',
+            'nullable': True,
+            'required': False
         }
     }
 
@@ -49,6 +54,7 @@ class Sample:
             samp_dict = {}
         self._sample_dict = dict(samp_dict)
         self._sequence_file = None
+        self._skip = False
 
     @property
     def sample_name(self):
@@ -69,6 +75,14 @@ class Sample:
     @sequence_file.setter
     def sequence_file(self, sq):
         self._sequence_file = sq
+
+    @property
+    def skip(self):
+        return self._skip
+
+    @skip.setter
+    def skip(self, skip):
+        self._skip = skip
 
     def get_irida_id(self):
         if "identifier" in self._sample_dict:

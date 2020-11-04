@@ -39,7 +39,7 @@ root_logger.addHandler(rotating_file_handler)
 
 # Log to the user
 console = logging.StreamHandler()
-console.setLevel(logging.DEBUG)
+console.setLevel(logging.INFO)
 console.setFormatter(log_format)
 root_logger.addHandler(console)
 
