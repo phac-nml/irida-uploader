@@ -123,7 +123,7 @@ def prepare_and_validate_for_upload(sequencing_run):
     return validation_result
 
 
-def upload_sequencing_run(sequencing_run, directory_status, upload_mode):
+def upload_sequencing_run(sequencing_run, directory_status, upload_mode, run_id=None):
     """
     Handles uploading a sequencing run
 
@@ -135,13 +135,15 @@ def upload_sequencing_run(sequencing_run, directory_status, upload_mode):
     :param sequencing_run: run to upload
     :param directory_status: DirectoryStatus object to update as files get uploaded
     :param upload_mode: mode of upload
+    :param run_id: Default None, when given, run_id will be used instead of generating a new run_id
     :return:
     """
     # get api
     api_instance = _get_api_instance()
 
-    # create a seq run
-    run_id = api_instance.create_seq_run(sequencing_run.metadata, sequencing_run.sequencing_run_type)
+    # create a new seq run identifier if none is given
+    if run_id is None:
+        run_id = api_instance.create_seq_run(sequencing_run.metadata, sequencing_run.sequencing_run_type)
     logging.info("Sequencing run id '{}' has been created for upload".format(run_id))
     # Update directory status file
     directory_status.run_id = run_id

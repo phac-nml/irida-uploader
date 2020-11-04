@@ -57,6 +57,10 @@ def init_argparser():
                                  action='store_true',  # This line makes it not parse a variable
                                  help='Uploader will ignore the status file, '
                                       'and try to upload even when a run is in non new status.')
+    # Optional argument, Force uploading a run even if a non new status file exists
+    argument_parser.add_argument('-p', '--continue_partial',
+                                 action='store_true',  # This line makes it not parse a variable
+                                 help='Uploader will continue an existing upload run when upload status is partial.')
     # Optional argument, Upload all sequencing runs in a directory of runs
     argument_parser.add_argument('-b', '--batch',
                                  action='store_true',  # This line makes it not parse a variable
@@ -209,31 +213,33 @@ def main():
 
     # Start Upload
     if args.batch:
-        return upload_batch(args.directory, args.force, args.upload_mode)
+        return upload_batch(args.directory, args.force, args.upload_mode, args.coninue_partial)
     else:
-        return upload(args.directory, args.force, args.upload_mode)
+        return upload(args.directory, args.force, args.upload_mode, args.continue_partial)
 
 
-def upload(run_directory, force_upload, upload_mode):
+def upload(run_directory, force_upload, upload_mode, continue_partial):
     """
     start upload on a single run directory
     :param run_directory:
     :param force_upload:
     :param upload_mode
+    :param continue_partial
     :return: exit code 0 or 1
     """
-    return core.upload.upload_run_single_entry(run_directory, force_upload, upload_mode).exit_code
+    return core.upload.upload_run_single_entry(run_directory, force_upload, upload_mode, continue_partial).exit_code
 
 
-def upload_batch(batch_directory, force_upload, upload_mode):
+def upload_batch(batch_directory, force_upload, upload_mode, continue_partial):
     """
     Start uploading runs in the batch directory
     :param batch_directory:
     :param force_upload:
-    :param upload_mode
+    :param upload_mode:
+    :param continue_partial:
     :return: exit code 0 or 1
     """
-    return core.upload.batch_upload_single_entry(batch_directory, force_upload, upload_mode).exit_code
+    return core.upload.batch_upload_single_entry(batch_directory, force_upload, upload_mode, continue_partial).exit_code
 
 
 # This is called when the program is run for the first time

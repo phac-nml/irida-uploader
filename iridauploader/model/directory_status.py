@@ -173,6 +173,9 @@ class DirectoryStatus:
     def irida_instance(self, irida_instance):
         self._irida_instance = irida_instance
 
+    def get_sample_status_list(self):
+        return self._sample_status_list
+
     def to_json_dict(self):
         sample_status_dict = self.sample_status_to_dict()
 
@@ -223,8 +226,8 @@ class DirectoryStatus:
             for sample_dict in json_dict[samples_field]:
                 new_sample_status_list.append(DirectoryStatus.SampleStatus(
                     sample_name=sample_dict[DirectoryStatus.SampleStatus.SAMPLE_NAME_FIELD],
-                    project_id=sample_dict[DirectoryStatus.SampleStatus.SAMPLE_NAME_FIELD],
-                    uploaded=sample_dict[DirectoryStatus.SampleStatus.SAMPLE_NAME_FIELD],
+                    project_id=sample_dict[DirectoryStatus.SampleStatus.PROJECT_ID_FIELD],
+                    uploaded=sample_dict[DirectoryStatus.SampleStatus.UPLOADER_FIELD],
                 ))
 
         return new_sample_status_list
@@ -248,6 +251,8 @@ class DirectoryStatus:
             """
             self._sample_name = sample_name
             self._project_id = project_id
+            if type(uploaded) is str:
+                uploaded = uploaded.lower() in ['true', '1', 't', 'y', 'yes']
             self._uploaded = uploaded
 
         @property
