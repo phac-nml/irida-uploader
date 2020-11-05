@@ -7,6 +7,7 @@ Changes
 * Added notes about version compatibility to README
 * Added more error logging to api_calls.py
 * Fixed integration tests compatibility with IRIDA Version 20.05
+* Check that base_url ends with /api/ and if it does not, issue a warning
 
 Beta 0.5.0
 ----------
