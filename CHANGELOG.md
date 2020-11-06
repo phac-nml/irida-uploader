@@ -14,6 +14,7 @@ Added functionality:
   * Includes a list of all samples to be uploaded and progress for them.
     * If a run stops mid upload, you can now clearly see which files where uploaded from the directory status file.
   * Added an IRIDA Instance field to the directory status file so where the files have been sent is recorded.
+* File upload timeout has be changed to dynamically scale with file size.
 
 Developer changes:
 * Refactored `core/cli_entry.py`

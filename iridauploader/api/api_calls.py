@@ -4,6 +4,7 @@ import logging
 import threading
 
 from http import HTTPStatus
+from pathlib import Path
 from rauth import OAuth2Service
 from requests import ConnectionError
 from requests.adapters import HTTPAdapter
@@ -31,6 +32,14 @@ UPLOAD_MODES = [
     MODE_ASSEMBLIES,
     MODE_FAST5
 ]
+
+# Timeout values for sequence file data upload
+# Wait at least 1 second for each mb of data
+TIMEOUT_BYTES_DIVISOR = 1024 * 1024
+# extra time allotted for file upload time out, set to 2 minutes
+TIMEOUT_LEEWAY = 120
+# 20 minute minimum timeout
+TIMEOUT_MINIMUM = 1200
 
 
 class ApiCalls(object):
@@ -735,8 +744,10 @@ class ApiCalls(object):
         logging.debug("Sending files to [{}]".format(url))
         logging.debug("headers: " + str(headers_pkg))
 
+        timeout = self._get_sequence_file_timeout(sequence_file)
+
         try:
-            response = self._session.post(url, data=data_pkg, headers=headers_pkg)
+            response = self._session.post(url, data=data_pkg, headers=headers_pkg, timeout=timeout)
         except ConnectionError as e:
             # This could be anything from disconnection during post to IRIDA crashing
             logging.error("ConnectionError occurred while transferring data: " + str(e))
@@ -753,6 +764,24 @@ class ApiCalls(object):
             raise self._get_irida_exception(response)
 
         return json_res
+
+    @staticmethod
+    def _get_sequence_file_timeout(sequence_file):
+        """
+        Approximates transfer time and generates a timeout according to variables defined in this module.
+
+        These values can be overridden when importing the module
+        :param sequence_file:
+        :return:
+        """
+        # Get approximation for amount of data to send
+        filesize_bytes = Path(sequence_file.file_list[0]).stat().st_size
+        if sequence_file.is_paired_end():
+            filesize_bytes = filesize_bytes * 2
+        # Gives 1 second per mb of data to transfer + 2 minutes extra
+        timeout_mb = (filesize_bytes / TIMEOUT_BYTES_DIVISOR) + TIMEOUT_LEEWAY
+        # minimum time should be 20 minutes
+        return timeout_mb if timeout_mb > TIMEOUT_MINIMUM else TIMEOUT_MINIMUM
 
     def send_metadata(self, metadata, project_id, sample_name):
         """
