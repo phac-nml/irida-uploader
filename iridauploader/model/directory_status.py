@@ -45,15 +45,16 @@ class DirectoryStatus:
     JSON_MESSAGE_FIELD = "Message"
     JSON_SAMPLES_UPLOADED_FIELD = "Sample Status"
 
-    def __init__(self, directory):
+    def __init__(self, directory, status=NEW, message=None):
         """
         :param directory: Directory of a potential run
-        status: status of the directory: 'new', 'partial', 'complete', 'invalid'
-        message: Used when run is invalid,
+        :param status: Default = NEW, must be one of VALID_STATUS_LIST
+        :param message: Text to be added to the status file
         """
         self._directory = directory
-        self._status = None
-        self._message = None
+        # use the status validation method
+        self.status = status
+        self._message = message
         self._run_id = None
         self._sample_status_list = None
         self._time = None
@@ -95,6 +96,10 @@ class DirectoryStatus:
     @property
     def directory(self):
         return self._directory
+
+    @directory.setter
+    def directory(self, directory):
+        self._directory = directory
 
     @property
     def run_id(self):
