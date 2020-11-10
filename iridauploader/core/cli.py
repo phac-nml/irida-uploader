@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
+"""
+This file is the entry point for the command line interface for both bash and windows
+
+It uses argparse, getpass, as well as os to keep the interface operating system agnostic
+"""
 
 import argparse
 import getpass
 import os
 import textwrap
 
+from iridauploader import VERSION_NUMBER
 import iridauploader.config as config
 import iridauploader.core as core
 from iridauploader.api import UPLOAD_MODES
@@ -40,7 +46,7 @@ def init_argparser():
     # help='Location of sequencing run to upload. Directory must be writable.')
     # Add the version argument
     argument_parser.add_argument('--version',
-                                 action='version', version='IRIDA Uploader {}'.format(core.VERSION_NUMBER))
+                                 action='version', version='IRIDA Uploader {}'.format(VERSION_NUMBER))
     # Optional argument, for using an alternative config file.
     argument_parser.add_argument('-c', '--config',
                                  action='store',
@@ -93,6 +99,11 @@ def init_argparser():
     argument_parser.add_argument('-r', '--readonly',
                                  action='store_true',  # This line makes it not parse a variable
                                  help='Upload in Read Only mode, does not write status or log file to run directory.')
+    argument_parser.add_argument('-cd', '--delay', action='store', nargs='?', const=True, default=False,
+                                 help='Accepts an Integer for minutes to delay. When set, new runs will have their  '
+                                      'status set to delayed. When uploading a run with the delayed status, the run '
+                                      'will only upload if the given amount of minutes has passes since it was set to '
+                                      'delayed. Default = 0: When set to 0, runs will not be given delayed status.')
     return argument_parser
 
 
@@ -109,6 +120,7 @@ def _set_config_override(args):
     base_url = None
     parser = None
     readonly = None
+    delay = None
 
     if args.config_client_id is True:
         print("Enter Client ID:")
@@ -151,13 +163,20 @@ def _set_config_override(args):
     if args.readonly is True:
         readonly = args.readonly
 
+    if args.delay is True:
+        print("Enter delay in minutes (Integer):")
+        delay = int(input())
+    elif args.delay is not False:
+        delay = int(args.delay)
+
     config.set_config_options(client_id=client_id,
                               client_secret=client_secret,
                               username=username,
                               password=password,
                               base_url=base_url,
                               parser=parser,
-                              readonly=readonly)
+                              readonly=readonly,
+                              delay=delay)
 
 
 def _config_uploader(args):
@@ -203,7 +222,7 @@ def upload(run_directory, force_upload, upload_mode):
     :param upload_mode
     :return: exit code 0 or 1
     """
-    return core.cli_entry.upload_run_single_entry(run_directory, force_upload, upload_mode).exit_code
+    return core.upload.upload_run_single_entry(run_directory, force_upload, upload_mode).exit_code
 
 
 def upload_batch(batch_directory, force_upload, upload_mode):
@@ -214,7 +233,7 @@ def upload_batch(batch_directory, force_upload, upload_mode):
     :param upload_mode
     :return: exit code 0 or 1
     """
-    return core.cli_entry.batch_upload_single_entry(batch_directory, force_upload, upload_mode).exit_code
+    return core.upload.batch_upload_single_entry(batch_directory, force_upload, upload_mode).exit_code
 
 
 # This is called when the program is run for the first time

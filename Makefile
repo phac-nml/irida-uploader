@@ -55,7 +55,7 @@ integrationtests: clean env preintegration
 pep8: clean env
 	source .virtualenv/bin/activate
 	pip3 install pycodestyle
-	pycodestyle --show-source --exclude=".git","bin",".idea","docs",".github","site",".virtualenv","iridauploader/build" --ignore="E501" .
+	pycodestyle --show-source --exclude=".git","bin",".idea","docs",".github","site",".virtualenv","iridauploader/build" --ignore="E501,W503" .
 
 docs: requirements
 	source .virtualenv/bin/activate

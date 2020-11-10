@@ -9,7 +9,7 @@ import iridauploader.api as api
 import iridauploader.model as model
 import iridauploader.progress as progress
 
-from iridauploader.core.cli_entry import upload_run_single_entry, batch_upload_single_entry
+from iridauploader.core.upload import upload_run_single_entry, batch_upload_single_entry
 
 
 path_to_module = path.dirname(__file__)
@@ -25,6 +25,8 @@ CLEANUP_DIRECTORY_LIST = [
     path.join(path_to_module, "fake_ngs_data_nonexistent_project"),
     path.join(path_to_module, "fake_ngs_data_parse_fail"),
     path.join(path_to_module, "fake_ngs_data_no_completed_file"),
+    path.join(path_to_module, "fake_fast5_data"),
+    path.join(path_to_module, "fake_assemblies_data"),
     path.join(path_to_module, "fake_batch_data", "run_1"),
     path.join(path_to_module, "fake_batch_data", "run_2"),
     path.join(path_to_module, "fake_batch_data", "run_3")

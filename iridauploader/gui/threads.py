@@ -4,7 +4,8 @@ import PyQt5.QtCore as QtCore
 
 from pprint import pformat
 
-from iridauploader.core import cli_entry, parsing_handler, exit_return
+from iridauploader.core import upload, parsing_handler, exit_return
+from iridauploader.config import config
 from iridauploader.parsers import exceptions
 
 
@@ -120,11 +121,10 @@ class UploadThread(QtCore.QThread):
     def __init__(self):
         super().__init__()
         self._run_dir = ""
-        self._force_state = False
         self._upload_mode = None
         self._exit_return = None
 
-    def set_vars(self, run_dir, force_state, upload_mode):
+    def set_vars(self, run_dir, upload_mode):
         """
         Sets the variables in the object to the ones passed in
         :param run_dir:
@@ -133,15 +133,19 @@ class UploadThread(QtCore.QThread):
         :return:
         """
         self._run_dir = run_dir
-        self._force_state = force_state
         self._upload_mode = upload_mode
 
     def run(self):
         """
         This runs when the threads start call is done
+
+        When uploading, it will always upload with force_upload=True,
+        s.t. we ignore delays and simplify earlier run parse logic
         :return:
         """
-        self._exit_return = cli_entry.upload_run_single_entry(self._run_dir, self._force_state, self._upload_mode)
+        self._exit_return = upload.upload_run_single_entry(directory=self._run_dir,
+                                                           force_upload=True,
+                                                           upload_mode=self._upload_mode)
         pass
 
     def is_success(self):
