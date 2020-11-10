@@ -38,25 +38,6 @@ def upload_run_single_entry(directory, force_upload=False, upload_mode=None, con
         error_msg = 'Directory cannot be written to. Please check permissions or use readonly mode'
         logging.error(error_msg)
         return exit_error(error_msg)
-    elif directory_status.status_equals(DirectoryStatus.PARTIAL):
-        if force_upload:
-            # Note: This is "happy path" 2, where upload continues with force
-            logging.info("Run with status {} is being force uploaded".format(directory_status.status))
-        elif continue_upload:
-            # Happy path for continuing an upload
-            logging.info("Continuing upload on a partial run.")
-            parse_as_partial = True
-        else:
-            error_msg = "ERROR! Directory status is PARTIAL. This run can be continued with the --continue_partial" \
-                        " argument, or restarted from the beginning with the --force argument"
-            logging.error(error_msg)
-            return exit_error(error_msg)
-    # Check if a run is invalid, an invalid run cannot be uploaded.
-    elif directory_status.status_equals(DirectoryStatus.INVALID):
-        error_msg = "ERROR! Run in directory {} is invalid. Returned with message: '{}'".format(
-            directory_status.directory, directory_status.message)
-        logging.error(error_msg)
-        return exit_error(error_msg)
     # Check if run is New or Delayed, and then do delay logic
     elif (directory_status.status_equals(DirectoryStatus.NEW)
           or directory_status.status_equals(DirectoryStatus.DELAYED)):
@@ -68,6 +49,26 @@ def upload_run_single_entry(directory, force_upload=False, upload_mode=None, con
         else:
             logging.debug("Run is delayed, exiting")
             return exit_success()
+    # Check if run is partial, if we are continuing partial runs this block will enable parsing as partial
+    elif directory_status.status_equals(DirectoryStatus.PARTIAL):
+        if continue_upload:
+            # Happy path for continuing an upload
+            logging.info("Continuing upload on a partial run.")
+            parse_as_partial = True
+        elif force_upload:
+            # Note: This is "happy path" 2, where upload starts from beginning with force
+            logging.info("Run with status {} is being force uploaded".format(directory_status.status))
+        else:
+            error_msg = "ERROR! Directory status is PARTIAL. This run can be continued with the --continue_partial" \
+                        " argument, or restarted from the beginning with the --force argument"
+            logging.error(error_msg)
+            return exit_error(error_msg)
+    # Check if a run is invalid, an invalid run cannot be uploaded.
+    elif directory_status.status_equals(DirectoryStatus.INVALID):
+        error_msg = "ERROR! Run in directory {} is invalid. Returned with message: '{}'".format(
+            directory_status.directory, directory_status.message)
+        logging.error(error_msg)
+        return exit_error(error_msg)
     # Check if run is any other status, if force upload is set, continue, otherwise exit
     elif (directory_status.status_equals(DirectoryStatus.ERROR)
           or directory_status.status_equals(DirectoryStatus.COMPLETE)):
@@ -91,7 +92,7 @@ def upload_run_single_entry(directory, force_upload=False, upload_mode=None, con
     return _validate_and_upload(directory_status, upload_mode, parse_as_partial)
 
 
-def batch_upload_single_entry(batch_directory, force_upload=False, upload_mode=None, continue_partial=None):
+def batch_upload_single_entry(batch_directory, force_upload=False, upload_mode=None, continue_upload=False):
     """
     This function acts as a single point of entry for batch uploading run directories
 
@@ -102,10 +103,9 @@ def batch_upload_single_entry(batch_directory, force_upload=False, upload_mode=N
     :param batch_directory: Directory containing sequencing run directories to upload
     :param force_upload: When set to true, the upload status file will be ignored and file will attempt to be uploaded
     :param upload_mode: String with upload mode to use. When None, default is used.
-    :param continue_partial: When True, continues uploading existing partial runs from where they left off
+    :param continue_upload: When True, continues uploading existing partial runs from where they left off
     :return: ExitReturn
     """
-    # TODO: upload batch continue partial
     logging.debug("batch_upload_single_entry:Starting {} with force={}".format(batch_directory, force_upload))
 
     # get all potential directories to upload
@@ -119,6 +119,7 @@ def batch_upload_single_entry(batch_directory, force_upload=False, upload_mode=N
                      % (directory_status.directory, "", directory_status.status, "", directory_status.message))
 
     upload_list = []
+    upload_as_partial_list = []
     delayed_list = []
     for directory_status in directory_status_list:
         logging.info("Analysing directory: {}".format(directory_status.directory))
@@ -138,10 +139,21 @@ def batch_upload_single_entry(batch_directory, force_upload=False, upload_mode=N
             else:
                 logging.debug("BATCH: Run is delayed")
                 delayed_list.append(directory_status)
-
+            # Check if run is partial, if we are continuing partial runs this block will enable parsing as partial
+        elif directory_status.status_equals(DirectoryStatus.PARTIAL):
+            if continue_upload:
+                # Happy path for continuing an upload
+                logging.debug("BATCH: Run is ready to continue upload as partial")
+                upload_as_partial_list.append(directory_status)
+            elif force_upload:
+                # Note: This is "happy path" 2, where upload continues with force
+                logging.debug("BATCH: Partial Run is being added with force")
+                upload_list.append(directory_status)
+            else:
+                logging.debug("BATCH: Partial Run is skipped")
+                continue
         # other statuses are error, partial, and complete runs, force upload allows theses
         elif (directory_status.status_equals(DirectoryStatus.ERROR)
-              or directory_status.status_equals(DirectoryStatus.PARTIAL)
               or directory_status.status_equals(DirectoryStatus.COMPLETE)):
             if force_upload:
                 logging.debug("BATCH: Run is forced for upload")
@@ -169,7 +181,13 @@ def batch_upload_single_entry(batch_directory, force_upload=False, upload_mode=N
     error_list = []
     for directory_status in upload_list:
         logging.info("Starting upload for {}".format(directory_status.directory))
-        result = _validate_and_upload(directory_status, upload_mode)
+        result = _validate_and_upload(directory_status, upload_mode, False)
+        if result.exit_code == exit_return.EXIT_CODE_ERROR:
+            error_list.append(directory_status)
+
+    for directory_status in upload_as_partial_list:
+        logging.info("Continuing upload from partial for {}".format(directory_status.directory))
+        result = _validate_and_upload(directory_status, upload_mode, True)
         if result.exit_code == exit_return.EXIT_CODE_ERROR:
             error_list.append(directory_status)
 
