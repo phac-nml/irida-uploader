@@ -26,6 +26,7 @@ class TestGetDirectoryStatus(unittest.TestCase):
         res = progress.get_directory_status(directory, ["SampleSheet.csv"])
 
         self.assertEqual(res.status, DirectoryStatus.NEW)
+        self.assertEqual(res.directory, directory)
         self.assertIsNone(res.message)
 
     def test_new_directory_multiple_files(self):
@@ -34,6 +35,7 @@ class TestGetDirectoryStatus(unittest.TestCase):
         res = progress.get_directory_status(directory, ["SampleSheet.csv", 'CompletedJobInfo.xml'])
 
         self.assertEqual(res.status, DirectoryStatus.NEW)
+        self.assertEqual(res.directory, directory)
         self.assertIsNone(res.message)
 
     def test_new_directory_one_file_missing(self):
@@ -42,6 +44,7 @@ class TestGetDirectoryStatus(unittest.TestCase):
         res = progress.get_directory_status(directory, ["SampleSheet.csv", 'not_a_file.txt'])
 
         self.assertEqual(res.status, DirectoryStatus.INVALID)
+        self.assertEqual(res.directory, directory)
         self.assertIsNotNone(res.message)
 
     def test_new_directory_with_info_file(self):
@@ -50,6 +53,7 @@ class TestGetDirectoryStatus(unittest.TestCase):
         res = progress.get_directory_status(directory, ["SampleSheet.csv"])
 
         self.assertEqual(res.status, DirectoryStatus.NEW)
+        self.assertEqual(res.directory, directory)
         self.assertIsNone(res.message)
 
     def test_invalid_directory(self):
@@ -58,6 +62,7 @@ class TestGetDirectoryStatus(unittest.TestCase):
         res = progress.get_directory_status(directory, ["not a SampleSheeet.csv"])
 
         self.assertEqual(res.status, DirectoryStatus.INVALID)
+        self.assertEqual(res.directory, directory)
         self.assertIsNotNone(res.message)
 
     def test_inaccessible_directory(self):
@@ -66,6 +71,7 @@ class TestGetDirectoryStatus(unittest.TestCase):
         res = progress.get_directory_status(directory, ["SampleSheet.csv"])
 
         self.assertEqual(res.status, DirectoryStatus.INVALID)
+        self.assertEqual(res.directory, directory)
         self.assertIsNotNone(res.message)
 
     def test_complete_directory(self):
@@ -74,6 +80,7 @@ class TestGetDirectoryStatus(unittest.TestCase):
         res = progress.get_directory_status(directory, ["SampleSheet.csv"])
 
         self.assertEqual(res.status, DirectoryStatus.COMPLETE)
+        self.assertEqual(res.directory, directory)
         self.assertIsNone(res.message)
 
     def test_partial_directory(self):
@@ -82,6 +89,7 @@ class TestGetDirectoryStatus(unittest.TestCase):
         res = progress.get_directory_status(directory, ["SampleSheet.csv"])
 
         self.assertEqual(res.status, DirectoryStatus.PARTIAL)
+        self.assertEqual(res.directory, directory)
         self.assertIsNone(res.message)
 
     def test_has_miseq_complete_file(self):
@@ -94,6 +102,7 @@ class TestGetDirectoryStatus(unittest.TestCase):
         res = progress.get_directory_status(directory, ["SampleSheet.csv"])
 
         self.assertEqual(res.status, DirectoryStatus.COMPLETE)
+        self.assertEqual(res.directory, directory)
         self.assertEqual(res.message, "Legacy uploader run. Set to complete to avoid uploading duplicate data.")
 
 

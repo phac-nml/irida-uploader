@@ -72,6 +72,9 @@ def read_directory_status_from_file(directory):
         directory_status = DirectoryStatus.init_from_json_dict(json_dict)
         if directory_status.status not in DirectoryStatus.VALID_STATUS_LIST:
             raise KeyError("Invalid directory status: {}".format(directory_status.status))
+        # When loading from an ERROR sheet, or an old sheet, we must manually add the directory to the object
+        if directory_status.directory is None:
+            directory_status.directory = directory
     except KeyError as e:
         # If status file is invalid, create a new directory status with invalid and error message to return instead
         directory_status = DirectoryStatus(directory=directory, status=DirectoryStatus.INVALID, message=str(e))
