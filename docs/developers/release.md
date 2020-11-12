@@ -30,6 +30,10 @@ Create a new tag with the same version number as above
 
     git tag X.Y.Z
 
+Verify the tag was created
+
+    git tag
+
 Push tag up to origin
 
     git push origin X.Y.Z
