@@ -18,7 +18,7 @@ def parse_metadata(sample_sheet_file):
         metadata_key_translation_dict
 
     arguments:
-            sample_sheet_file -- path to SampleSheet.csv
+            sample_sheet_file -- path to UploadList.csv
 
     returns a dictionary containing the parsed key:pair values from .csv file
     """
@@ -168,7 +168,7 @@ def _parse_samples(sample_sheet_file):
     All other keys keep the same name that they have in .csv file
 
     arguments:
-            sample_sheet_file -- path to SampleSheet.csv
+            sample_sheet_file -- path to UploadList.csv
 
     returns	a list containing Sample objects that have been created by a
         dictionary from the parsed out key:pair values from .csv file
