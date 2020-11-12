@@ -40,7 +40,6 @@ class MainDialog(QtWidgets.QDialog):
 
         # internal variables
         self._run_dir = ""
-        self._force_state = False
         self._config_file = ""
         self._uploading = False
 
@@ -330,7 +329,7 @@ class MainDialog(QtWidgets.QDialog):
         self._uploading = True
         # start upload
         upload_mode = self._upload_mode_combobox.currentText()
-        self._upload_thread.set_vars(self._run_dir, self._force_state, upload_mode)
+        self._upload_thread.set_vars(self._run_dir, upload_mode)
         self._upload_thread.start()
 
     ##########################
@@ -348,11 +347,9 @@ class MainDialog(QtWidgets.QDialog):
             don't let user continue past error to parsing
             block uploading (no continue allowed)
         On New runs:
-            set force state to false (run is clean, no force needed)
             start parsing run directory
-        On Complete / Partial / Error runss:
-            set force stat to True (run is not clean, force is needed if we end up proceeding
-            Show user the state (complete, partial, error) and the reason for the state (error msg)
+        On Complete / Partial / Delayed / Error runs:
+            Show user the state (complete, partial, delayed, error) and the reason for the state (error msg)
             Allow users to click continue to continue on to parsing the run
             Block uploading (until continue is clicked)
 
@@ -374,7 +371,6 @@ class MainDialog(QtWidgets.QDialog):
             self._hide_info_button()
 
         elif status.status_equals(DirectoryStatus.NEW):
-            self._force_state = False
             # new runs start the parse immediately
             self._start_parse()
 
@@ -384,8 +380,6 @@ class MainDialog(QtWidgets.QDialog):
             # give user info
             self._show_and_fill_info_line("This run directory has already been uploaded. "
                                           "Click 'Continue' if you want to proceed anyway.")
-            # set force state for if user wants to continue anyways
-            self._force_state = True
 
         elif status.status_equals(DirectoryStatus.DELAYED):
             # We need to block upload until the user clicks continue
@@ -400,8 +394,6 @@ class MainDialog(QtWidgets.QDialog):
             # give user info
             self._show_and_fill_info_line("This run directory may be partially uploaded. "
                                           "Click 'Continue' if you want to proceed anyway.")
-            # set force state for if user wants to continue anyways
-            self._force_state = True
 
         elif status.status_equals(DirectoryStatus.ERROR):
             # We need to block upload until the user clicks continue
@@ -410,8 +402,6 @@ class MainDialog(QtWidgets.QDialog):
             self._show_and_fill_info_line("This run directory previously had the error(s) below. "
                                           "Click 'Continue' if you want to proceed anyway.")
             self._show_previous_error(status.message)
-            # set force state for if user wants to continue anyways
-            self._force_state = True
 
     def _thread_finished_parse(self):
         """

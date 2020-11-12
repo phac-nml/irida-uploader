@@ -121,11 +121,10 @@ class UploadThread(QtCore.QThread):
     def __init__(self):
         super().__init__()
         self._run_dir = ""
-        self._force_state = False
         self._upload_mode = None
         self._exit_return = None
 
-    def set_vars(self, run_dir, force_state, upload_mode):
+    def set_vars(self, run_dir, upload_mode):
         """
         Sets the variables in the object to the ones passed in
         :param run_dir:
@@ -134,25 +133,19 @@ class UploadThread(QtCore.QThread):
         :return:
         """
         self._run_dir = run_dir
-        self._force_state = force_state
         self._upload_mode = upload_mode
 
     def run(self):
         """
         This runs when the threads start call is done
 
-        Also temporarily sets delay to 0 while uploading to avoid strange interactions.
+        When uploading, it will always upload with force_upload=True,
+        s.t. we ignore delays and simplify earlier run parse logic
         :return:
         """
-        # Store the current delay config setting
-        delay_config_int = int(config.read_config_option("delay", 0))
-        # Temporarily set delay to 0, s.t. upload will proceed even if command line is configured to delay runs
-        config.set_config_options(delay=0)
-        # Upload
-        self._exit_return = upload.upload_run_single_entry(self._run_dir, self._force_state, self._upload_mode)
-        # Set delay value back to original value.
-        # Note that at no point this this function is the config written to file.
-        config.set_config_options(delay=delay_config_int)
+        self._exit_return = upload.upload_run_single_entry(directory=self._run_dir,
+                                                           force_upload=True,
+                                                           upload_mode=self._upload_mode)
         pass
 
     def is_success(self):
