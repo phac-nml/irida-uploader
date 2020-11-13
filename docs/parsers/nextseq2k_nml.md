@@ -24,7 +24,7 @@ Please verify your file structure is correct.
 │               └── sample3_S1_L001_R2_001.fastq.gz
 ```
 
-Example files can be found: `/example_sample_sheets/miseq_run/`
+Example files can be found: `/examples/nextseq2k_run/`
 
 ## Preparing your nextseq2000 upload list
 
