@@ -10,10 +10,10 @@ The module can be used as follows:
 
 ```python
 # import the module
-import api
+from iridauploader import api
 
 # Create an api instance by initializing an ApiCalls object
-api_instance = api.ApiCalls(client_id, client_secret, base_url, username, password)
+api_instance = api.ApiCalls(client_id, client_secret, base_url, username, password, timeout_multiplier)
 ```
 
 For more information on the arguments passed to `ApiCalls`, please see the [configuration documentation](../configuration.md)

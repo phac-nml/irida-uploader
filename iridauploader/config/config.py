@@ -46,7 +46,8 @@ def _init_config_parser():
                         SettingsDefault._make(["base_url", ""]),
                         SettingsDefault._make(["parser", "directory"]),
                         SettingsDefault._make(["readonly", False]),
-                        SettingsDefault._make(["delay", 0])]
+                        SettingsDefault._make(["delay", 0]),
+                        SettingsDefault._make(["timeout", 1])]
     # add defaults to config parser
     for config in default_settings:
         _conf_parser.set("Settings", config.setting, config.default_value)
@@ -112,7 +113,8 @@ def set_config_options(client_id=None,
                        base_url=None,
                        parser=None,
                        readonly=None,
-                       delay=None):
+                       delay=None,
+                       timeout=None):
     """
     Updates the config options for all not None parameters
     :param client_id:
@@ -123,6 +125,7 @@ def set_config_options(client_id=None,
     :param parser:
     :param readonly:
     :param delay:
+    :param timeout:
     :return:
     """
     global _conf_parser
@@ -156,6 +159,10 @@ def set_config_options(client_id=None,
         # delay is always an int
         logging.debug("Setting 'delay' config to {}".format(delay))
         _update_config_option('delay', delay)
+    if timeout is not None:
+        # timeout is always an int
+        logging.debug("Setting 'timeout' config to {}".format(timeout))
+        _update_config_option('timeout', timeout)
 
 
 def setup():

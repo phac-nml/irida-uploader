@@ -104,6 +104,10 @@ def init_argparser():
                                       'status set to delayed. When uploading a run with the delayed status, the run '
                                       'will only upload if the given amount of minutes has passes since it was set to '
                                       'delayed. Default = 0: When set to 0, runs will not be given delayed status.')
+    argument_parser.add_argument('-ct', '--config_timeout', action='store', nargs='?', const=True, default=False,
+                                 help='Accepts an Integer for the expected transfer time in seconds per MB. '
+                                      'Default is 1 second for every MB of data to transfer. Increasing this number can'
+                                      'help reduce timeout errors in cases where connection speed is very slow.')
     return argument_parser
 
 
@@ -121,6 +125,7 @@ def _set_config_override(args):
     parser = None
     readonly = None
     delay = None
+    timeout = None
 
     if args.config_client_id is True:
         print("Enter Client ID:")
@@ -169,6 +174,12 @@ def _set_config_override(args):
     elif args.delay is not False:
         delay = int(args.delay)
 
+    if args.config_timeout is True:
+        print("Enter timeout per MB in seconds (Integer):")
+        delay = int(input())
+    elif args.config_timeout is not False:
+        timeout = int(args.config_timeout)
+
     config.set_config_options(client_id=client_id,
                               client_secret=client_secret,
                               username=username,
@@ -176,7 +187,8 @@ def _set_config_override(args):
                               base_url=base_url,
                               parser=parser,
                               readonly=readonly,
-                              delay=delay)
+                              delay=delay,
+                              timeout=timeout)
 
 
 def _config_uploader(args):
