@@ -14,6 +14,7 @@ Added functionality:
   * Includes a list of all samples to be uploaded and progress for them.
     * If a run stops mid upload, you can now clearly see which files where uploaded from the directory status file.
   * Added an IRIDA Instance field to the directory status file so where the files have been sent is recorded.
+* Added support for Python 3.8 and 3.9
 * Added NextSeq2000 support with a new parser `nextseq2k_nml`
   * Because the NextSeq2000 software does not generate a sample sheet that includes a project column, it needs to be created manually.
   * Please see the documentation for the `nextseq2k_nml` for details
@@ -25,6 +26,8 @@ Developer changes:
   * Code flow for all routines has been simplified and new unit tests and documentation has been added
 * The `DirectoryStatus` and `upload_status.py` files have been overhauled to support the new delay/upload_status functionality
 * GUI upload now always executes with force_upload=True to simplify internal logic
+* Windows build will no longer include test files in executable (slightly reduced file size)
+* Added documentation for how to draft a new release (for internal use)
 
 Beta 0.5.1
 ----------

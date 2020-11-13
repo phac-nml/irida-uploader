@@ -20,3 +20,5 @@ pages:
       - developers/api.md
       - developers/parsers.md
       - developers/objects.md
+      - developers/cloud.md
+      - developers/release.md
