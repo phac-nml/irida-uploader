@@ -18,7 +18,7 @@ clean:
 env:
 	python3 -m venv .virtualenv
 	source .virtualenv/bin/activate
-	pip3 install --upgrade wheel pip
+	pip3 install --upgrade wheel pip setuptools
 
 gui: clean env
 	source .virtualenv/bin/activate
