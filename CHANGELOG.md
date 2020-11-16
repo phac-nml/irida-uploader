@@ -16,6 +16,7 @@ Added functionality:
   * Added an IRIDA Instance field to the directory status file so where the files have been sent is recorded.
 * Added support for Python 3.8 and 3.9
 * File upload timeout has be changed to dynamically scale with file size.
+  * config option `timeout` has been added to scale this based on expected seconds per MB transfer speed.
 
 Developer changes:
 * Refactored `core/cli_entry.py`
