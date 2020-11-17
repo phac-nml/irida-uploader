@@ -45,7 +45,8 @@ def _init_config_parser():
                         SettingsDefault._make(["password", ""]),
                         SettingsDefault._make(["base_url", ""]),
                         SettingsDefault._make(["parser", "directory"]),
-                        SettingsDefault._make(["readonly", False])]
+                        SettingsDefault._make(["readonly", False]),
+                        SettingsDefault._make(["delay", 0])]
     # add defaults to config parser
     for config in default_settings:
         _conf_parser.set("Settings", config.setting, config.default_value)
@@ -110,7 +111,8 @@ def set_config_options(client_id=None,
                        password=None,
                        base_url=None,
                        parser=None,
-                       readonly=None):
+                       readonly=None,
+                       delay=None):
     """
     Updates the config options for all not None parameters
     :param client_id:
@@ -120,6 +122,7 @@ def set_config_options(client_id=None,
     :param base_url:
     :param parser:
     :param readonly:
+    :param delay:
     :return:
     """
     global _conf_parser
@@ -149,6 +152,10 @@ def set_config_options(client_id=None,
     if readonly is not None:
         logging.debug("Setting 'readonly' config to {}".format(readonly))
         _update_config_option("readonly", readonly)
+    if delay is not None:
+        # delay is always an int
+        logging.debug("Setting 'delay' config to {}".format(delay))
+        _update_config_option('delay', delay)
 
 
 def setup():
@@ -202,8 +209,20 @@ def read_config_option(key, expected_type=None, default_value=None):
             value = _conf_parser.get("Settings", key)
             logging.debug("Got configuration for key {}: {}".format(key, value))
             return _conf_parser.get("Settings", key)
+        elif expected_type is int:
+            res = _conf_parser.get("Settings", key)
+            logging.debug("Got configuration for key {}: {}".format(key, res))
+            # Return int, or string evaluated to int, or NameError exception otherwise
+            if type(res) is int:
+                return res
+            elif type(res) is str:
+                try:
+                    return int(res)
+                except Exception:
+                    raise NameError
         elif expected_type is bool:
             res = _conf_parser.get("Settings", key)
+            logging.debug("Got configuration for key {}: {}".format(key, res))
             # Return bool, or string evaluated to bool, or NameError exception otherwise
             if type(res) is bool:
                 return res

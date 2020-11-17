@@ -1,6 +1,31 @@
 Changes
 =======
 
+Beta 0.6.0
+----------
+Added functionality:
+* Added `--delay=[Integer]` argument/config option to allow runs to be delayed when they are found.
+  * When `delay` is set, a new run will be set to Delayed, and will only be available to upload once `delay` minutes have passed
+    * Default is 0 minutes, s.t. no delay will occur unless the `delay` argument or config argument is > 0
+  * This should be used when automating uploads from a network location where file transfer may be done over a period of time
+    * Please see the MiSeq Analysis issue for more details on when to use this https://github.com/phac-nml/irida-uploader/issues/76
+  * The delay can be bypassed with `--force`
+* Improved the Directory Status file
+  * Includes a list of all samples to be uploaded and progress for them.
+    * If a run stops mid upload, you can now clearly see which files where uploaded from the directory status file.
+  * Added an IRIDA Instance field to the directory status file so where the files have been sent is recorded.
+* Added support for Python 3.8 and 3.9
+
+Developer changes:
+* Refactored `core/cli_entry.py`
+  * Renamed file to `core/upload.py` as to better fit its functionality (also handles gui uploads)
+  * Created helper function file `core/upload_helpers.py` to improve code flow
+  * Code flow for all routines has been simplified and new unit tests and documentation has been added
+* The `DirectoryStatus` and `upload_status.py` files have been overhauled to support the new delay/upload_status functionality
+* GUI upload now always executes with force_upload=True to simplify internal logic
+* Windows build will no longer include test files in executable (slightly reduced file size)
+* Added documentation for how to draft a new release (for internal use)
+
 Beta 0.5.1
 ----------
 Changes
