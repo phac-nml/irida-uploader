@@ -15,6 +15,7 @@ Added functionality:
     * If a run stops mid upload, you can now clearly see which files where uploaded from the directory status file.
   * Added an IRIDA Instance field to the directory status file so where the files have been sent is recorded.
 * Added support for Python 3.8 and 3.9
+* Added a warning if the base_url does not end in /api/
 
 Developer changes:
 * Refactored `core/cli_entry.py`
@@ -32,7 +33,6 @@ Changes
 * Added notes about version compatibility to README
 * Added more error logging to api_calls.py
 * Fixed integration tests compatibility with IRIDA Version 20.05
-* Check that base_url ends with /api/ and if it does not, issue a warning
 
 Beta 0.5.0
 ----------
