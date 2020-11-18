@@ -221,7 +221,7 @@ def _parse_samples(sample_sheet_file):
             value = line[index].strip()
 
             # Keys other than 'File_Reverse' cannot be empty
-            if len(value) is 0:  # no value
+            if len(value) == 0:  # no value
                 if key != 'File_Reverse':
                     raise exceptions.SampleSheetError(
                         ("Your sample sheet is malformed. {} in the [Data] section cannot be empty."
