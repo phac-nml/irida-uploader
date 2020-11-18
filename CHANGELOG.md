@@ -15,6 +15,10 @@ Added functionality:
     * If a run stops mid upload, you can now clearly see which files where uploaded from the directory status file.
   * Added an IRIDA Instance field to the directory status file so where the files have been sent is recorded.
 * Added support for Python 3.8 and 3.9
+* Added NextSeq2000 support with a new parser `nextseq2k_nml`
+  * Because the NextSeq2000 software does not generate a sample sheet that includes a project column, it needs to be created manually.
+  * Please see the documentation for the `nextseq2k_nml` for details
+* Added a warning if the base_url does not end in /api/
 
 Developer changes:
 * Refactored `core/cli_entry.py`

@@ -30,6 +30,8 @@ def _initialize_api(client_id, client_secret, base_url, username, password, max_
     :return: The ApiCalls instance
     """
     global _api_instance
+    if not base_url.endswith('/api/'):
+        logging.warn("base_url does not end in /api/, this configuration might be incorrect")
     _api_instance = api.ApiCalls(client_id, client_secret, base_url, username, password, max_wait_time)
     return _api_instance
 

@@ -1,6 +1,6 @@
 import logging
 
-from iridauploader.parsers import directory, miseq, miniseq, nextseq
+from iridauploader.parsers import directory, miseq, miniseq, nextseq, nextseq2k_nml
 
 supported_parsers = [
     'miseq',
@@ -8,6 +8,7 @@ supported_parsers = [
     'miseq_v31',
     'miniseq',
     'nextseq',
+    'nextseq2k_nml',
     'iseq',
     'directory',
     'nanopore_assemblies',
@@ -39,4 +40,7 @@ def parser_factory(parser_type):
     if parser_type == "nextseq":
         logging.debug("Creating nextseq parser")
         return nextseq.Parser(parser_type_name=parser_type)
+    if parser_type == "nextseq2k_nml":
+        logging.debug("Creating nextseq2k_nml parser")
+        return nextseq2k_nml.Parser(parser_type_name=parser_type)
     raise AssertionError("Bad parser creation, invalid parser_type given: {}".format(parser_type))
