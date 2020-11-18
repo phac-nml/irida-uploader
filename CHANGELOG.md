@@ -18,6 +18,7 @@ Added functionality:
 * Added NextSeq2000 support with a new parser `nextseq2k_nml`
   * Because the NextSeq2000 software does not generate a sample sheet that includes a project column, it needs to be created manually.
   * Please see the documentation for the `nextseq2k_nml` for details
+* Added a warning if the base_url does not end in /api/
 
 Developer changes:
 * Refactored `core/cli_entry.py`
