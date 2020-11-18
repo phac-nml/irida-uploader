@@ -42,6 +42,7 @@ class MainDialog(QtWidgets.QDialog):
         self._run_dir = ""
         self._config_file = ""
         self._uploading = False
+        self._continue_partial = False
 
         # Setup gui objects
         self._init_objects()
@@ -64,6 +65,7 @@ class MainDialog(QtWidgets.QDialog):
         self._upload_button.clicked.connect(self._btn_upload)
         self._console_button.clicked.connect(self._btn_log)
         self._info_btn.clicked.connect(self._btn_continue)
+        self._info_partial_btn.clicked.connect(self._btn_continue_partial)
         # connect threads finishing to finish functions
         self._status_thread.finished.connect(self._thread_finished_status)
         self._parse_thread.finished.connect(self._thread_finished_parse)
@@ -111,6 +113,10 @@ class MainDialog(QtWidgets.QDialog):
         self._info_btn.setText("Continue")
         self._info_btn.setStyleSheet("background-color: {}".format(colours.RED_LIGHT))
         self._info_btn.hide()
+        self._info_partial_btn = QtWidgets.QPushButton(self)
+        self._info_partial_btn.setText("Continue Partially Uploaded Run")
+        self._info_partial_btn.setStyleSheet("background-color: {}".format(colours.BLUE_LIGHT))
+        self._info_partial_btn.hide()
         self._curr_errors = QtWidgets.QPlainTextEdit(self)
         self._curr_errors.setReadOnly(True)
         self._curr_errors.setStyleSheet("background-color: {}".format(colours.RED_LIGHT))
@@ -157,7 +163,10 @@ class MainDialog(QtWidgets.QDialog):
         # info
         layout.addWidget(self._info_line)
         layout.addWidget(self._prev_errors)
-        layout.addWidget(self._info_btn)
+        info_btn_layout = QtWidgets.QHBoxLayout()
+        info_btn_layout.addWidget(self._info_btn)
+        info_btn_layout.addWidget(self._info_partial_btn)
+        layout.addLayout(info_btn_layout)
         layout.addWidget(self._curr_errors)
 
         # table
@@ -283,6 +292,14 @@ class MainDialog(QtWidgets.QDialog):
         self._reset_info_line()
         self._start_parse()
 
+    def _btn_continue_partial(self):
+        """
+        Sets partial upload flag and continues
+        :return:
+        """
+        self._continue_partial = True
+        self._btn_continue()
+
     #######################
     #   Thread Starters   #
     #######################
@@ -329,7 +346,8 @@ class MainDialog(QtWidgets.QDialog):
         self._uploading = True
         # start upload
         upload_mode = self._upload_mode_combobox.currentText()
-        self._upload_thread.set_vars(self._run_dir, upload_mode)
+        self._upload_thread.set_vars(
+            run_dir= self._run_dir, upload_mode=upload_mode, partial_continue=self._continue_partial)
         self._upload_thread.start()
 
     ##########################
@@ -356,6 +374,8 @@ class MainDialog(QtWidgets.QDialog):
         :return: None
         """
         logging.debug("GUI: _thread_finished_status called")
+
+        self._continue_partial = False
 
         # since the thread finished, we need to unlock the gui
         self._unlock_gui()
@@ -392,8 +412,8 @@ class MainDialog(QtWidgets.QDialog):
             # We need to block upload until the user clicks continue
             self._upload_button.set_block()
             # give user info
-            self._show_and_fill_info_line("This run directory may be partially uploaded. "
-                                          "Click 'Continue' if you want to proceed anyway.")
+            self._show_and_fill_info_partial_upload_options(
+                "This run directory is partially uploaded. Choose how you would like to Continue.")
 
         elif status.status_equals(DirectoryStatus.ERROR):
             # We need to block upload until the user clicks continue
@@ -418,7 +438,7 @@ class MainDialog(QtWidgets.QDialog):
 
         if sequencing_run:
             # run parsed correctly
-            self._table.fill_table(sequencing_run)
+            self._table.fill_table(sequencing_run, self._continue_partial)
             self._unlock_gui()
         else:
             run_errors = self._parse_thread.get_error()
@@ -433,6 +453,7 @@ class MainDialog(QtWidgets.QDialog):
         :return:
         """
         self._uploading = False
+        self._continue_partial = False
 
         logging.debug("GUI: _thread_finished_upload called")
         if not self._upload_thread.is_success():
@@ -462,6 +483,18 @@ class MainDialog(QtWidgets.QDialog):
         self._info_line.show()
         self._info_btn.show()
 
+    def _show_and_fill_info_partial_upload_options(self, message):
+        """
+        todo
+        :param message: string to display to the user
+        :return:
+        """
+        self._info_line.setText(message)
+        self._info_line.show()
+        self._info_btn.setText("Restart Run From Beginning")
+        self._info_btn.show()
+        self._info_partial_btn.show()
+
     def _reset_info_line(self):
         """
         Hides the info line
@@ -470,7 +503,9 @@ class MainDialog(QtWidgets.QDialog):
         """
         self._info_line.setText("")
         self._info_line.hide()
+        self._info_btn.setText("Continue")
         self._info_btn.hide()
+        self._info_partial_btn.hide()
 
     def _hide_info_button(self):
         """
@@ -479,6 +514,7 @@ class MainDialog(QtWidgets.QDialog):
         :return:
         """
         self._info_btn.hide()
+        self._info_partial_btn.hide()
 
     def _show_previous_error(self, errors):
         """

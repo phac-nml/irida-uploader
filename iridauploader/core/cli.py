@@ -211,6 +211,12 @@ def main():
         print("ERROR! Specified directory is not readable: {}".format(args.directory))
         return 1
 
+    # Verify force and continue are not both active
+    if args.force and args.continue_partial:
+        print("ERROR! --force and --continue are cannot both be set, as one would start a partial upload from the "
+              "beginning and the other would continue from where it left off.")
+        return 1
+
     # Start Upload
     if args.batch:
         return upload_batch(args.directory, args.force, args.upload_mode, args.coninue_partial)
