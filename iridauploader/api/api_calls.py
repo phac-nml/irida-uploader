@@ -45,7 +45,7 @@ TIMEOUT_MINIMUM = 1200
 class ApiCalls(object):
 
     def __init__(self, client_id, client_secret,
-                 base_url, username, password, timeout_multiplier, max_wait_time=20, http_max_retries=5):
+                 base_url, username, password, timeout_multiplier=1, max_wait_time=20, http_max_retries=5):
         """
         Create OAuth2Session and store it
 
