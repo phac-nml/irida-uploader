@@ -16,8 +16,10 @@ import iridauploader.tests_integration.tests_integration as tests_integration
 # parse a single argument that determines which IRIDA branch we are testing against
 argument_parser = argparse.ArgumentParser(description='This program parses sequencing runs and uploads them to IRIDA.')
 argument_parser.add_argument('branch', help='Which IRIDA branch to run integration tests against')
-argument_parser.add_argument('--db_host', help="Override database host", action='store')
-argument_parser.add_argument('--db_port', help="Override database port")
+argument_parser.add_argument('db_host', help="Override database host",
+                             nargs='?', action='store', default=False)
+argument_parser.add_argument('db_port', help="Override database port",
+                             nargs='?', action='store', default=False)
 
 
 def main():
