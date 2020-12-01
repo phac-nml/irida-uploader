@@ -1,0 +1,51 @@
+###########################################################################
+# Integration test suite definition for IRIDA Uploader using GitHub Actions
+###########################################################################
+
+name: Integration Tests
+
+on:
+  pull_request: # Run on all pull requests
+  push:
+    branches:   # Run on any push to development or master
+      - development
+      - master
+  schedule:     # Run weekly on development and master
+    - cron: 0 2 * * 1
+      branches: development
+    - cron: 0 2 * * 1
+      branches: master
+
+
+jobs:
+  build-unittests:
+
+    runs-on: ubuntu-20.04 #See pre-installed software at https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md
+    strategy:
+      matrix:
+        python-version: [3.5, 3.6, 3.7, 3.8, 3.9]
+
+    steps:
+    - uses: actions/checkout@v2 #Checkout the project from git
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Run Unit Tests
+      run: make unittests
+
+  build-pep8:
+    runs-on: ubuntu-20.04 #See pre-installed software at https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md
+    strategy:
+      matrix:
+        python-version: [3.5, 3.6, 3.7, 3.8, 3.9]
+
+    steps:
+      - uses: actions/checkout@v2 #Checkout the project from git
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Run pep8
+        run: make pep8
+
