@@ -77,4 +77,4 @@ jobs:
         with:
           java-version: 11
       - name: Run Integration Tests master
-        run: make integrationtests branch=${{ matrix.branch}}
+        run: make integrationtests branch=${{ matrix.branch }} --db_host=${{ env.MYSQL_HOST }} --db_port=${{ env.MYSQL_PORT }}
