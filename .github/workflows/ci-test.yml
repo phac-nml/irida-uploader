@@ -36,9 +36,6 @@ jobs:
 
   build-pep8:
     runs-on: ubuntu-20.04 #See pre-installed software at https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md
-    strategy:
-      matrix:
-        python-version: [3.5, 3.6, 3.7, 3.8, 3.9]
 
     steps:
       - uses: actions/checkout@v2 #Checkout the project from git
@@ -49,3 +46,46 @@ jobs:
       - name: Run pep8
         run: make pep8
 
+  build-irida-integration:
+
+    runs-on: ubuntu-20.04 #See pre-installed software at https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md
+    env:
+      MYSQL_PORT: 3800
+      MYSQL_USER: test
+      MYSQL_PASSWORD: test
+      MYSQL_DATABASE: irida_uploader_test
+      MYSQL_HOST: 127.0.0.1
+
+    steps:
+    - uses: mirromutth/mysql-action@v1.1
+      with:
+        host port: ${{ env.MYSQL_PORT }}
+        character set server: 'utf8'
+        collation server: 'utf8_general_ci'
+        mysql version: '5.7'
+        mysql database: ${{ env.MYSQL_DATABASE }}
+        mysql user: ${{ env.MYSQL_USER }}
+        mysql password: ${{ env.MYSQL_PASSWORD }}
+    - name: Set up JDK 11 # Installs java 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+    - name: Run Integration Tests master
+      run: make integrationtests branch=master
+
+    steps:
+      - uses: mirromutth/mysql-action@v1.1
+        with:
+          host port: ${{ env.MYSQL_PORT }}
+          character set server: 'utf8'
+          collation server: 'utf8_general_ci'
+          mysql version: '5.7'
+          mysql database: ${{ env.MYSQL_DATABASE }}
+          mysql user: ${{ env.MYSQL_USER }}
+          mysql password: ${{ env.MYSQL_PASSWORD }}
+      - name: Set up JDK 11 # Installs java 11
+          uses: actions/setup-java@v1
+          with:
+            java-version: 11
+      - name: Run Integration Tests development
+        run: make integrationtests branch=development
