@@ -63,7 +63,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2 #Checkout the project from git
-      - uses: mirromutth/mysql-action@v1.1
+      - name: Shutdown Ubuntu MySQL (SUDO)
+        run: sudo service mysql stop # Shutdown the Default MySQL, "sudo" is necessary, please not remove it
+      - name: Setup MySQL
+        uses: mirromutth/mysql-action@v1.1
         with:
           host port: ${{ env.MYSQL_PORT }}
           character set server: 'utf8'
