@@ -48,7 +48,7 @@ class SetupIridaData:
         self.IRIDA_DB_RESET = 'echo '\
             '"drop database if exists ' + self.DB_NAME + ';'\
             'create database ' + self.DB_NAME + ';'\
-            '"| mysql -h ' + self.DB_HOST + ' -P ' + self.DB_PORT + ' -u test -p test'
+            '"| mysql -h ' + self.DB_HOST + ' -P ' + self.DB_PORT + ' -u test -ptest'
 
         root_dir = "tests_integration/tmp"
         output_files = "tests_integration/tmp/output-files"
