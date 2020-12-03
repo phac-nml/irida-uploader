@@ -60,12 +60,12 @@ jobs:
     strategy:
       fail-fast: False #Setting so that if one of the test suites fail, the other will continue
       matrix:
-        branch: ['master','development']
+        branch: ['master','development'] # IRIDA Branches to test against
 
     steps:
       - uses: actions/checkout@v2 #Checkout the project from git
-      - name: Shutdown Ubuntu MySQL (SUDO)
-        run: sudo service mysql stop # Shutdown the Default MySQL, "sudo" is necessary, please not remove it
+#      - name: Shutdown Ubuntu MySQL (SUDO)
+#        run: sudo service mysql stop # Shutdown the Default MySQL, "sudo" is necessary, please not remove it
       - name: Setup MySQL
         uses: mirromutth/mysql-action@v1.1
         with:
@@ -78,6 +78,7 @@ jobs:
           mysql password: ${{ env.MYSQL_PASSWORD }}
           mysql root password: ${{ env.MYSQL_ROOT_PASSWORD }} #The root superuser password
       - name: Verify MySQL connection
+        timeout-minutes: 10
         run: |
           while ! mysqladmin ping -h"${{ env.MYSQL_HOST }}" -P"${{ env.MYSQL_PORT }}" --silent; do
             sleep 1
@@ -91,4 +92,5 @@ jobs:
       - name: MySQL grant user db access (SUDO)
         run: sudo mysql -e "CREATE USER '${{ env.MYSQL_USER }}'@'%' IDENTIFIED BY '${{ env.MYSQL_PASSWORD }}'; GRANT ALL ON ${{ env.MYSQL_DATABASE }}.* to '${{ env.MYSQL_USER }}'@'%';" -h ${{ env.MYSQL_HOST }} -P ${{ env.MYSQL_PORT }} -p${{ env.MYSQL_ROOT_PASSWORD }}
       - name: Run Integration Tests ${{ matrix.branch }}
+        timeout-minutes: 60
         run: make integrationtests branch=${{ matrix.branch }} db_host=${{ env.MYSQL_HOST }} db_port=${{ env.MYSQL_PORT }}
