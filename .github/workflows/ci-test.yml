@@ -55,6 +55,7 @@ jobs:
       MYSQL_PASSWORD: test
       MYSQL_DATABASE: irida_uploader_test
       MYSQL_HOST: 127.0.0.1
+      MYSQL_ROOT_PASSWORD: password
 
 #    services:
 #      maridadb:
@@ -99,6 +100,6 @@ jobs:
       - name: show mysql version
         run: mysql --version
       - name: sql ONLY_FULL_GROUP_BY
-        run: sudo mysql -e "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));" -h ${{ env.MYSQL_HOST }} -P ${{ env.MYSQL_PORT }}
+        run: sudo mysql -e "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));" -h ${{ env.MYSQL_HOST }} -P ${{ env.MYSQL_PORT }} -p${{ env.MYSQL_ROOT_PASSWORD }}
       - name: Run Integration Tests ${{ matrix.branch }}
         run: make integrationtests branch=${{ matrix.branch }} db_host=${{ env.MYSQL_HOST }} db_port=${{ env.MYSQL_PORT }}
