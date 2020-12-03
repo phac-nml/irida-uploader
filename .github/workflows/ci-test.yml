@@ -98,7 +98,6 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 11
-      -name
       - name: show mysql version
         run: mysql --version
       - name: sql ONLY_FULL_GROUP_BY
