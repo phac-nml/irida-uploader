@@ -99,6 +99,6 @@ jobs:
       - name: show mysql version
         run: mysql --version
       - name: sql ONLY_FULL_GROUP_BY
-        run: mysql -e "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));" -h ${{ env.MYSQL_HOST }} -P ${{ env.MYSQL_PORT }} -u ${{ env.MYSQL_USER  }} -p${{ env.MYSQL_PASSWORD }} ${{ env.MYSQL_DATABASE }}
+        run: sudo mysql -e "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));" -h ${{ env.MYSQL_HOST }} -P ${{ env.MYSQL_PORT }} -u ${{ env.MYSQL_USER  }} -p${{ env.MYSQL_PASSWORD }} ${{ env.MYSQL_DATABASE }}
       - name: Run Integration Tests ${{ matrix.branch }}
         run: make integrationtests branch=${{ matrix.branch }} db_host=${{ env.MYSQL_HOST }} db_port=${{ env.MYSQL_PORT }}
