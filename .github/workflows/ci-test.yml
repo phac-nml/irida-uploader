@@ -64,8 +64,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2 #Checkout the project from git
-#      - name: Shutdown Ubuntu MySQL (SUDO)
-#        run: sudo service mysql stop # Shutdown the Default MySQL, "sudo" is necessary, please not remove it
       - name: Setup MySQL
         uses: mirromutth/mysql-action@v1.1
         with:
@@ -87,10 +85,10 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 11
-      - name: MySQL ONLY_FULL_GROUP_BY (SUDO)
-        run: sudo mysql -e "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));" -h ${{ env.MYSQL_HOST }} -P ${{ env.MYSQL_PORT }} -p${{ env.MYSQL_ROOT_PASSWORD }}
-      - name: MySQL grant user db access (SUDO)
-        run: sudo mysql -e "CREATE USER '${{ env.MYSQL_USER }}'@'%' IDENTIFIED BY '${{ env.MYSQL_PASSWORD }}'; GRANT ALL ON ${{ env.MYSQL_DATABASE }}.* to '${{ env.MYSQL_USER }}'@'%';" -h ${{ env.MYSQL_HOST }} -P ${{ env.MYSQL_PORT }} -p${{ env.MYSQL_ROOT_PASSWORD }}
+      - name: MySQL Setup (SUDO)
+        run: |
+          sudo mysql -e "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));" -h ${{ env.MYSQL_HOST }} -P ${{ env.MYSQL_PORT }} -p${{ env.MYSQL_ROOT_PASSWORD }};
+          sudo mysql -e "CREATE USER '${{ env.MYSQL_USER }}'@'%' IDENTIFIED BY '${{ env.MYSQL_PASSWORD }}'; GRANT ALL ON ${{ env.MYSQL_DATABASE }}.* to '${{ env.MYSQL_USER }}'@'%';" -h ${{ env.MYSQL_HOST }} -P ${{ env.MYSQL_PORT }} -p${{ env.MYSQL_ROOT_PASSWORD }};
       - name: Run Integration Tests ${{ matrix.branch }}
         timeout-minutes: 60
         run: make integrationtests branch=${{ matrix.branch }} db_host=${{ env.MYSQL_HOST }} db_port=${{ env.MYSQL_PORT }}
