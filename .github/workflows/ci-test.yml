@@ -55,7 +55,7 @@ jobs:
       MYSQL_PASSWORD: test
       MYSQL_DATABASE: irida_uploader_test
       MYSQL_HOST: 127.0.0.1
-#      MYSQL_ROOT_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: password
 
 #    services:
 #      maridadb:
@@ -88,6 +88,7 @@ jobs:
           mysql database: ${{ env.MYSQL_DATABASE }}
           mysql user: ${{ env.MYSQL_USER }}
           mysql password: ${{ env.MYSQL_PASSWORD }}
+          mysql root password: ${{ env.MYSQL_ROOT_PASSWORD }} #The root superuser password
       - name: Verify MySQL connection
         run: |
           while ! mysqladmin ping -h"127.0.0.1" -P"${{ env.MYSQL_PORT }}" --silent; do
@@ -100,6 +101,6 @@ jobs:
       - name: show mysql version
         run: mysql --version
       - name: sql ONLY_FULL_GROUP_BY
-        run: mysql -e "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));" -h ${{ env.MYSQL_HOST }} -P ${{ env.MYSQL_PORT }} -u ${{ env.MYSQL_USER  }} -p${{ env.MYSQL_PASSWORD }}
+        run: sudo mysql -e "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));" -h ${{ env.MYSQL_HOST }} -P ${{ env.MYSQL_PORT }} -u ${{ env.MYSQL_USER  }} -p${{ env.MYSQL_PASSWORD }}
       - name: Run Integration Tests ${{ matrix.branch }}
         run: make integrationtests branch=${{ matrix.branch }} db_host=${{ env.MYSQL_HOST }} db_port=${{ env.MYSQL_PORT }}
