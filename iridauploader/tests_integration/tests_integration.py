@@ -43,7 +43,7 @@ def data_setup(setup):
     return setup.IRIDA_AUTH_CODE_ID, irida_secret, setup.IRIDA_PASSWORD
 
 
-def start_setup(branch, db_host=None, db_port=None):
+def start_setup(branch, db_host="localhost", db_port="3306"):
     """
     Initializes the Irida setup object
     :param branch: what branch from github to check out
@@ -57,12 +57,9 @@ def start_setup(branch, db_host=None, db_port=None):
     global client_id
     global client_secret
 
-    if db_host and db_port:
-        setup = SetupIridaData(
-            base_url[:base_url.index("/api")], username, password, branch, db_host, db_port)
-    else:
-        setup = SetupIridaData(
-            base_url[:base_url.index("/api")], username, password, branch)
+    setup = SetupIridaData(
+        base_url[:base_url.index("/api")], username, password, branch, db_host, db_port)
+
     client_id, client_secret, password = data_setup(setup)
 
     return setup

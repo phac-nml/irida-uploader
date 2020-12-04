@@ -14,7 +14,7 @@ from http import HTTPStatus
 
 class SetupIridaData:
 
-    def __init__(self, base_url, user, password, branch, db_host="localhost", db_port="3306"):
+    def __init__(self, base_url, user, password, branch, db_host, db_port):
         """
         :param base_url: url of the IRIDA instance's API
         :param user: default admin username
