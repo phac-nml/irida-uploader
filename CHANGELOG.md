@@ -31,6 +31,7 @@ Developer changes:
 * GUI upload now always executes with force_upload=True to simplify internal logic
 * Windows build will no longer include test files in executable (slightly reduced file size)
 * Added documentation for how to draft a new release (for internal use)
+* Switched from travis ci to github actions for testing
 
 Beta 0.5.1
 ----------
