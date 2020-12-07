@@ -14,7 +14,7 @@ from http import HTTPStatus
 
 class SetupIridaData:
 
-    def __init__(self, base_url, user, password, branch):
+    def __init__(self, base_url, user, password, branch, db_host, db_port):
         """
         :param base_url: url of the IRIDA instance's API
         :param user: default admin username
@@ -22,25 +22,33 @@ class SetupIridaData:
         :param branch: the github branch to run the integration tests on (e.g. 'master' or 'development')
         """
 
+        # Login info
         self.base_url = base_url
         self.user = user
         self.password = password
         self.driver = None
         self.branch = branch
 
+        # IRIDA info
         self.IRIDA_PASSWORD_ID = 'password_client'
         self.IRIDA_AUTH_CODE_ID = 'auth_code_client'
         self.IRIDA_USER = "admin"
         self.IRIDA_PASSWORD = "Password1!"  # new password
 
+        # Database info
+        self.DB_HOST = db_host
+        self.DB_PORT = db_port
+        self.DB_NAME = "irida_uploader_test"
+        self.DB_USERNAME = "test"
+        self.DB_PASSWORD = "test"
+        self.DB_JDBC_URL = "jdbc:mysql://" + self.DB_HOST + ":" + self.DB_PORT + "/" + self.DB_NAME
+
         self.TIMEOUT = 600  # seconds
 
-        db_name = "irida_uploader_test"
-
         self.IRIDA_DB_RESET = 'echo '\
-            '"drop database if exists ' + db_name + ';'\
-            'create database ' + db_name + ';'\
-            '"| mysql -u test -ptest'
+            '"drop database if exists ' + self.DB_NAME + ';'\
+            'create database ' + self.DB_NAME + ';'\
+            '"| mysql -h ' + self.DB_HOST + ' -P ' + self.DB_PORT + ' -u test -ptest'
 
         root_dir = "tests_integration/tmp"
         output_files = "tests_integration/tmp/output-files"
@@ -49,8 +57,8 @@ class SetupIridaData:
         assembly_files = "tests_integration/tmp/assembly-files"
 
         self.IRIDA_CMD = ['mvn', 'clean', 'jetty:run', '--quiet',
-                          '-Djdbc.url=jdbc:mysql://localhost:3306/' + db_name,
-                          '-Djdbc.username=test', '-Djdbc.password=test',
+                          '-Djdbc.url=' + self.DB_JDBC_URL,
+                          '-Djdbc.username=' + self.DB_USERNAME, '-Djdbc.password=' + self.DB_PASSWORD,
                           '-Dliquibase.update.database.schema=true',
                           '-Dhibernate.hbm2ddl.auto=',
                           '-Dhibernate.hbm2ddl.import_files=',

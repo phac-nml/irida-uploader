@@ -43,10 +43,12 @@ def data_setup(setup):
     return setup.IRIDA_AUTH_CODE_ID, irida_secret, setup.IRIDA_PASSWORD
 
 
-def start_setup(branch):
+def start_setup(branch, db_host, db_port):
     """
     Initializes the Irida setup object
     :param branch: what branch from github to check out
+    :param db_host: database host override
+    :param db_port: database port override
     :return: SetupIridaData object
     """
     global base_url
@@ -56,7 +58,8 @@ def start_setup(branch):
     global client_secret
 
     setup = SetupIridaData(
-        base_url[:base_url.index("/api")], username, password, branch)
+        base_url[:base_url.index("/api")], username, password, branch, db_host, db_port)
+
     client_id, client_secret, password = data_setup(setup)
 
     return setup
@@ -84,16 +87,19 @@ def create_test_suite():
     return suite
 
 
-def start(branch="master"):
+def start(branch="master", db_host="localhost", db_port="3306"):
     """
     Start running the integration tests
 
     This is the entry point for the integration tests
+    :param branch: what branch from github to check out
+    :param db_host: database host override
+    :param db_port: database port override
     :return:
     """
     exit_code = 0
 
-    setup_handler = start_setup(branch)
+    setup_handler = start_setup(branch, db_host, db_port)
 
     try:
         full_suite = create_test_suite()
