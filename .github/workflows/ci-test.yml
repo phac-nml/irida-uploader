@@ -51,7 +51,7 @@ jobs:
 
     env:
       MYSQL_PORT: 3306
-      MYSQL_USER: test
+      MYSQL_USER: test@%
       MYSQL_PASSWORD: test
       MYSQL_DATABASE: irida_uploader_test
       MYSQL_HOST: 127.0.0.1
@@ -88,7 +88,7 @@ jobs:
       - name: MySQL Setup (SUDO) # Sets ONLY_FULL_GROUP_BY flag and gives runner privileges over database
         run: |
           sudo mysql -e "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));" -h ${{ env.MYSQL_HOST }} -P ${{ env.MYSQL_PORT }} -p${{ env.MYSQL_ROOT_PASSWORD }};
-          sudo mysql -e "CREATE USER '${{ env.MYSQL_USER }}'@'%' IDENTIFIED BY '${{ env.MYSQL_PASSWORD }}'; GRANT ALL ON ${{ env.MYSQL_DATABASE }}.* to '${{ env.MYSQL_USER }}'@'%';" -h ${{ env.MYSQL_HOST }} -P ${{ env.MYSQL_PORT }} -p${{ env.MYSQL_ROOT_PASSWORD }};
+#          sudo mysql -e "CREATE USER '${{ env.MYSQL_USER }}'@'%' IDENTIFIED BY '${{ env.MYSQL_PASSWORD }}'; GRANT ALL ON ${{ env.MYSQL_DATABASE }}.* to '${{ env.MYSQL_USER }}'@'%';" -h ${{ env.MYSQL_HOST }} -P ${{ env.MYSQL_PORT }} -p${{ env.MYSQL_ROOT_PASSWORD }};
       - name: Run Integration Tests ${{ matrix.branch }}
         timeout-minutes: 60
         run: make integrationtests branch=${{ matrix.branch }} db_host=${{ env.MYSQL_HOST }} db_port=${{ env.MYSQL_PORT }}

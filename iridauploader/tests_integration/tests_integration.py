@@ -43,7 +43,7 @@ def data_setup(setup):
     return setup.IRIDA_AUTH_CODE_ID, irida_secret, setup.IRIDA_PASSWORD
 
 
-def start_setup(branch, db_host="localhost", db_port="3306"):
+def start_setup(branch, db_host, db_port):
     """
     Initializes the Irida setup object
     :param branch: what branch from github to check out
@@ -87,11 +87,14 @@ def create_test_suite():
     return suite
 
 
-def start(branch="master", db_host=None, db_port=None):
+def start(branch="master", db_host="localhost", db_port="3306"):
     """
     Start running the integration tests
 
     This is the entry point for the integration tests
+    :param branch: what branch from github to check out
+    :param db_host: database host override
+    :param db_port: database port override
     :return:
     """
     exit_code = 0
