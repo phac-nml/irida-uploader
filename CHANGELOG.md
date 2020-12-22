@@ -21,6 +21,7 @@ Added functionality:
 * Added a warning if the base_url does not end in /api/
 * File upload timeout has be changed to dynamically scale with file size.
   * config option `timeout` has been added to scale this based on expected seconds per MB transfer speed.
+  * Default is `10` seconds per MB, or 100kb/s
 
 Developer changes:
 * Refactored `core/cli_entry.py`
