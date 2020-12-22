@@ -39,7 +39,7 @@ base_url = http://localhost:8080/irida-latest/api/
 parser = miseq
 readonly = False
 delay = 0
-timeout = 1
+timeout = 10
 ```
 This can also be found in the file `examples/example_config.conf`
 
