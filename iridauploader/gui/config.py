@@ -157,7 +157,7 @@ class ConfigDialog(QtWidgets.QDialog):
         read_only_bool = config.read_config_option("readonly", bool, False)
         read_only_state = QtCore.Qt.Checked if read_only_bool else QtCore.Qt.Unchecked
         self._read_only_mode.setCheckState(read_only_state)
-        timeout_int = config.read_config_option("timeout", int, 10
+        timeout_int = config.read_config_option("timeout", int, 10)
         self._timeout.setValue(timeout_int)
 
     def _write_settings_to_file(self):
