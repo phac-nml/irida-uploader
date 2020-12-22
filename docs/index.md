@@ -199,7 +199,7 @@ Example to get you started:
 import iridauploader.api as api
 import iridauploader.parsers as parsers
 
-api_instance = api.ApiCalls(client_id, client_secret, base_url, username, password, max_wait_time)
+api_instance = api.ApiCalls(client_id, client_secret, base_url, username, password, timeout_multiplier)
 parser_instance = parsers.parser_factory("miseq")
 ```
 
