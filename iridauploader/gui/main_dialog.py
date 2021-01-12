@@ -347,7 +347,7 @@ class MainDialog(QtWidgets.QDialog):
         # start upload
         upload_mode = self._upload_mode_combobox.currentText()
         self._upload_thread.set_vars(
-            run_dir= self._run_dir, upload_mode=upload_mode, partial_continue=self._continue_partial)
+            run_dir=self._run_dir, upload_mode=upload_mode, partial_continue=self._continue_partial)
         self._upload_thread.start()
 
     ##########################

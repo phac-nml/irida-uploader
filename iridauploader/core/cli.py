@@ -225,8 +225,9 @@ def main():
 
     # Verify force and continue are not both active
     if args.force and args.continue_partial:
-        print("ERROR! --force and --continue are cannot both be set, as one would start a partial upload from the "
-              "beginning and the other would continue from where it left off.")
+        print("ERROR! --force and --continue_partial are mutually exclusive. "
+              "To continue a partial upload use --continue_partial. "
+              "To upload all samples from the beginning use --force")
         return 1
 
     # Start Upload

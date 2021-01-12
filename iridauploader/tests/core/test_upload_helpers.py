@@ -120,7 +120,8 @@ class TestParseAndValidate(unittest.TestCase):
         mock_parsing_handler.parse_and_validate.side_effect = ["return_value"]
         mock_set_and_write.side_effect = [True]
 
-        self.assertEqual("return_value", upload_helpers.parse_and_validate(directory_status=stub_directory_status))
+        self.assertEqual("return_value", upload_helpers.parse_and_validate(
+            directory_status=stub_directory_status, parse_as_partial=False))
 
         mock_parsing_handler.parse_and_validate.assert_called_with(stub_directory_status.directory)
         mock_set_and_write.assert_called_with(stub_directory_status, DirectoryStatus.PARTIAL)
@@ -140,7 +141,7 @@ class TestParseAndValidate(unittest.TestCase):
         mock_set_and_write.side_effect = [True, True]
 
         with self.assertRaises(parsers.exceptions.DirectoryError):
-            upload_helpers.parse_and_validate(directory_status=stub_directory_status)
+            upload_helpers.parse_and_validate(directory_status=stub_directory_status, parse_as_partial=False)
 
         mock_parsing_handler.parse_and_validate.assert_called_with(stub_directory_status.directory)
         mock_set_and_write.assert_called_with(stub_directory_status, DirectoryStatus.ERROR,
@@ -168,7 +169,7 @@ class TestParseAndValidate(unittest.TestCase):
         mock_set_and_write.side_effect = [True, True]
 
         with self.assertRaises(parsers.exceptions.ValidationError):
-            upload_helpers.parse_and_validate(directory_status=stub_directory_status)
+            upload_helpers.parse_and_validate(directory_status=stub_directory_status, parse_as_partial=False)
 
         mock_parsing_handler.parse_and_validate.assert_called_with(stub_directory_status.directory)
         mock_set_and_write.assert_called_with(stub_directory_status, DirectoryStatus.ERROR,
@@ -383,7 +384,8 @@ class TestUploadSequencingRun(unittest.TestCase):
 
         mock_api_handler.upload_sequencing_run.assert_called_with(directory_status='status',
                                                                   sequencing_run='run',
-                                                                  upload_mode='mode')
+                                                                  upload_mode='mode',
+                                                                  run_id=None)
         mock_set_and_write.assert_called_with("status", DirectoryStatus.COMPLETE)
 
     @patch("iridauploader.core.upload_helpers._set_and_write_directory_status")
@@ -406,7 +408,8 @@ class TestUploadSequencingRun(unittest.TestCase):
 
         mock_api_handler.upload_sequencing_run.assert_called_with(directory_status='status',
                                                                   sequencing_run='run',
-                                                                  upload_mode='mode')
+                                                                  upload_mode='mode',
+                                                                  run_id=None)
         mock_set_and_write.assert_called_with("status", DirectoryStatus.ERROR, 'Lost connection to Irida. Errors: ()')
 
     @patch("iridauploader.core.upload_helpers._set_and_write_directory_status")
@@ -429,7 +432,8 @@ class TestUploadSequencingRun(unittest.TestCase):
 
         mock_api_handler.upload_sequencing_run.assert_called_with(directory_status='status',
                                                                   sequencing_run='run',
-                                                                  upload_mode='mode')
+                                                                  upload_mode='mode',
+                                                                  run_id=None)
         mock_set_and_write.assert_called_with("status", DirectoryStatus.ERROR,
                                               "Could not access IRIDA resource Errors: ('',)")
 
@@ -453,6 +457,7 @@ class TestUploadSequencingRun(unittest.TestCase):
 
         mock_api_handler.upload_sequencing_run.assert_called_with(directory_status='status',
                                                                   sequencing_run='run',
-                                                                  upload_mode='mode')
+                                                                  upload_mode='mode',
+                                                                  run_id=None)
         mock_set_and_write.assert_called_with("status", DirectoryStatus.ERROR,
                                               'Could not upload file to IRIDA. Errors: ()')

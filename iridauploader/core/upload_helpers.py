@@ -113,7 +113,7 @@ def set_uploaded_samples_to_skip(sequencing_run, sample_status_list):
     :return: sequencing_run
     """
     # This block looks worse than it is, worst case is O(n^2)
-
+    # There are "cleaner" but less readable ways to do this in the same runtime, but readability > reduced line count
     for project in sequencing_run.project_list:
         for sample in project.sample_list:
             for sample_status in sample_status_list:
@@ -205,7 +205,7 @@ def upload_sequencing_run(sequencing_run, directory_status, upload_mode, upload_
     :param sequencing_run:
     :param directory_status:
     :param upload_mode:
-    :param upload_from_partial: Defualt False, when continuing from a partial run, we can reuse the the run_id
+    :param upload_from_partial: Default False, when continuing from a partial run, we can reuse the the run_id
     :return: None
     """
     logging.info("*** Starting Upload ***")
