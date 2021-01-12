@@ -36,8 +36,6 @@ UPLOAD_MODES = [
 # Timeout values for sequence file data upload
 # Wait at least 1 second for each mb of data
 TIMEOUT_BYTES_TO_MB_DIVISOR = 1024 * 1024
-# extra time allotted for file upload time out, set to 2 minutes
-TIMEOUT_LEEWAY = 120
 # 20 minute minimum timeout
 TIMEOUT_MINIMUM = 1200
 
@@ -45,7 +43,7 @@ TIMEOUT_MINIMUM = 1200
 class ApiCalls(object):
 
     def __init__(self, client_id, client_secret,
-                 base_url, username, password, timeout_multiplier, max_wait_time=20, http_max_retries=5):
+                 base_url, username, password, timeout_multiplier=10, max_wait_time=20, http_max_retries=5):
         """
         Create OAuth2Session and store it
 
@@ -779,8 +777,8 @@ class ApiCalls(object):
         filesize_bytes = Path(sequence_file.file_list[0]).stat().st_size
         if sequence_file.is_paired_end():
             filesize_bytes = filesize_bytes * 2
-        # Gives timeout_multiplier seconds per mb of data to transfer + 2 minutes extra
-        timeout_mb = (filesize_bytes * self.timeout_multiplier / TIMEOUT_BYTES_TO_MB_DIVISOR) + TIMEOUT_LEEWAY
+        # Gives timeout_multiplier seconds per mb of data to transfer
+        timeout_mb = (filesize_bytes * self.timeout_multiplier / TIMEOUT_BYTES_TO_MB_DIVISOR)
         # minimum time should be 20 minutes
         return timeout_mb if timeout_mb > TIMEOUT_MINIMUM else TIMEOUT_MINIMUM
 

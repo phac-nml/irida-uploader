@@ -26,7 +26,7 @@ The config file has the following fields:
 * `parser` : Pick the parser that matches the file structure of your sequence files. We currently support [miseq](parsers/miseq.md), [directory](parsers/directory.md) and [miniseq](parsers/miniseq.md).
 * `readonly` : When set to True, uploader will not write any files to sequencing run directory, meaning upload progress / status and logs will not be generated in the sequencing run directory.
 * `delay` : Can be given a Integer to delay a run from uploading when discovered for a number of minutes. When automating batch upload jobs on windows, we recommend this delay be at least 60 minutes.
-* `timeout` : Accepts an Integer for the expected transfer time in seconds per MB. Default is 1 second for every MB of data to transfer. Increasing this number can help reduce timeout errors in cases where connection speed is very slow.
+* `timeout` : Accepts an Integer for the expected transfer time in seconds per MB. Default is 10 second for every MB of data to transfer. Increasing this number can help reduce timeout errors in cases where connection speed is very slow.
 
 ###Example
 ```
@@ -39,7 +39,7 @@ base_url = http://localhost:8080/irida-latest/api/
 parser = miseq
 readonly = False
 delay = 0
-timeout = 1
+timeout = 10
 ```
 This can also be found in the file `examples/example_config.conf`
 

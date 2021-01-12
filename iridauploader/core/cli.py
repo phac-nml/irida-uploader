@@ -110,8 +110,8 @@ def init_argparser():
                                       'delayed. Default = 0: When set to 0, runs will not be given delayed status.')
     argument_parser.add_argument('-ct', '--config_timeout', action='store', nargs='?', const=True, default=False,
                                  help='Accepts an Integer for the expected transfer time in seconds per MB. '
-                                      'Default is 1 second for every MB of data to transfer. Increasing this number can'
-                                      'help reduce timeout errors in cases where connection speed is very slow.')
+                                      'Default is 10 second for every MB of data to transfer (100kb/s). Increasing this'
+                                      ' number can reduce timeout errors when your transfer speed is very slow.')
     return argument_parser
 
 
