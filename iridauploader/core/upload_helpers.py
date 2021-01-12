@@ -119,7 +119,7 @@ def set_uploaded_samples_to_skip(sequencing_run, sample_status_list):
             for sample_status in sample_status_list:
                 if (sample_status.uploaded is True
                         and sample_status.sample_name == sample.sample_name
-                        and sample_status.project_id == project.id):
+                        and str(sample_status.project_id) == str(project.id)):
                     # If a sample has already been uploaded, skip it
                     sample.skip = True
 

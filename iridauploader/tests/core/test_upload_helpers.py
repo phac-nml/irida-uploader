@@ -4,7 +4,7 @@ from os import path
 
 from iridauploader.api import UPLOAD_MODES, MODE_DEFAULT, MODE_FAST5, MODE_ASSEMBLIES
 from iridauploader.core import upload_helpers
-from iridauploader.model import DirectoryStatus
+from iridauploader.model import DirectoryStatus, SequencingRun, Project, Sample
 from iridauploader import progress
 from iridauploader import parsers
 from iridauploader.api.exceptions import FileError, IridaResourceError, IridaConnectionError
@@ -103,6 +103,9 @@ class TestParseAndValidate(unittest.TestCase):
     class StubDirectoryStatus:
         directory = "dir"
 
+        def get_sample_status_list(self):
+            return ['item']
+
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)
 
@@ -125,6 +128,30 @@ class TestParseAndValidate(unittest.TestCase):
 
         mock_parsing_handler.parse_and_validate.assert_called_with(stub_directory_status.directory)
         mock_set_and_write.assert_called_with(stub_directory_status, DirectoryStatus.PARTIAL)
+
+    @patch("iridauploader.core.upload_helpers.set_uploaded_samples_to_skip")
+    @patch("iridauploader.core.upload_helpers._set_and_write_directory_status")
+    @patch("iridauploader.core.upload_helpers.parsing_handler")
+    def test_valid_partial_parse(self, mock_parsing_handler, mock_set_and_write, mock_set_uploaded_samples_to_skip):
+        """
+        verifies parse and validate was called,
+        and _set_and_write_directory_status is called once with PARTIAL
+        :param mock_parsing_handler:
+        :param mock_set_and_write:
+        :return:
+        """
+        stub_directory_status = self.StubDirectoryStatus()
+        mock_parsing_handler.parse_and_validate.side_effect = ["return_value"]
+        mock_set_and_write.side_effect = [True]
+        mock_set_uploaded_samples_to_skip.side_effect = ["modified_return_value"]
+
+        self.assertEqual("modified_return_value", upload_helpers.parse_and_validate(
+            directory_status=stub_directory_status, parse_as_partial=True))
+
+        mock_parsing_handler.parse_and_validate.assert_called_with(stub_directory_status.directory)
+        mock_set_and_write.assert_called_with(stub_directory_status, DirectoryStatus.PARTIAL)
+        mock_set_uploaded_samples_to_skip.assert_called_with("return_value",
+                                                             stub_directory_status.get_sample_status_list())
 
     @patch("iridauploader.core.upload_helpers._set_and_write_directory_status")
     @patch("iridauploader.core.upload_helpers.parsing_handler")
@@ -174,6 +201,40 @@ class TestParseAndValidate(unittest.TestCase):
         mock_parsing_handler.parse_and_validate.assert_called_with(stub_directory_status.directory)
         mock_set_and_write.assert_called_with(stub_directory_status, DirectoryStatus.ERROR,
                                               'ERROR! Errors occurred during validation with message: , Error list: []')
+
+
+class TestSetUploadedSamplesToSkip(unittest.TestCase):
+    """
+    Tests core.upload_helpers.set_uploaded_samples_to_skip
+    """
+
+    def setUp(self):
+        print("\nStarting " + self.__module__ + ": " + self._testMethodName)
+
+    def test_remove_one(self):
+        """
+        Test setting a single sample to skip in a project
+
+        :return:
+        """
+        seq_run = SequencingRun(None, sequencing_run_type="test",
+                                project_list=[
+                                    Project(sample_list=[
+                                        Sample("one"),
+                                        Sample("two"),
+                                        Sample("three")
+                                    ], id=1)
+                                ])
+        sample_status_list = [DirectoryStatus.SampleStatus(sample_name="one", project_id="1", uploaded=False),
+                              DirectoryStatus.SampleStatus(sample_name="two", project_id="1", uploaded=True),
+                              DirectoryStatus.SampleStatus(sample_name="three", project_id="1", uploaded=False)]
+
+        res = upload_helpers.set_uploaded_samples_to_skip(seq_run, sample_status_list)
+
+        res_samples = res.project_list[0].sample_list
+        self.assertEqual(res_samples[0].skip, False)
+        self.assertEqual(res_samples[1].skip, True)
+        self.assertEqual(res_samples[2].skip, False)
 
 
 class TestVerifyUploadMode(unittest.TestCase):
@@ -387,6 +448,34 @@ class TestUploadSequencingRun(unittest.TestCase):
                                                                   upload_mode='mode',
                                                                   run_id=None)
         mock_set_and_write.assert_called_with("status", DirectoryStatus.COMPLETE)
+
+    @patch("iridauploader.core.upload_helpers._set_and_write_directory_status")
+    @patch("iridauploader.core.upload_helpers.api_handler")
+    def test_valid_partial_upload(self, mock_api_handler, mock_set_and_write):
+        """
+        verifies upload was called, and _set_and_write_directory_status is DirectoryStatus.COMPLETE
+        :param mock_api_handler:
+        :param mock_set_and_write:
+        :return:
+        """
+
+        class MockDirStatus:
+            run_id = 1
+
+        mock_api_handler.upload_sequencing_run.side_effect = [True]
+        mock_set_and_write.side_effect = [True]
+        mock_directory_status = MockDirStatus()
+
+        upload_helpers.upload_sequencing_run(directory_status=mock_directory_status,
+                                             sequencing_run='run',
+                                             upload_mode='mode',
+                                             upload_from_partial=True)
+
+        mock_api_handler.upload_sequencing_run.assert_called_with(directory_status=mock_directory_status,
+                                                                  sequencing_run='run',
+                                                                  upload_mode='mode',
+                                                                  run_id=1)
+        mock_set_and_write.assert_called_with(mock_directory_status, DirectoryStatus.COMPLETE)
 
     @patch("iridauploader.core.upload_helpers._set_and_write_directory_status")
     @patch("iridauploader.core.upload_helpers.api_handler")
