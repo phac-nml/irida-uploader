@@ -291,8 +291,6 @@ class TestInitFileStatusListFromSequencingRun(unittest.TestCase):
 
         mock_dir_status.init_file_status_list_from_sequencing_run.assert_called_with("seqrun")
 
-        mock_set_and_write.assert_called_with(mock_dir_status, DirectoryStatus.PARTIAL)
-
 
 class TestInitializeApi(unittest.TestCase):
     """
