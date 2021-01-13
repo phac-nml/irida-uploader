@@ -1,0 +1,25 @@
+{
+    "Date Time": "2021-01-12 18:30",
+    "Directory": "/mypath/irida-uploader/iridauploader/tests_integration/fake_ngs_data_continue_partial",
+    "IRIDA Instance": "http://localhost:8080/api/",
+    "Message": null,
+    "Run ID": "1",
+    "Sample Status": [
+        {
+            "Project ID": "1",
+            "Sample Name": "01thread",
+            "Uploaded": "False"
+        },
+        {
+            "Project ID": "1",
+            "Sample Name": "02thread",
+            "Uploaded": "True"
+        },
+        {
+            "Project ID": "1",
+            "Sample Name": "03thread",
+            "Uploaded": "False"
+        }
+    ],
+    "Upload Status": "partial"
+}

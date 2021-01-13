@@ -1,0 +1,24 @@
+[Header]
+IEMFileVersion,4
+Investigator Name,Mikisugi
+Experiment Name,Senketsu Test
+Date,10/04/2013
+Workflow,GenerateFASTQ
+Application,FASTQ Only
+Assay,Nextera XT
+Description,Alien textiles
+Chemistry,threads
+
+[Reads]
+251
+250
+
+[Settings]
+ReverseComplement,0
+Adapter,AAAAGGGGAAAAGGGGAAA
+
+[Data]
+Sample_ID,Sample_Name,Sample_Plate,Sample_Well,I7_Index_ID,index,I5_Index_ID,index2,Sample_Project,Description
+01thread,01thread,1,01,N01,AAAAAAAA,S01,TTTTTTTT,1,Super bug
+02thread,02thread,2,02,N02,GGGGGGGG,S02,CCCCCCCC,1,Scary bug
+03thread,03thread,3,03,N03,CCCCCCCC,S03,GGGGGGGG,1,Deadly bug

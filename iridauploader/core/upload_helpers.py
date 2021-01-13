@@ -150,7 +150,6 @@ def init_file_status_list_from_sequencing_run(sequencing_run, directory_status):
     :return: None
     """
     directory_status.init_file_status_list_from_sequencing_run(sequencing_run)
-    _set_and_write_directory_status(directory_status, DirectoryStatus.PARTIAL)
 
 
 def initialize_api(directory_status):

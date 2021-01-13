@@ -192,9 +192,12 @@ class DirectoryStatus:
         return json_dict
 
     @staticmethod
-    def init_from_json_dict(json_dict):
-        new_directory_status = DirectoryStatus(DirectoryStatus._get_field_or_none(
-            json_dict, DirectoryStatus.JSON_DIRECTORY_FIELD))
+    def init_from_json_dict(json_dict, directory=None):
+        if directory is not None:
+            new_directory_status = DirectoryStatus(directory)
+        else:
+            new_directory_status = DirectoryStatus(DirectoryStatus._get_field_or_none(
+                json_dict, DirectoryStatus.JSON_DIRECTORY_FIELD))
         new_directory_status.status = DirectoryStatus._get_field_or_none(
             json_dict, DirectoryStatus.JSON_STATUS_FIELD)
         new_directory_status.message = DirectoryStatus._get_field_or_none(

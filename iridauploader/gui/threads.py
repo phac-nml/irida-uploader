@@ -1,6 +1,7 @@
 import logging
 # PyQt needs to be imported like this because for whatever reason they decided not to include a __all__ = [...]
 import PyQt5.QtCore as QtCore
+import traceback
 
 from pprint import pformat
 
@@ -73,6 +74,7 @@ class ParseThread(QtCore.QThread):
         try:
             status = parsing_handler.get_run_status(self._directory)
             seq_run = parsing_handler.parse_and_validate(self._directory)
+            upload_helpers.init_file_status_list_from_sequencing_run(seq_run, status)
             self._run = upload_helpers.set_uploaded_samples_to_skip(seq_run, status.get_sample_status_list())
         except exceptions.DirectoryError as e:
             # Directory was not valid for some reason
@@ -106,7 +108,7 @@ class ParseThread(QtCore.QThread):
             self._run = None
         except Exception as e:
             # Some other error occurred
-            full_error = "GUI: ERROR! An error occurred while parsing: {}".format(str(e))
+            full_error = "GUI: ERROR! An unknown error occurred while parsing: {}".format(str(e))
             logging.error(full_error)
             self._error = "ERROR! An error occurred while parsing: {}".format(str(e))
             self._run = None
