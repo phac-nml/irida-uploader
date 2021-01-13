@@ -283,22 +283,23 @@ class MainDialog(QtWidgets.QDialog):
             self._console.show()
             self._console_button.setText("Hide Log")
 
-    def _btn_continue(self):
+    def _btn_continue(self, continue_partial=False):
         """
         Reset the error gui elements, and continue onto the parse phase
+        By default does not use continue_partial flag
         :return:
         """
+        self._continue_partial = continue_partial
         self._reset_previous_error()
         self._reset_info_line()
         self._start_parse()
 
     def _btn_continue_partial(self):
         """
-        Sets partial upload flag and continues
+        Continues the upload with the continue_partial flag enabled
         :return:
         """
-        self._continue_partial = True
-        self._btn_continue()
+        self._btn_continue(continue_partial=True)
 
     #######################
     #   Thread Starters   #
@@ -336,7 +337,7 @@ class MainDialog(QtWidgets.QDialog):
         # lock gui
         self._lock_gui()
         # start parsing
-        self._parse_thread.set_vars(self._run_dir)
+        self._parse_thread.set_vars(self._run_dir, self._continue_partial)
         self._parse_thread.start()
 
     def _start_upload(self):
@@ -485,7 +486,8 @@ class MainDialog(QtWidgets.QDialog):
 
     def _show_and_fill_info_partial_upload_options(self, message):
         """
-        todo
+        When it is a partial run, show info line with multiple options
+
         :param message: string to display to the user
         :return:
         """

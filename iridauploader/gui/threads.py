@@ -1,7 +1,6 @@
 import logging
 # PyQt needs to be imported like this because for whatever reason they decided not to include a __all__ = [...]
 import PyQt5.QtCore as QtCore
-import traceback
 
 from pprint import pformat
 
@@ -50,15 +49,17 @@ class ParseThread(QtCore.QThread):
     def __init__(self):
         super().__init__()
         self._directory = ""
+        self._parse_as_partial = False
         self._run = None
         self._error = None
 
-    def set_vars(self, directory):
+    def set_vars(self, directory, parse_as_partial):
         """
         Sets the variables in the object to the ones passed in
         :return:
         """
         self._directory = directory
+        self._parse_as_partial = parse_as_partial
 
     def get_run(self):
         return self._run
@@ -74,8 +75,10 @@ class ParseThread(QtCore.QThread):
         try:
             status = parsing_handler.get_run_status(self._directory)
             seq_run = parsing_handler.parse_and_validate(self._directory)
-            upload_helpers.init_file_status_list_from_sequencing_run(seq_run, status)
-            self._run = upload_helpers.set_uploaded_samples_to_skip(seq_run, status.get_sample_status_list())
+            if self._parse_as_partial:
+                seq_run = upload_helpers.set_uploaded_samples_to_skip(seq_run, status.get_sample_status_list())
+            self._run = seq_run
+
         except exceptions.DirectoryError as e:
             # Directory was not valid for some reason
             full_error = "GUI: ERROR! An error occurred with directory '{}', with message: {}".format(e.directory,
@@ -126,7 +129,7 @@ class UploadThread(QtCore.QThread):
         self._run_dir = ""
         self._upload_mode = None
         self._exit_return = None
-        self._partial_continue = None
+        self._partial_continue = False
 
     def set_vars(self, run_dir, upload_mode, partial_continue):
         """
@@ -144,20 +147,17 @@ class UploadThread(QtCore.QThread):
         """
         This runs when the threads start call is done
 
-        When uploading, it will always upload with force_upload=True,
-          unless continuing a partial upload, in which case force_upload=False
-        s.t. we ignore delays and simplify earlier run parse logic
+        When uploading, the default is to upload with force_upload=True,
+          when continuing a partial upload, force_upload=False instead
+          s.t. we ignore delay logic and simplify earlier run parse logic
         :return:
         """
-        continue_upload = False
-        force_upload = True
-        if self._partial_continue:
-            continue_upload = True
-            force_upload = False
+
+        force_upload = not self._partial_continue
         self._exit_return = upload.upload_run_single_entry(directory=self._run_dir,
                                                            force_upload=force_upload,
                                                            upload_mode=self._upload_mode,
-                                                           continue_upload=continue_upload)
+                                                           continue_upload=self._partial_continue)
         pass
 
     def is_success(self):
