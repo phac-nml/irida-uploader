@@ -25,6 +25,7 @@ class ConfigDialog(QtWidgets.QDialog):
         self.setWindowTitle("Configure Settings")
 
         # Widgets
+        self._btn_import_settings = QtWidgets.QPushButton("Import Configuration From File")
         self._client_id_label = QtWidgets.QLabel("Client ID")
         self._client_id = QtWidgets.QLineEdit()
         self._client_secret_label = QtWidgets.QLabel("Client Secret")
@@ -51,6 +52,7 @@ class ConfigDialog(QtWidgets.QDialog):
         self._btn_cancel = QtWidgets.QPushButton("Cancel")
 
         # connections
+        self._btn_import_settings.clicked.connect(self._import_config_from_file)
         self._btn_check_settings.clicked.connect(self._check_connection_to_irida)
         self._btn_accept.clicked.connect(self._accept_and_exit)
         self._btn_cancel.clicked.connect(self._cancel_and_exit)
@@ -70,6 +72,8 @@ class ConfigDialog(QtWidgets.QDialog):
         """
         # base layout
         layout = QtWidgets.QVBoxLayout()
+        # Load from file
+        layout.addWidget(self._btn_import_settings)
         # Client ID
         client_id_layout = QtWidgets.QHBoxLayout()
         client_id_layout.addWidget(self._client_id_label)
@@ -196,3 +200,25 @@ class ConfigDialog(QtWidgets.QDialog):
         parent_geo = self.parent().frameGeometry().center()
         qt_rectangle.moveCenter(parent_geo)
         self.move(qt_rectangle.topLeft())
+
+    def _import_config_from_file(self):
+        logging.debug("GUI CONFIG: _import_config_from_file clicked")
+        # Open a file open dialog and get returned string
+        config_file_path = QtWidgets.QFileDialog.getOpenFileName(self,
+                                                                 caption="Select Uploader Config File",
+                                                                 filter="*.conf")[0]
+        logging.debug("GUI CONFIG: result: " + config_file_path)
+        if config_file_path is "":
+            logging.debug("GUI CONFIG: user canceled opening file")
+        else:
+            # set the config file to be the file the user selected
+            config.set_config_file(config_file_path)
+            # Load the properties into the window
+            self._get_settings_from_file()
+            # Reset the config file back to use default
+            config.set_config_file(None)
+            config.setup()
+            # Write the settings from the user selected file to the default file
+            self._write_settings_to_file()
+            # Check connection with IRIDA
+            self._contact_irida()
