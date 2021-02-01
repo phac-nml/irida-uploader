@@ -41,6 +41,9 @@ class ConfigDialog(QtWidgets.QDialog):
         self._parser.addItems(supported_parsers)
         self._read_only_mode = QtWidgets.QCheckBox()
         self._read_only_mode_label = QtWidgets.QLabel("Read Only Mode")
+        self._timeout_label = QtWidgets.QLabel("(ADVANCED) Timeout Seconds Per MB")
+        self._timeout = QtWidgets.QSpinBox()
+        self._timeout.setRange(1, 100)
 
         self._btn_check_settings = QtWidgets.QPushButton("Save and Test Settings")
         self._settings_status = QtWidgets.QLineEdit()
@@ -105,6 +108,11 @@ class ConfigDialog(QtWidgets.QDialog):
         read_only_layout.addWidget(self._read_only_mode_label)
         read_only_layout.addWidget(self._read_only_mode)
         layout.addLayout(read_only_layout)
+        # Timeout
+        timeout_layout = QtWidgets.QHBoxLayout()
+        timeout_layout.addWidget(self._timeout_label)
+        timeout_layout.addWidget(self._timeout)
+        layout.addLayout(timeout_layout)
         # Buttons
         status_layout = QtWidgets.QHBoxLayout()
         status_layout.addWidget(self._btn_check_settings)
@@ -149,6 +157,8 @@ class ConfigDialog(QtWidgets.QDialog):
         read_only_bool = config.read_config_option("readonly", bool, False)
         read_only_state = QtCore.Qt.Checked if read_only_bool else QtCore.Qt.Unchecked
         self._read_only_mode.setCheckState(read_only_state)
+        timeout_int = config.read_config_option("timeout", int, 10)
+        self._timeout.setValue(timeout_int)
 
     def _write_settings_to_file(self):
         """
@@ -161,7 +171,8 @@ class ConfigDialog(QtWidgets.QDialog):
                                   password=self._password.text(),
                                   base_url=self._base_url.text(),
                                   parser=self._parser.currentText(),
-                                  readonly=self._read_only_mode.isChecked())
+                                  readonly=self._read_only_mode.isChecked(),
+                                  timeout=self._timeout.value())
         config.write_config_options_to_file()
 
     def _contact_irida(self):

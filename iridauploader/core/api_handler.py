@@ -16,7 +16,7 @@ from iridauploader.core import model_validator
 _api_instance = None
 
 
-def _initialize_api(client_id, client_secret, base_url, username, password, max_wait_time=20):
+def _initialize_api(client_id, client_secret, base_url, username, password, timeout_multiplier, max_wait_time=20):
     """
     Creates the ApiCalls object from the api layer.
     Sets the instance to use the global _api_instance variable so it behaves as a singleton that can be easily re-init
@@ -26,12 +26,15 @@ def _initialize_api(client_id, client_secret, base_url, username, password, max_
     :param base_url:
     :param username:
     :param password:
+    :param timeout_multiplier:
     :param max_wait_time:
     :return: The ApiCalls instance
     """
     global _api_instance
+    _api_instance = api.ApiCalls(client_id, client_secret, base_url, username, password,
+                                 timeout_multiplier, max_wait_time)
     if not base_url.endswith('/api/'):
-        logging.warn("base_url does not end in /api/, this configuration might be incorrect")
+        logging.warning("base_url does not end in /api/, this configuration might be incorrect")
     _api_instance = api.ApiCalls(client_id, client_secret, base_url, username, password, max_wait_time)
     return _api_instance
 
@@ -62,12 +65,14 @@ def initialize_api_from_config():
     base_url = config.read_config_option("base_url")
     username = config.read_config_option("username")
     password = config.read_config_option("password")
+    timeout = config.read_config_option("timeout")
 
     return _initialize_api(client_id=client_id,
                            client_secret=client_secret,
                            base_url=base_url,
                            username=username,
-                           password=password)
+                           password=password,
+                           timeout_multiplier=timeout)
 
 
 def prepare_and_validate_for_upload(sequencing_run):

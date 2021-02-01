@@ -24,7 +24,9 @@ The config file has the following fields:
 * `password` : Corresponding password for above user.
 * `base_url` : The server URL is the location that the uploader should upload data to. If you navigate to your instance of IRIDA in your web browser, the URL (after you’ve logged in) will often look like: `https://irida.corefacility.ca/irida/`. The URL you should enter into the Server URL field is that URL, with `api/` at the end. So in the case of `https://irida.corefacility.ca/irida/`, you should enter the URL `https://irida.corefacility.ca/irida/api/`
 * `parser` : Pick the parser that matches the file structure of your sequence files. We currently support [miseq](parsers/miseq.md), [directory](parsers/directory.md) and [miniseq](parsers/miniseq.md).
-
+* `readonly` : When set to True, uploader will not write any files to sequencing run directory, meaning upload progress / status and logs will not be generated in the sequencing run directory.
+* `delay` : Can be given a Integer to delay a run from uploading when discovered for a number of minutes. When automating batch upload jobs on windows, we recommend this delay be at least 60 minutes.
+* `timeout` : Accepts an Integer for the expected transfer time in seconds per MB. Default is 10 second for every MB of data to transfer. Increasing this number can help reduce timeout errors in cases where connection speed is very slow.
 
 ###Example
 ```
@@ -35,6 +37,9 @@ username = admin
 password = password1
 base_url = http://localhost:8080/irida-latest/api/
 parser = miseq
+readonly = False
+delay = 0
+timeout = 10
 ```
 This can also be found in the file `examples/example_config.conf`
 

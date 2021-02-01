@@ -4,6 +4,7 @@ import logging
 import threading
 
 from http import HTTPStatus
+from pathlib import Path
 from rauth import OAuth2Service
 from requests import ConnectionError
 from requests.adapters import HTTPAdapter
@@ -32,11 +33,17 @@ UPLOAD_MODES = [
     MODE_FAST5
 ]
 
+# Timeout values for sequence file data upload
+# Wait at least 1 second for each mb of data
+TIMEOUT_BYTES_TO_MB_DIVISOR = 1024 * 1024
+# 20 minute minimum timeout
+TIMEOUT_MINIMUM = 1200
+
 
 class ApiCalls(object):
 
     def __init__(self, client_id, client_secret,
-                 base_url, username, password, max_wait_time=20, http_max_retries=5):
+                 base_url, username, password, timeout_multiplier=10, max_wait_time=20, http_max_retries=5):
         """
         Create OAuth2Session and store it
 
@@ -46,6 +53,7 @@ class ApiCalls(object):
             base_url -- url of the IRIDA server
             username -- username for server
             password -- password for given username
+            timeout_multiplier -- number of seconds to give per MB of data being transferred
 
         return ApiCalls object
         """
@@ -55,6 +63,7 @@ class ApiCalls(object):
         self.base_url = base_url
         self.username = username
         self.password = password
+        self.timeout_multiplier = timeout_multiplier
         self.max_wait_time = max_wait_time
         self.http_max_retries = http_max_retries
 
@@ -735,8 +744,10 @@ class ApiCalls(object):
         logging.debug("Sending files to [{}]".format(url))
         logging.debug("headers: " + str(headers_pkg))
 
+        timeout = self._get_sequence_file_timeout(sequence_file)
+
         try:
-            response = self._session.post(url, data=data_pkg, headers=headers_pkg)
+            response = self._session.post(url, data=data_pkg, headers=headers_pkg, timeout=timeout)
         except ConnectionError as e:
             # This could be anything from disconnection during post to IRIDA crashing
             logging.error("ConnectionError occurred while transferring data: " + str(e))
@@ -753,6 +764,23 @@ class ApiCalls(object):
             raise self._get_irida_exception(response)
 
         return json_res
+
+    def _get_sequence_file_timeout(self, sequence_file):
+        """
+        Approximates transfer time and generates a timeout according to variables defined in this module.
+
+        These values can be overridden when importing the module
+        :param sequence_file:
+        :return:
+        """
+        # Get approximation for amount of data to send
+        filesize_bytes = Path(sequence_file.file_list[0]).stat().st_size
+        if sequence_file.is_paired_end():
+            filesize_bytes = filesize_bytes * 2
+        # Gives timeout_multiplier seconds per mb of data to transfer
+        timeout_mb = (filesize_bytes * self.timeout_multiplier / TIMEOUT_BYTES_TO_MB_DIVISOR)
+        # minimum time should be 20 minutes
+        return timeout_mb if timeout_mb > TIMEOUT_MINIMUM else TIMEOUT_MINIMUM
 
     def send_metadata(self, metadata, project_id, sample_name):
         """
