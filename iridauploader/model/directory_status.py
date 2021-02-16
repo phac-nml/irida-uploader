@@ -254,6 +254,7 @@ class DirectoryStatus:
             """
             self._sample_name = sample_name
             self._project_id = project_id
+            # if `uploaded` is a string, convert it to a boolean
             if type(uploaded) is str:
                 uploaded = uploaded.lower() in ['true', '1', 't', 'y', 'yes']
             self._uploaded = uploaded

@@ -119,9 +119,12 @@ def batch_upload_single_entry(batch_directory, force_upload=False, upload_mode=N
                      "%30sDETAILS: %s"
                      % (directory_status.directory, "", directory_status.status, "", directory_status.message))
 
+    # upload_list contains dicts with the following format
+    # {'status': DirectoryStatus, 'partial': boolean}
     upload_list = []
-    upload_as_partial_list = []
+    # delayed_list contains DirectoryStatus objects
     delayed_list = []
+
     for directory_status in directory_status_list:
         logging.info("Analysing directory: {}".format(directory_status.directory))
         # ignore invalid directories
@@ -132,11 +135,11 @@ def batch_upload_single_entry(batch_directory, force_upload=False, upload_mode=N
               or directory_status.status_equals(DirectoryStatus.DELAYED)):
             if force_upload:
                 logging.debug("BATCH: Run is being added with force")
-                upload_list.append(directory_status)
+                upload_list.append({"status": directory_status, "partial": False})
             elif progress.run_is_ready_with_delay(directory_status):
                 # Note: This is the "happy path" where upload continues
                 logging.debug("BATCH: Run is ready to upload")
-                upload_list.append(directory_status)
+                upload_list.append({"status": directory_status, "partial": False})
             else:
                 logging.debug("BATCH: Run is delayed")
                 delayed_list.append(directory_status)
@@ -146,11 +149,11 @@ def batch_upload_single_entry(batch_directory, force_upload=False, upload_mode=N
             if continue_upload:
                 # Happy path for continuing an upload
                 logging.debug("BATCH: Run is ready to continue upload as partial")
-                upload_as_partial_list.append(directory_status)
+                upload_list.append({"status": directory_status, "partial": True})
             elif force_upload:
                 # Note: This is "happy path" 2, where upload continues with force
                 logging.debug("BATCH: Partial Run is being added with force")
-                upload_list.append(directory_status)
+                upload_list.append({"status": directory_status, "partial": False})
             else:
                 logging.debug("BATCH: Partial Run is skipped")
                 continue
@@ -159,7 +162,7 @@ def batch_upload_single_entry(batch_directory, force_upload=False, upload_mode=N
               or directory_status.status_equals(DirectoryStatus.COMPLETE)):
             if force_upload:
                 logging.debug("BATCH: Run is forced for upload")
-                upload_list.append(directory_status)
+                upload_list.append({"status": directory_status, "partial": False})
             else:
                 logging.debug("BATCH: Run is skipped")
                 continue
@@ -179,19 +182,12 @@ def batch_upload_single_entry(batch_directory, force_upload=False, upload_mode=N
     if upload_mode is None:
         upload_mode = api_handler.get_default_upload_mode()
 
-    # run upload, keep track of which directories did not upload
+    # run uploads (including partial), keep track of which directories did not upload
     error_list = []
-    for directory_status in upload_list:
-        logging.info("Starting upload for {}".format(directory_status.directory))
-        result = _validate_and_upload(directory_status, upload_mode, False)
+    for directory_status_dict in upload_list:
+        result = _validate_and_upload(directory_status_dict['status'], upload_mode, directory_status_dict['partial'])
         if result.exit_code == exit_return.EXIT_CODE_ERROR:
-            error_list.append(directory_status)
-
-    for directory_status in upload_as_partial_list:
-        logging.info("Continuing upload from partial for {}".format(directory_status.directory))
-        result = _validate_and_upload(directory_status, upload_mode, True)
-        if result.exit_code == exit_return.EXIT_CODE_ERROR:
-            error_list.append(directory_status)
+            error_list.append(directory_status_dict['status'])
 
     logging.info("Uploads completed with {} error(s)".format(len(error_list)))
     for directory_status in error_list:
@@ -219,6 +215,8 @@ def _validate_and_upload(directory_status, upload_mode, continue_from_partial):
     """
     logging_start_block(directory_status.directory)
     logging.debug("upload_run_single_entry:Starting {}".format(directory_status.directory))
+    logging.info("Starting upload for '{}' with continue partial upload = '{}'".format(
+        directory_status.directory, str(continue_from_partial)))
 
     try:
         # Starting upload process: Parse and do offline verification

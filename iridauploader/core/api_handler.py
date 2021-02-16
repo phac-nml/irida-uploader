@@ -176,11 +176,13 @@ def upload_sequencing_run(sequencing_run, directory_status, upload_mode, run_id=
                                                      project_id=project.id,
                                                      upload_id=run_id,
                                                      upload_mode=upload_mode)
-                    # Update status file on progress
-                    directory_status.set_sample_uploaded(sample_name=sample.sample_name,
-                                                         project_id=project.id,
-                                                         uploaded=True)
-                    progress.write_directory_status(directory_status)
+                # Update status file on progress
+                # Skipped samples are set to uploaded too, s.t. if they are skipped,
+                #   and the upload fails and is continued again, they will be skipped again.
+                directory_status.set_sample_uploaded(sample_name=sample.sample_name,
+                                                     project_id=project.id,
+                                                     uploaded=True)
+                progress.write_directory_status(directory_status)
 
         # set seq run to complete
         api_instance.set_seq_run_complete(run_id)
