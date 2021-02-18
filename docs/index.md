@@ -187,11 +187,6 @@ You can see details about which files have been uploaded by viewing the status f
 
 **Note:** `--continue_partial` and `--force` are mutually exclusive, as `--force` indicates that a run should be restarted
 
-  # Optional argument, Force uploading a run even if a non new status file exists
-    argument_parser.add_argument('-p', '--continue_partial',
-                                 action='store_true',  # This line makes it not parse a variable
-                                 help='Uploader will continue an existing upload run when upload status is partial.')
-
 # Problems?
 
 ### Problems uploading?
