@@ -14,6 +14,9 @@ Added functionality:
   * Includes a list of all samples to be uploaded and progress for them.
     * If a run stops mid upload, you can now clearly see which files where uploaded from the directory status file.
   * Added an IRIDA Instance field to the directory status file so where the files have been sent is recorded.
+* Added `--continue_partial` argument that allows a partial run to continue from the last file that successfully uploaded.
+  * GUI support has also been added, if a partial run is detected, the user will be given the option to continue or to start from the beginning.
+  * Note that `--continue_partial` and `--force` are mutually exclusive, as `--force` indicates that a run should be restarted
 * Added support for Python 3.8 and 3.9
 * Added NextSeq2000 support with a new parser `nextseq2k_nml`
   * Because the NextSeq2000 software does not generate a sample sheet that includes a project column, it needs to be created manually.

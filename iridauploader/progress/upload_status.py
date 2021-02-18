@@ -69,7 +69,7 @@ def read_directory_status_from_file(directory):
             data = reader.read().decode()
         json_dict = json.loads(data)
         # Generate DirectoryStatus from json
-        directory_status = DirectoryStatus.init_from_json_dict(json_dict)
+        directory_status = DirectoryStatus.init_from_json_dict(json_dict, directory)
         if directory_status.status not in DirectoryStatus.VALID_STATUS_LIST:
             raise KeyError("Invalid directory status: {}".format(directory_status.status))
         # When loading from an ERROR sheet, or an old sheet, we must manually add the directory to the object

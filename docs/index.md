@@ -11,11 +11,11 @@
 * Fast5 Uploads
 * Can be used with cron/windows task scheduler for automated uploads
 * GUI
+* Resume Uploads
 
 ## Upcoming Features
 * File upload checksum validation
 * Post-processing tasks
-* Pause and resume uploads
 
 ## Version Compatibility
 
@@ -178,6 +178,14 @@ Full debug logs are written to your system default logging directory
 You can upload in read-only mode with the config option, the `--readonly` / `-r` command line option, or the checkbox on the GUI.
 
 In this mode, the status file and the logging file will not be created in the sequencing run directory during upload.
+
+## Continue Partial/Failed Uploads
+
+If an upload fails to complete upload for any reason, the upload can be continued from either the GUI (by selecting continue upload) or with the command line by using the `--confingue_partial` argument.
+
+You can see details about which files have been uploaded by viewing the status file generated in your sequencing run directory.
+
+**Note:** `--continue_partial` and `--force` are mutually exclusive, as `--force` indicates that a run should be restarted
 
 # Problems?
 

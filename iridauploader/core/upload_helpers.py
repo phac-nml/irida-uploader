@@ -69,10 +69,11 @@ def set_run_delayed(directory_status):
 # *************************************
 
 
-def parse_and_validate(directory_status):
+def parse_and_validate(directory_status, parse_as_partial):
     """
     Do the parsing, and offline validation
     :param directory_status: DirectoryStatus object
+    :param parse_as_partial: sequencing_run will not include any samples that have already been uploaded
     :return:
     """
     # Set directory status to partial before starting
@@ -97,6 +98,30 @@ def parse_and_validate(directory_status):
         full_error = error_msg + ", " + error_list_msg
         _set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
         raise e
+    # When continuing a partial run, filter out already uploaded samples
+    if parse_as_partial:
+        sequencing_run = set_uploaded_samples_to_skip(sequencing_run, directory_status.get_sample_status_list())
+
+    return sequencing_run
+
+
+def set_uploaded_samples_to_skip(sequencing_run, sample_status_list):
+    """
+    Given a complete sequencing run, remove all samples that have been marked as uploaded in the sample status list
+    :param sequencing_run: sequencing run to filter
+    :param sample_status_list: full sample list to check against
+    :return: sequencing_run
+    """
+    # This block looks worse than it is, worst case is O(n^2)
+    # There are "cleaner" but less readable ways to do this in the same runtime, but readability > reduced line count
+    for project in sequencing_run.project_list:
+        for sample in project.sample_list:
+            for sample_status in sample_status_list:
+                if (sample_status.uploaded is True
+                        and sample_status.sample_name == sample.sample_name
+                        and str(sample_status.project_id) == str(project.id)):
+                    # If a sample has already been uploaded, skip it
+                    sample.skip = True
 
     return sequencing_run
 
@@ -125,7 +150,6 @@ def init_file_status_list_from_sequencing_run(sequencing_run, directory_status):
     :return: None
     """
     directory_status.init_file_status_list_from_sequencing_run(sequencing_run)
-    _set_and_write_directory_status(directory_status, DirectoryStatus.PARTIAL)
 
 
 def initialize_api(directory_status):
@@ -174,20 +198,28 @@ def irida_prep_and_validation(sequencing_run, directory_status):
     logging.info("*** Run Verified ***")
 
 
-def upload_sequencing_run(sequencing_run, directory_status, upload_mode):
+def upload_sequencing_run(sequencing_run, directory_status, upload_mode, upload_from_partial=False):
     """
     Starts the actual upload of the sequencing run
     :param sequencing_run:
     :param directory_status:
     :param upload_mode:
+    :param upload_from_partial: Default False, when continuing from a partial run, we can reuse the the run_id
     :return: None
     """
     logging.info("*** Starting Upload ***")
     try:
+        # If continuing a partial run, use the existing run_id
+        if upload_from_partial:
+            run_id = directory_status.run_id
+        else:
+            run_id = None
+        # Upload
         api_handler.upload_sequencing_run(
             sequencing_run=sequencing_run,
             directory_status=directory_status,
-            upload_mode=upload_mode
+            upload_mode=upload_mode,
+            run_id=run_id
         )
     except api.exceptions.IridaConnectionError as e:
         logging.error("Lost connection to Irida")

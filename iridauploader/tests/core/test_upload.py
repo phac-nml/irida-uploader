@@ -213,7 +213,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_parsing_handler.get_run_status.assert_called_with(stub_directory_status.directory)
 
         # ensure upload
-        mock_validate_and_upload.assert_called_with(stub_directory_status, "mock_mode")
+        mock_validate_and_upload.assert_called_with(stub_directory_status, "mock_mode", False)
 
     @patch("iridauploader.core.upload.upload_helpers")
     @patch("iridauploader.core.upload._validate_and_upload")
@@ -243,7 +243,38 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_parsing_handler.get_run_status.assert_called_with(stub_directory_status.directory)
 
         # ensure upload
-        mock_validate_and_upload.assert_called_with(stub_directory_status, "mock_mode")
+        mock_validate_and_upload.assert_called_with(stub_directory_status, "mock_mode", False)
+
+    @patch("iridauploader.core.upload.upload_helpers")
+    @patch("iridauploader.core.upload._validate_and_upload")
+    @patch("iridauploader.core.upload.api_handler")
+    @patch("iridauploader.core.upload.parsing_handler")
+    def test_partial_continue_directory_status(self, mock_parsing_handler, mock_api_handler,
+                                               mock_validate_and_upload, mock_upload_helpers):
+        """
+        Checks that function continues with force when directory status is partial
+        :return:
+        """
+
+        stub_directory_status = self.StubDirectoryStatus()
+        stub_directory_status._status = DirectoryStatus.PARTIAL
+
+        mock_parsing_handler.get_run_status.side_effect = [stub_directory_status]
+        mock_api_handler.get_default_upload_mode.side_effect = ["mock_mode"]
+        mock_validate_and_upload.side_effect = ["mock_result"]
+        mock_upload_helpers.directory_has_readonly_conflict.side_effect = [False]
+
+        result = upload.upload_run_single_entry(
+            stub_directory_status.directory, force_upload=False, continue_upload=True)
+
+        # verify result
+        self.assertEqual(result, "mock_result")
+
+        # verify calls occurred
+        mock_parsing_handler.get_run_status.assert_called_with(stub_directory_status.directory)
+
+        # ensure upload
+        mock_validate_and_upload.assert_called_with(stub_directory_status, "mock_mode", True)
 
     @patch("iridauploader.core.upload.upload_helpers")
     @patch("iridauploader.core.upload._validate_and_upload")
@@ -273,7 +304,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_parsing_handler.get_run_status.assert_called_with(stub_directory_status.directory)
 
         # ensure upload
-        mock_validate_and_upload.assert_called_with(stub_directory_status, "mock_mode")
+        mock_validate_and_upload.assert_called_with(stub_directory_status, "mock_mode", False)
 
     @patch("iridauploader.core.upload.upload_helpers")
     @patch("iridauploader.core.upload._validate_and_upload")
@@ -303,7 +334,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_parsing_handler.get_run_status.assert_called_with(stub_directory_status.directory)
 
         # ensure upload
-        mock_validate_and_upload.assert_called_with(stub_directory_status, "mock_mode")
+        mock_validate_and_upload.assert_called_with(stub_directory_status, "mock_mode", False)
 
     @patch("iridauploader.core.upload.upload_helpers")
     @patch("iridauploader.core.upload._validate_and_upload")
@@ -333,7 +364,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_parsing_handler.get_run_status.assert_called_with(stub_directory_status.directory)
 
         # ensure upload occurs
-        mock_validate_and_upload.assert_called_with(stub_directory_status, "mock_mode")
+        mock_validate_and_upload.assert_called_with(stub_directory_status, "mock_mode", False)
 
     @patch("iridauploader.progress.upload_status._set_run_delayed")
     @patch("iridauploader.core.upload.upload_helpers")
@@ -400,7 +431,7 @@ class TestUploadRunSingleEntry(unittest.TestCase):
         mock_parsing_handler.get_run_status.assert_called_with(stub_directory_status.directory)
 
         # ensure upload occurs
-        mock_validate_and_upload.assert_called_with(stub_directory_status, "mock_mode")
+        mock_validate_and_upload.assert_called_with(stub_directory_status, "mock_mode", False)
 
     @patch("iridauploader.progress.upload_status._delayed_time_has_passed")
     @patch("iridauploader.core.upload.upload_helpers")
@@ -509,7 +540,7 @@ class TestBatchUploadSingleEntry(unittest.TestCase):
         upload.batch_upload_single_entry("fake_directory", upload_mode=MODE_DEFAULT)
 
         # validate calls only happen once
-        mock_validate_and_upload.assert_called_once_with(stub_directory_status_valid, MODE_DEFAULT)
+        mock_validate_and_upload.assert_called_once_with(stub_directory_status_valid, MODE_DEFAULT, False)
 
     @patch("iridauploader.core.upload._validate_and_upload")
     @patch("iridauploader.core.upload.parsing_handler")
@@ -547,8 +578,8 @@ class TestBatchUploadSingleEntry(unittest.TestCase):
         # assert calls are what we expect
         self.assertEqual(mock_validate_and_upload.call_count, 3, "Expected 3 calls to mock_validate_and_upload")
         expected_call_args = [
-            call(stub_directory_status_valid, MODE_DEFAULT),
-            call(stub_directory_status_complete, MODE_DEFAULT),
-            call(stub_directory_status_partial, MODE_DEFAULT)
+            call(stub_directory_status_valid, MODE_DEFAULT, False),
+            call(stub_directory_status_complete, MODE_DEFAULT, False),
+            call(stub_directory_status_partial, MODE_DEFAULT, False)
         ]
         self.assertEqual(mock_validate_and_upload.call_args_list, expected_call_args, "Call args do not match expected")

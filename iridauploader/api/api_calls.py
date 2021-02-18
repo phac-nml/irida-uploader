@@ -899,7 +899,7 @@ class ApiCalls(object):
         """
         # build data encoder
         encoder = self._get_multipart_encoder(sequence_file, upload_id)
-        # create callback monitor for file progressk
+        # create callback monitor for file progress
         monitor = MultipartEncoderMonitor(encoder, self._send_file_callback)
         # override max byte read size
         # This lambda overrides httplibs hard coded 8192 byte read size
@@ -985,9 +985,6 @@ class ApiCalls(object):
         if 'workflow' not in metadata_dict:
             metadata_dict['workflow'] = 'workflow'
 
-        # todo: we upload everything as miseq, should change when new sequencers are added to IRIDA
-        # The easiest way to do this would be to add a sequencer type param to the metadata when parsing the sample
-        # here
         url = self._get_upload_url(self.base_url, sequencing_run_type)
 
         headers = {
