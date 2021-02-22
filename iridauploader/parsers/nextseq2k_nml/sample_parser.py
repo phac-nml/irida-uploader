@@ -49,7 +49,7 @@ def parse_metadata(sample_sheet_file):
             logging.debug("Sample sheet is missing important sections: no sections were found")
             raise exceptions.SampleSheetError("Sample sheet is missing important sections: no sections were found.",
                                               sample_sheet_file)
-        elif section is "reads":
+        elif section == "reads":
             if line[0] == "Read1Cycles" or line[0] == "Read2Cycles":
                 metadata_dict["readLengths"].append(line[1])
             elif line[0] == "Index1Cycles" or line[0] == "Index2Cycles":

@@ -14,6 +14,9 @@ Added functionality:
   * Includes a list of all samples to be uploaded and progress for them.
     * If a run stops mid upload, you can now clearly see which files where uploaded from the directory status file.
   * Added an IRIDA Instance field to the directory status file so where the files have been sent is recorded.
+* Added `--continue_partial` argument that allows a partial run to continue from the last file that successfully uploaded.
+  * GUI support has also been added, if a partial run is detected, the user will be given the option to continue or to start from the beginning.
+  * Note that `--continue_partial` and `--force` are mutually exclusive, as `--force` indicates that a run should be restarted
 * Added support for Python 3.8 and 3.9
 * Added NextSeq2000 support with a new parser `nextseq2k_nml`
   * Because the NextSeq2000 software does not generate a sample sheet that includes a project column, it needs to be created manually.
@@ -21,6 +24,9 @@ Added functionality:
 * Added a warning if the base_url does not end in /api/
 * Added GUI option to import config settings from file
   * This writes the settings loaded to the default config file s.t. the settings persist for automated uploads
+* File upload timeout has be changed to dynamically scale with file size.
+  * config option `timeout` has been added to scale this based on expected seconds per MB transfer speed.
+  * Default is `10` seconds per MB, or 100kb/s
 
 Developer changes:
 * Refactored `core/cli_entry.py`
@@ -32,6 +38,7 @@ Developer changes:
 * Windows build will no longer include test files in executable (slightly reduced file size)
 * Added documentation for how to draft a new release (for internal use)
 * Switched from travis ci to github actions for testing
+* Bumped PyQT5 version to latest (`PyQt5==5.15.2` & `PyQt5-sip==12.8.1`)
 
 Beta 0.5.1
 ----------

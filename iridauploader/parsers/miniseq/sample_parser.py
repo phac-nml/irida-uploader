@@ -61,13 +61,13 @@ def parse_metadata(sample_sheet_file):
             logging.debug("Sample sheet is missing important sections: no sections were found")
             raise exceptions.SampleSheetError("Sample sheet is missing important sections: no sections were found.",
                                               sample_sheet_file)
-        elif section is "header":
+        elif section == "header":
             try:
                 key_name = metadata_key_translation_dict[line[0]]
                 metadata_dict[key_name] = line[1]
             except KeyError:
                 logging.debug("Unexpected key in header: [{}]".format(line[0]))
-        elif section is "reads":
+        elif section == "reads":
             metadata_dict["readLengths"].append(line[0])
 
     # currently sends just the larger readLengths

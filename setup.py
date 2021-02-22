@@ -27,9 +27,9 @@ setuptools.setup(
                       'requests-toolbelt',
                       ],
     extras_require={
-        "GUI": ["PyQt5==5.12.1", "PyQt5-stubs==5.12.1"],
+        "GUI": ["PyQt5==5.15.2", "PyQt5-stubs==5.14.2.2"],
         "TEST": ["selenium", "pytest"],
-        "WINDOWS": ["PyQt5==5.12.1", "pynsist"],
+        "WINDOWS": ["pynsist"],
     },
     entry_points={
         'console_scripts': [

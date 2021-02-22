@@ -11,11 +11,11 @@
 * Fast5 Uploads
 * Can be used with cron/windows task scheduler for automated uploads
 * GUI
+* Resume Uploads
 
 ## Upcoming Features
 * File upload checksum validation
 * Post-processing tasks
-* Pause and resume uploads
 
 ## Version Compatibility
 
@@ -179,6 +179,14 @@ You can upload in read-only mode with the config option, the `--readonly` / `-r`
 
 In this mode, the status file and the logging file will not be created in the sequencing run directory during upload.
 
+## Continue Partial/Failed Uploads
+
+If an upload fails to complete upload for any reason, the upload can be continued from either the GUI (by selecting continue upload) or with the command line by using the `--confingue_partial` argument.
+
+You can see details about which files have been uploaded by viewing the status file generated in your sequencing run directory.
+
+**Note:** `--continue_partial` and `--force` are mutually exclusive, as `--force` indicates that a run should be restarted
+
 # Problems?
 
 ### Problems uploading?
@@ -199,7 +207,7 @@ Example to get you started:
 import iridauploader.api as api
 import iridauploader.parsers as parsers
 
-api_instance = api.ApiCalls(client_id, client_secret, base_url, username, password, max_wait_time)
+api_instance = api.ApiCalls(client_id, client_secret, base_url, username, password, timeout_multiplier)
 parser_instance = parsers.parser_factory("miseq")
 ```
 

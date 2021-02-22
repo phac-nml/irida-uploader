@@ -57,6 +57,10 @@ def init_argparser():
                                  action='store_true',  # This line makes it not parse a variable
                                  help='Uploader will ignore the status file, '
                                       'and try to upload even when a run is in non new status.')
+    # Optional argument, Force uploading a run even if a non new status file exists
+    argument_parser.add_argument('-p', '--continue_partial',
+                                 action='store_true',  # This line makes it not parse a variable
+                                 help='Uploader will continue an existing upload run when upload status is partial.')
     # Optional argument, Upload all sequencing runs in a directory of runs
     argument_parser.add_argument('-b', '--batch',
                                  action='store_true',  # This line makes it not parse a variable
@@ -104,6 +108,10 @@ def init_argparser():
                                       'status set to delayed. When uploading a run with the delayed status, the run '
                                       'will only upload if the given amount of minutes has passes since it was set to '
                                       'delayed. Default = 0: When set to 0, runs will not be given delayed status.')
+    argument_parser.add_argument('-ct', '--config_timeout', action='store', nargs='?', const=True, default=False,
+                                 help='Accepts an Integer for the expected transfer time in seconds per MB. '
+                                      'Default is 10 second for every MB of data to transfer (100kb/s). Increasing this'
+                                      ' number can reduce timeout errors when your transfer speed is very slow.')
     return argument_parser
 
 
@@ -121,6 +129,7 @@ def _set_config_override(args):
     parser = None
     readonly = None
     delay = None
+    timeout = None
 
     if args.config_client_id is True:
         print("Enter Client ID:")
@@ -169,6 +178,12 @@ def _set_config_override(args):
     elif args.delay is not False:
         delay = int(args.delay)
 
+    if args.config_timeout is True:
+        print("Enter timeout per MB in seconds (Integer):")
+        delay = int(input())
+    elif args.config_timeout is not False:
+        timeout = int(args.config_timeout)
+
     config.set_config_options(client_id=client_id,
                               client_secret=client_secret,
                               username=username,
@@ -176,7 +191,8 @@ def _set_config_override(args):
                               base_url=base_url,
                               parser=parser,
                               readonly=readonly,
-                              delay=delay)
+                              delay=delay,
+                              timeout=timeout)
 
 
 def _config_uploader(args):
@@ -207,33 +223,42 @@ def main():
         print("ERROR! Specified directory is not readable: {}".format(args.directory))
         return 1
 
+    # Verify force and continue are not both active
+    if args.force and args.continue_partial:
+        print("ERROR! --force and --continue_partial are mutually exclusive. "
+              "To continue a partial upload use --continue_partial. "
+              "To upload all samples from the beginning use --force")
+        return 1
+
     # Start Upload
     if args.batch:
-        return upload_batch(args.directory, args.force, args.upload_mode)
+        return upload_batch(args.directory, args.force, args.upload_mode, args.coninue_partial)
     else:
-        return upload(args.directory, args.force, args.upload_mode)
+        return upload(args.directory, args.force, args.upload_mode, args.continue_partial)
 
 
-def upload(run_directory, force_upload, upload_mode):
+def upload(run_directory, force_upload, upload_mode, continue_partial):
     """
     start upload on a single run directory
     :param run_directory:
     :param force_upload:
     :param upload_mode
+    :param continue_partial
     :return: exit code 0 or 1
     """
-    return core.upload.upload_run_single_entry(run_directory, force_upload, upload_mode).exit_code
+    return core.upload.upload_run_single_entry(run_directory, force_upload, upload_mode, continue_partial).exit_code
 
 
-def upload_batch(batch_directory, force_upload, upload_mode):
+def upload_batch(batch_directory, force_upload, upload_mode, continue_partial):
     """
     Start uploading runs in the batch directory
     :param batch_directory:
     :param force_upload:
-    :param upload_mode
+    :param upload_mode:
+    :param continue_partial:
     :return: exit code 0 or 1
     """
-    return core.upload.batch_upload_single_entry(batch_directory, force_upload, upload_mode).exit_code
+    return core.upload.batch_upload_single_entry(batch_directory, force_upload, upload_mode, continue_partial).exit_code
 
 
 # This is called when the program is run for the first time

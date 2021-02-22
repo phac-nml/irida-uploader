@@ -173,6 +173,9 @@ class DirectoryStatus:
     def irida_instance(self, irida_instance):
         self._irida_instance = irida_instance
 
+    def get_sample_status_list(self):
+        return self._sample_status_list
+
     def to_json_dict(self):
         sample_status_dict = self.sample_status_to_dict()
 
@@ -189,9 +192,12 @@ class DirectoryStatus:
         return json_dict
 
     @staticmethod
-    def init_from_json_dict(json_dict):
-        new_directory_status = DirectoryStatus(DirectoryStatus._get_field_or_none(
-            json_dict, DirectoryStatus.JSON_DIRECTORY_FIELD))
+    def init_from_json_dict(json_dict, directory=None):
+        if directory is not None:
+            new_directory_status = DirectoryStatus(directory)
+        else:
+            new_directory_status = DirectoryStatus(DirectoryStatus._get_field_or_none(
+                json_dict, DirectoryStatus.JSON_DIRECTORY_FIELD))
         new_directory_status.status = DirectoryStatus._get_field_or_none(
             json_dict, DirectoryStatus.JSON_STATUS_FIELD)
         new_directory_status.message = DirectoryStatus._get_field_or_none(
@@ -223,8 +229,8 @@ class DirectoryStatus:
             for sample_dict in json_dict[samples_field]:
                 new_sample_status_list.append(DirectoryStatus.SampleStatus(
                     sample_name=sample_dict[DirectoryStatus.SampleStatus.SAMPLE_NAME_FIELD],
-                    project_id=sample_dict[DirectoryStatus.SampleStatus.SAMPLE_NAME_FIELD],
-                    uploaded=sample_dict[DirectoryStatus.SampleStatus.SAMPLE_NAME_FIELD],
+                    project_id=sample_dict[DirectoryStatus.SampleStatus.PROJECT_ID_FIELD],
+                    uploaded=sample_dict[DirectoryStatus.SampleStatus.UPLOADER_FIELD],
                 ))
 
         return new_sample_status_list
@@ -248,6 +254,9 @@ class DirectoryStatus:
             """
             self._sample_name = sample_name
             self._project_id = project_id
+            # if `uploaded` is a string, convert it to a boolean
+            if type(uploaded) is str:
+                uploaded = uploaded.lower() in ['true', '1', 't', 'y', 'yes']
             self._uploaded = uploaded
 
         @property
