@@ -36,6 +36,8 @@ Developer changes:
 * Windows build will no longer include test files in executable (slightly reduced file size)
 * Added documentation for how to draft a new release (for internal use)
 * Switched from travis ci to github actions for testing
+* Bumped PyQT5 version to latest (`PyQt5==5.15.2` & `PyQt5-sip==12.8.1`)
+* Update readthedocs/mkdocs to version 2
 
 Beta 0.5.1
 ----------
@@ -84,7 +86,6 @@ Developer changes:
     * `make integrationtestsdev` -> `make integrationtests branch=development`
     * any IRIDA github branch can be specified with the `branch` argument
 * Makefile has been simplified for easier readability
-* Bumped PyQT5 version to latest (`PyQt5==5.15.2` & `PyQt5-sip==12.8.1`)
 
 Beta 0.4.3
 ----------
