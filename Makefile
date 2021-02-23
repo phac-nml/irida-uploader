@@ -59,6 +59,7 @@ pep8: clean env
 
 docs: requirements
 	source .virtualenv/bin/activate
+	pip3 install -r docs/requirements.txt
 	mkdocs build
 
 .ONESHELL:

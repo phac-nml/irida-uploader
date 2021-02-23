@@ -46,6 +46,18 @@ jobs:
       - name: Run pep8
         run: make pep8
 
+  build-docs:
+    runs-on: ubuntu-20.04 #See pre-installed software at https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md
+
+    steps:
+      - uses: actions/checkout@v2 #Checkout the project from git
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+      - name: Run mkdocs
+        run: make docs
+
   build-irida-integration:
     runs-on: ubuntu-20.04 #See pre-installed software at https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md
 
