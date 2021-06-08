@@ -1,6 +1,11 @@
 Changes
 =======
 
+Beta 0.6.1
+----------
+Bug fixes:
+* Fixed issue where starting a batch upload from the command line would crash instead of running.
+
 Beta 0.6.0
 ----------
 Added functionality:

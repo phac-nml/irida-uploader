@@ -232,7 +232,7 @@ def main():
 
     # Start Upload
     if args.batch:
-        return upload_batch(args.directory, args.force, args.upload_mode, args.coninue_partial)
+        return upload_batch(args.directory, args.force, args.upload_mode, args.continue_partial)
     else:
         return upload(args.directory, args.force, args.upload_mode, args.continue_partial)
 
