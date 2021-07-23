@@ -6,12 +6,14 @@ supported_parsers = [
     'miseq',
     'miseq_v26',
     'miseq_v31',
+    'miseq_win10_jun2021',
     'miniseq',
     'nextseq',
     'nextseq2k_nml',
     'iseq',
     'directory',
     'nanopore_assemblies',
+    'seqfu',
 ]
 
 
@@ -28,13 +30,13 @@ def parser_factory(parser_type):
     :param parser_type: a String of a valid parser name
     :return:
     """
-    if parser_type in ['directory', 'nanopore_assemblies']:
+    if parser_type in ['directory', 'nanopore_assemblies', 'seqfu']:
         logging.debug("Creating directory parser")
         return directory.Parser(parser_type_name=parser_type)
     if parser_type in ['miseq', 'miseq_v26']:
         logging.debug("Creating miseq (v26) parser")
         return miseq.Parser(parser_type_name=parser_type)
-    if parser_type in ['miniseq', 'iseq', 'miseq_v31']:
+    if parser_type in ['miniseq', 'iseq', 'miseq_v31', 'miseq_win10_jun2021']:
         logging.debug("Creating miniseq/iseq/miseq_v31 parser")
         return miniseq.Parser(parser_type_name=parser_type)
     if parser_type == "nextseq":
