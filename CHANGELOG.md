@@ -7,6 +7,9 @@ Changes:
 * Added options for `miseq_win10_jun2021` and `seqfu` parsers (uses existing parsers)
 * Added in-depth documentation on using the irida uploader with windows 10 updated miseqs
 
+Bug fixes:
+* Fixed missing requirement issue with windows builds
+
 Beta 0.6.1
 ----------
 Bug fixes:
