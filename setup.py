@@ -21,6 +21,7 @@ setuptools.setup(
                                                ]),
     install_requires=['rauth',
                       'requests',
+                      'chardet',
                       'appdirs',
                       'cerberus',
                       'argparse',
