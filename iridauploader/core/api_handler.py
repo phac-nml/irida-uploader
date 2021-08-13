@@ -8,6 +8,7 @@ import logging
 import iridauploader.api as api
 import iridauploader.config as config
 import iridauploader.model as model
+import iridauploader.progress as progress
 from iridauploader.core import model_validator
 
 # The api instance is a global variable which lets the api behave like a singleton
@@ -15,7 +16,7 @@ from iridauploader.core import model_validator
 _api_instance = None
 
 
-def _initialize_api(client_id, client_secret, base_url, username, password, max_wait_time=20):
+def _initialize_api(client_id, client_secret, base_url, username, password, timeout_multiplier, max_wait_time=20):
     """
     Creates the ApiCalls object from the api layer.
     Sets the instance to use the global _api_instance variable so it behaves as a singleton that can be easily re-init
@@ -25,10 +26,15 @@ def _initialize_api(client_id, client_secret, base_url, username, password, max_
     :param base_url:
     :param username:
     :param password:
+    :param timeout_multiplier:
     :param max_wait_time:
     :return: The ApiCalls instance
     """
     global _api_instance
+    _api_instance = api.ApiCalls(client_id, client_secret, base_url, username, password,
+                                 timeout_multiplier, max_wait_time)
+    if not base_url.endswith('/api/'):
+        logging.warning("base_url does not end in /api/, this configuration might be incorrect")
     _api_instance = api.ApiCalls(client_id, client_secret, base_url, username, password, max_wait_time)
     return _api_instance
 
@@ -59,12 +65,14 @@ def initialize_api_from_config():
     base_url = config.read_config_option("base_url")
     username = config.read_config_option("username")
     password = config.read_config_option("password")
+    timeout = config.read_config_option("timeout")
 
     return _initialize_api(client_id=client_id,
                            client_secret=client_secret,
                            base_url=base_url,
                            username=username,
-                           password=password)
+                           password=password,
+                           timeout_multiplier=timeout)
 
 
 def prepare_and_validate_for_upload(sequencing_run):
@@ -122,40 +130,59 @@ def prepare_and_validate_for_upload(sequencing_run):
     return validation_result
 
 
-def upload_sequencing_run(sequencing_run, upload_mode):
+def upload_sequencing_run(sequencing_run, directory_status, upload_mode, run_id=None):
     """
     Handles uploading a sequencing run
 
     Expects api to have been set up
     Expects sequencing run to have been validated
     Expects sequencing run to be valid for upload
+    Expects directory_status to be valid
 
     :param sequencing_run: run to upload
+    :param directory_status: DirectoryStatus object to update as files get uploaded
     :param upload_mode: mode of upload
+    :param run_id: Default None, when given, run_id will be used instead of generating a new run_id
     :return:
     """
     # get api
     api_instance = _get_api_instance()
 
-    # create a seq run
-    run_id = api_instance.create_seq_run(sequencing_run.metadata, sequencing_run.sequencing_run_type)
-    logging.info("Sequencing run id '{}' has been created for upload".format(run_id))
+    # create a new seq run identifier if none is given
+    if run_id is None:
+        run_id = api_instance.create_seq_run(sequencing_run.metadata, sequencing_run.sequencing_run_type)
+        logging.info("Sequencing run id '{}' has been created for this upload.".format(run_id))
+    else:
+        logging.info("Using existing run id '{}' for this upload.".format(run_id))
+    # Update directory status file
+    directory_status.run_id = run_id
+    progress.write_directory_status(directory_status)
 
     try:
         # set seq run to upload
         api_instance.set_seq_run_uploading(run_id)
-
         # loop through projects
         for project in sequencing_run.project_list:
             # loop through samples
             for sample in project.sample_list:
-                logging.info("Uploading to Sample {} on Project {}".format(sample.sample_name, project.id))
-                # upload files
-                api_instance.send_sequence_files(sequence_file=sample.sequence_file,
-                                                 sample_name=sample.sample_name,
-                                                 project_id=project.id,
-                                                 upload_id=run_id,
-                                                 upload_mode=upload_mode)
+                if sample.skip:
+                    logging.info("Skipping Sample {} on Project {}, already uploaded."
+                                 "".format(sample.sample_name, project.id))
+                else:
+                    logging.info("Uploading to Sample {} on Project {}".format(sample.sample_name, project.id))
+                    # upload files
+                    api_instance.send_sequence_files(sequence_file=sample.sequence_file,
+                                                     sample_name=sample.sample_name,
+                                                     project_id=project.id,
+                                                     upload_id=run_id,
+                                                     upload_mode=upload_mode)
+                # Update status file on progress
+                # Skipped samples are set to uploaded too, s.t. if they are skipped,
+                #   and the upload fails and is continued again, they will be skipped again.
+                directory_status.set_sample_uploaded(sample_name=sample.sample_name,
+                                                     project_id=project.id,
+                                                     uploaded=True)
+                progress.write_directory_status(directory_status)
 
         # set seq run to complete
         api_instance.set_seq_run_complete(run_id)
@@ -173,8 +200,6 @@ def upload_sequencing_run(sequencing_run, upload_mode):
         api_instance.set_seq_run_error(run_id)
         raise e
     # Todo: once threading is added, the upload canceled error will likely need to be caught/raised here
-
-    return run_id
 
 
 def send_project(project):

@@ -175,11 +175,12 @@ class SampleTable(QtWidgets.QTableWidget):
         # subscribe the progress updates signal
         progress.signal_worker.progress_signal.connect(self._update_progress)
 
-    def fill_table(self, sequencing_run):
+    def fill_table(self, sequencing_run, partial):
         """
         Given a SequencingRun, fill the table with data
         includes sample name, file names, project, and progress widget
         :param sequencing_run: SequencingRun object
+        :param partial: Indicate already uploaded files in table
         :return:
         """
         # total number of samples
@@ -212,6 +213,11 @@ class SampleTable(QtWidgets.QTableWidget):
                 new_progress_bar = self._progress_bars.add_bar(sample=sample.sample_name,
                                                                project=str(project.id))
                 self.setCellWidget(y_index, self.TABLE_PROGRESS, new_progress_bar)
+                print(sample.get_dict())
+                if sample.skip and partial:
+                    self._progress_bars.set_value(sample=sample.sample_name,
+                                                  project=project.id,
+                                                  value=100)
 
                 y_index = y_index + 1
 

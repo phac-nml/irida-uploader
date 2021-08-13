@@ -1,6 +1,58 @@
 Changes
 =======
 
+Beta 0.6.2
+----------
+Changes:
+* Added options for `miseq_win10_jun2021` and `seqfu` parsers (uses existing parsers)
+* Added in-depth documentation on using the irida uploader with windows 10 updated miseqs
+
+Bug fixes:
+* Fixed missing requirement issue with windows builds
+
+Beta 0.6.1
+----------
+Bug fixes:
+* Fixed issue where starting a batch upload from the command line would crash instead of running.
+
+Beta 0.6.0
+----------
+Added functionality:
+* Added `--delay=[Integer]` argument/config option to allow runs to be delayed when they are found.
+  * When `delay` is set, a new run will be set to Delayed, and will only be available to upload once `delay` minutes have passed
+    * Default is 0 minutes, s.t. no delay will occur unless the `delay` argument or config argument is > 0
+  * This should be used when automating uploads from a network location where file transfer may be done over a period of time
+    * Please see the MiSeq Analysis issue for more details on when to use this https://github.com/phac-nml/irida-uploader/issues/76
+  * The delay can be bypassed with `--force`
+* Improved the Directory Status file
+  * Includes a list of all samples to be uploaded and progress for them.
+    * If a run stops mid upload, you can now clearly see which files where uploaded from the directory status file.
+  * Added an IRIDA Instance field to the directory status file so where the files have been sent is recorded.
+* Added `--continue_partial` argument that allows a partial run to continue from the last file that successfully uploaded.
+  * GUI support has also been added, if a partial run is detected, the user will be given the option to continue or to start from the beginning.
+  * Note that `--continue_partial` and `--force` are mutually exclusive, as `--force` indicates that a run should be restarted
+* Added support for Python 3.8 and 3.9
+* Added NextSeq2000 support with a new parser `nextseq2k_nml`
+  * Because the NextSeq2000 software does not generate a sample sheet that includes a project column, it needs to be created manually.
+  * Please see the documentation for the `nextseq2k_nml` for details
+* Added a warning if the base_url does not end in /api/
+* File upload timeout has be changed to dynamically scale with file size.
+  * config option `timeout` has been added to scale this based on expected seconds per MB transfer speed.
+  * Default is `10` seconds per MB, or 100kb/s
+
+Developer changes:
+* Refactored `core/cli_entry.py`
+  * Renamed file to `core/upload.py` as to better fit its functionality (also handles gui uploads)
+  * Created helper function file `core/upload_helpers.py` to improve code flow
+  * Code flow for all routines has been simplified and new unit tests and documentation has been added
+* The `DirectoryStatus` and `upload_status.py` files have been overhauled to support the new delay/upload_status functionality
+* GUI upload now always executes with force_upload=True to simplify internal logic
+* Windows build will no longer include test files in executable (slightly reduced file size)
+* Added documentation for how to draft a new release (for internal use)
+* Switched from travis ci to github actions for testing
+* Bumped PyQT5 version to latest (`PyQt5==5.15.2` & `PyQt5-sip==12.8.1`)
+* Update readthedocs/mkdocs to version 2
+
 Beta 0.5.1
 ----------
 Changes

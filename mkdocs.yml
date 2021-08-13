@@ -5,16 +5,20 @@ theme: readthedocs
 #forces use of .html on docs pages so they can be browsed locally
 use_directory_urls: false
 
-pages:
+nav:
   - Overview: index.md
   - configuration.md
   - errors.md
   - Parsers:
       - parsers/directory.md
-      - parsers/miseq.md
+      - parsers/miseq_v26.md
+      - parsers/miseq_v31.md
       - parsers/miniseq.md
       - parsers/nextseq.md
+      - parsers/nextseq2k_nml.md
   - Developers:
       - developers/api.md
       - developers/parsers.md
       - developers/objects.md
+      - developers/cloud.md
+      - developers/release.md

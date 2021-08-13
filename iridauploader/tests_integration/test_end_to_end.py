@@ -9,7 +9,7 @@ import iridauploader.api as api
 import iridauploader.model as model
 import iridauploader.progress as progress
 
-from iridauploader.core.cli_entry import upload_run_single_entry, batch_upload_single_entry
+from iridauploader.core.upload import upload_run_single_entry, batch_upload_single_entry
 
 
 path_to_module = path.dirname(__file__)
@@ -20,11 +20,14 @@ CLEANUP_DIRECTORY_LIST = [
     path.join(path_to_module, "fake_dir_data"),
     path.join(path_to_module, "fake_miniseq_data"),
     path.join(path_to_module, "fake_nextseq_data"),
+    path.join(path_to_module, "fake_nextseq2k_data"),
     path.join(path_to_module, "fake_ngs_data"),
     path.join(path_to_module, "fake_ngs_data_force"),
     path.join(path_to_module, "fake_ngs_data_nonexistent_project"),
     path.join(path_to_module, "fake_ngs_data_parse_fail"),
     path.join(path_to_module, "fake_ngs_data_no_completed_file"),
+    path.join(path_to_module, "fake_fast5_data"),
+    path.join(path_to_module, "fake_assemblies_data"),
     path.join(path_to_module, "fake_batch_data", "run_1"),
     path.join(path_to_module, "fake_batch_data", "run_2"),
     path.join(path_to_module, "fake_batch_data", "run_3")
@@ -407,6 +410,88 @@ class TestEndToEnd(unittest.TestCase):
         # Make sure the upload was a failure
         self.assertEqual(upload_result.exit_code, 1)
 
+    def test_continue_partial_miseq_upload(self):
+        """
+        We set sample 2 to be already uploaded, when we verify uploads at the bottom it should be missing from the 3
+        :return:
+        """
+        # Set our sample config file to use miseq parser and the correct irida credentials
+        self.write_to_config_file(
+            client_id=tests_integration.client_id,
+            client_secret=tests_integration.client_secret,
+            username=tests_integration.username,
+            password=tests_integration.password,
+            base_url=tests_integration.base_url,
+            parser="miseq",
+            readonly=True
+        )
+
+        # instance an api
+        test_api = api.ApiCalls(
+            client_id=tests_integration.client_id,
+            client_secret=tests_integration.client_secret,
+            base_url=tests_integration.base_url,
+            username=tests_integration.username,
+            password=tests_integration.password
+        )
+
+        # Create a test project, the uploader does not make new projects on its own
+        # so one must exist to upload samples into
+        # This may not be the project that the files get uploaded to,
+        # but one will be made in the case this is the only test being run
+        project_name = "test_project_continue_partial"
+        project_description = "test_project_description"
+        project = model.Project(name=project_name, description=project_description)
+        test_api.send_project(project)
+        # We always upload to project "1" so that tests will be consistent no matter how many / which tests are run
+        project_id = "1"
+
+        # We must set the sequencing_run_id 1 on IRIDA to uploading
+        # This is because we aren't actually uploading a partially uploaded run with an existing run_id
+        # If we try to upload to the already completed run_id, we will get our upload rejected
+        test_api.set_seq_run_uploading(1)
+
+        # Do the upload
+        upload_result = upload_run_single_entry(path.join(path_to_module, "fake_ngs_data_continue_partial"),
+                                                continue_upload=True)
+
+        # Make sure the upload was a success
+        self.assertEqual(upload_result.exit_code, 0)
+
+        # Verify the files were uploaded
+        sample_list = test_api.get_samples(project_id)
+
+        for sample in sample_list:
+            if sample.sample_name in ["01thread", "02thread", "03thread"]:
+                if sample.sample_name == "01thread":
+                    sequence_files = test_api.get_sequence_files(project_id, sample.sample_name)
+                    self.assertEqual(len(sequence_files), 2)
+                    res_sequence_file_names = [
+                        sequence_files[0]['fileName'],
+                        sequence_files[1]['fileName']
+                    ]
+                    expected_sequence_file_names = [
+                        '01thread_S1_L001_R1_001.fastq.gz',
+                        '01thread_S1_L001_R2_001.fastq.gz'
+                    ]
+                    self.assertEqual(res_sequence_file_names.sort(), expected_sequence_file_names.sort())
+                elif sample.sample_name == "02thread":
+                    sequence_files = test_api.get_sequence_files(project_id, sample.sample_name)
+                    # This one is 0 because we didn't actually upload them
+                    self.assertEqual(len(sequence_files), 0)
+                elif sample.sample_name == "03thread":
+                    sequence_files = test_api.get_sequence_files(project_id, sample.sample_name)
+                    self.assertEqual(len(sequence_files), 2)
+                    res_sequence_file_names = [
+                        sequence_files[0]['fileName'],
+                        sequence_files[1]['fileName']
+                    ]
+                    expected_sequence_file_names = [
+                        '03thread_S1_L001_R1_001.fastq.gz',
+                        '03thread_S1_L001_R2_001.fastq.gz'
+                    ]
+                    self.assertEqual(res_sequence_file_names.sort(), expected_sequence_file_names.sort())
+
     def test_valid_directory_upload(self):
         """
         Test a valid directory for upload end to end
@@ -759,6 +844,95 @@ class TestEndToEnd(unittest.TestCase):
                 expected_sequence_file_names = [
                     'SA20121716_S1_R1_001.fastq.qz',
                     'SA20121716_S1_R2_001.fastq.qz'
+                ]
+                self.assertEqual(res_sequence_file_names.sort(), expected_sequence_file_names.sort())
+
+        self.assertEqual(sample_1_found, True)
+        self.assertEqual(sample_2_found, True)
+
+    def test_valid_nextseq2k_upload(self):
+        """
+        Test a valid nextseq2k directory for upload from end to end
+        :return:
+        """
+        # Set our sample config file to use miseq parser and the correct irida credentials
+        self.write_to_config_file(
+            client_id=tests_integration.client_id,
+            client_secret=tests_integration.client_secret,
+            username=tests_integration.username,
+            password=tests_integration.password,
+            base_url=tests_integration.base_url,
+            parser="nextseq2k_nml",
+            readonly=False
+        )
+
+        # instance an api
+        test_api = api.ApiCalls(
+            client_id=tests_integration.client_id,
+            client_secret=tests_integration.client_secret,
+            base_url=tests_integration.base_url,
+            username=tests_integration.username,
+            password=tests_integration.password
+        )
+
+        # Create a test project, the uploader does not make new projects on its own
+        # so one must exist to upload samples into
+        # This may not be the project that the files get uploaded to,
+        # but one will be made in the case this is the only test being run
+        project_name = "test_project_nextseq2k"
+        project_description = "test_project_description_nextseq2k"
+        project = model.Project(name=project_name, description=project_description)
+        test_api.send_project(project)
+        # We always upload to project "1" so that tests will be consistent no matter how many / which tests are run
+        project_id_1 = "1"
+
+        # we are uploading 2 projects, so create another one
+        project_name_2 = "test_project_nextseq2k_2"
+        project_description_2 = "test_project_description_nextseq2k_2"
+        project_2 = model.Project(name=project_name_2, description=project_description_2)
+        test_api.send_project(project_2)
+        project_id_2 = "2"
+
+        # Do the upload
+        upload_result = upload_run_single_entry(path.join(path_to_module, "fake_nextseq2k_data"))
+
+        # Make sure the upload was a success
+        self.assertEqual(upload_result.exit_code, 0)
+
+        # Verify the files were uploaded
+        sample_list_1 = test_api.get_samples(project_id_1)
+        sample_list_2 = test_api.get_samples(project_id_2)
+
+        sample_1_found = False
+        sample_2_found = False
+
+        for sample in sample_list_1:
+            if sample.sample_name == "01A100001":
+                sample_1_found = True
+                sequence_files = test_api.get_sequence_files(project_id_1, sample.sample_name)
+                self.assertEqual(len(sequence_files), 2)
+                res_sequence_file_names = [
+                    sequence_files[0]['fileName'],
+                    sequence_files[1]['fileName']
+                ]
+                expected_sequence_file_names = [
+                    '01A100001_S1_L001_R1_001.fastq.gz',
+                    '01A100001_S1_L001_R2_001.fastq.gz'
+                ]
+                self.assertEqual(res_sequence_file_names.sort(), expected_sequence_file_names.sort())
+
+        for sample in sample_list_2:
+            if sample.sample_name == "01A100002":
+                sample_2_found = True
+                sequence_files = test_api.get_sequence_files(project_id_2, sample.sample_name)
+                self.assertEqual(len(sequence_files), 2)
+                res_sequence_file_names = [
+                    sequence_files[0]['fileName'],
+                    sequence_files[1]['fileName']
+                ]
+                expected_sequence_file_names = [
+                    '01A100002_S1_L001_R1_001.fastq.gz',
+                    '01A100002_S1_L001_R2_001.fastq.gz'
                 ]
                 self.assertEqual(res_sequence_file_names.sort(), expected_sequence_file_names.sort())
 

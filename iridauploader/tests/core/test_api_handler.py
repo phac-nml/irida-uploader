@@ -149,6 +149,12 @@ class TestUploadSequencingRun(unittest.TestCase):
     Tests the core.api_handler.upload_sequencing_run function
     """
 
+    class StubDirectoryStatus:
+        run_id = None
+
+        def set_sample_uploaded(self, sample_name, project_id, uploaded):
+            return None
+
     sequencing_run = None
 
     def setUp(self):
@@ -164,7 +170,8 @@ class TestUploadSequencingRun(unittest.TestCase):
         sequencing_run = None
 
     @patch("iridauploader.core.api_handler._get_api_instance")
-    def test_valid_all_functions_called(self, mock_api_instance):
+    @patch("iridauploader.progress.write_directory_status")
+    def test_valid_all_functions_called(self, mock_progress, mock_api_instance):
         """
         Makes sure that all functions are called when a valid sequencing run in given
         :return:
@@ -184,8 +191,11 @@ class TestUploadSequencingRun(unittest.TestCase):
         stub_api_instance.set_seq_run_complete.side_effect = [True]
 
         mock_api_instance.side_effect = [stub_api_instance]
+        mock_progress.side_effect = [None, None, None, None, None, None, None, None, None, None]
 
-        api_handler.upload_sequencing_run(sequencing_run, MODE_DEFAULT)
+        api_handler.upload_sequencing_run(sequencing_run,
+                                          directory_status=self.StubDirectoryStatus(),
+                                          upload_mode=MODE_DEFAULT)
 
         # ensure the response matches our mocks, and that all the needed functions were called correctly
         stub_api_instance.create_seq_run.assert_called_once_with(sequencing_run.metadata,
@@ -202,7 +212,8 @@ class TestUploadSequencingRun(unittest.TestCase):
         stub_api_instance.set_seq_run_complete.assert_called_once_with(mock_sequence_run_id)
 
     @patch("iridauploader.core.api_handler._get_api_instance")
-    def test_valid_all_functions_called_assemblies(self, mock_api_instance):
+    @patch("iridauploader.progress.write_directory_status")
+    def test_valid_all_functions_called_assemblies(self, mock_progress, mock_api_instance):
         """
         Makes sure that all functions are called when a valid sequencing run in given
         :return:
@@ -223,8 +234,11 @@ class TestUploadSequencingRun(unittest.TestCase):
         stub_api_instance.set_seq_run_complete.side_effect = [True]
 
         mock_api_instance.side_effect = [stub_api_instance]
+        mock_progress.side_effect = [None, None, None, None, None, None, None, None, None, None]
 
-        api_handler.upload_sequencing_run(sequencing_run, upload_mode=MODE_ASSEMBLIES)
+        api_handler.upload_sequencing_run(sequencing_run,
+                                          directory_status=self.StubDirectoryStatus(),
+                                          upload_mode=MODE_ASSEMBLIES)
 
         # ensure the response matches our mocks, and that all the needed functions were called correctly
         stub_api_instance.create_seq_run.assert_called_once_with(sequencing_run.metadata,
@@ -241,7 +255,8 @@ class TestUploadSequencingRun(unittest.TestCase):
         stub_api_instance.set_seq_run_complete.assert_called_once_with(mock_sequence_run_id)
 
     @patch("iridauploader.core.api_handler._get_api_instance")
-    def test_valid_all_functions_called_fast5(self, mock_api_instance):
+    @patch("iridauploader.progress.write_directory_status")
+    def test_valid_all_functions_called_fast5(self, mock_progress, mock_api_instance):
         """
         Makes sure that all functions are called when a valid sequencing run in given
         :return:
@@ -262,8 +277,11 @@ class TestUploadSequencingRun(unittest.TestCase):
         stub_api_instance.set_seq_run_complete.side_effect = [True]
 
         mock_api_instance.side_effect = [stub_api_instance]
+        mock_progress.side_effect = [None, None, None, None, None, None, None, None, None, None]
 
-        api_handler.upload_sequencing_run(sequencing_run, upload_mode=MODE_FAST5)
+        api_handler.upload_sequencing_run(sequencing_run,
+                                          directory_status=self.StubDirectoryStatus(),
+                                          upload_mode=MODE_FAST5)
 
         # ensure the response matches our mocks, and that all the needed functions were called correctly
         stub_api_instance.create_seq_run.assert_called_once_with(sequencing_run.metadata,
@@ -280,7 +298,8 @@ class TestUploadSequencingRun(unittest.TestCase):
         stub_api_instance.set_seq_run_complete.assert_called_once_with(mock_sequence_run_id)
 
     @patch("iridauploader.core.api_handler._get_api_instance")
-    def test_invalid_error_raised(self, mock_api_instance):
+    @patch("iridauploader.progress.write_directory_status")
+    def test_invalid_error_raised(self, mock_progress, mock_api_instance):
         """
         Makes sure that the sequencing run is set to error when an exception is thrown
         :return:
@@ -299,10 +318,13 @@ class TestUploadSequencingRun(unittest.TestCase):
         stub_api_instance.set_seq_run_error.side_effect = [True]
 
         mock_api_instance.side_effect = [stub_api_instance]
+        mock_progress.side_effect = [None]
 
         # make sure the IridaResourceError was thrown correctly
         with self.assertRaises(IridaResourceError):
-            api_handler.upload_sequencing_run(sequencing_run, upload_mode=MODE_DEFAULT)
+            api_handler.upload_sequencing_run(sequencing_run,
+                                              directory_status=self.StubDirectoryStatus(),
+                                              upload_mode=MODE_DEFAULT)
 
         # verify the sequencing run was set to an error state after the upload was run
         stub_api_instance.create_seq_run.assert_called_once_with(sequencing_run.metadata,

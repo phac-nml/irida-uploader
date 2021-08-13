@@ -1,0 +1,106 @@
+###########################################################################
+# Integration test suite definition for IRIDA Uploader using GitHub Actions
+###########################################################################
+
+name: Integration Tests
+
+on:
+  pull_request: # Run on all pull requests
+  push:
+    branches:   # Run on any push to development or master
+      - development
+      - master
+  schedule:     # Run weekly on development and master
+    - cron: 0 2 * * 1
+      branches: development
+    - cron: 0 2 * * 1
+      branches: master
+
+
+jobs:
+  build-unittests:
+    runs-on: ubuntu-20.04 #See pre-installed software at https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md
+    strategy:
+      fail-fast: False #Setting so that if one of the test suites fail, the other will continue
+      matrix:
+        python-version: [3.5, 3.6, 3.7, 3.8, 3.9]
+
+    steps:
+    - uses: actions/checkout@v2 #Checkout the project from git
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Run Unit Tests
+      run: make unittests
+
+  build-pep8:
+    runs-on: ubuntu-20.04 #See pre-installed software at https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md
+
+    steps:
+      - uses: actions/checkout@v2 #Checkout the project from git
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Run pep8
+        run: make pep8
+
+  build-docs:
+    runs-on: ubuntu-20.04 #See pre-installed software at https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md
+
+    steps:
+      - uses: actions/checkout@v2 #Checkout the project from git
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+      - name: Run mkdocs
+        run: make docs
+
+  build-irida-integration:
+    runs-on: ubuntu-20.04 #See pre-installed software at https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md
+
+    env:
+      MYSQL_PORT: 3306
+      MYSQL_USER: test
+      MYSQL_PASSWORD: test
+      MYSQL_DATABASE: irida_uploader_test
+      MYSQL_HOST: 127.0.0.1
+      MYSQL_ROOT_PASSWORD: password
+
+    strategy:
+      fail-fast: False #Setting so that if one of the test suites fail, the other will continue
+      matrix:
+        branch: ['master','development'] # IRIDA Branches to test against
+
+    steps:
+      - uses: actions/checkout@v2 #Checkout the project from git
+      - name: Setup MySQL
+        uses: mirromutth/mysql-action@v1.1
+        with:
+          host port: ${{ env.MYSQL_PORT }}
+          character set server: 'utf8'
+          collation server: 'utf8_general_ci'
+          mysql version: '5.7'
+          mysql database: ${{ env.MYSQL_DATABASE }}
+          mysql user: ${{ env.MYSQL_USER }}
+          mysql password: ${{ env.MYSQL_PASSWORD }}
+          mysql root password: ${{ env.MYSQL_ROOT_PASSWORD }} #The root superuser password
+      - name: Verify MySQL connection
+        timeout-minutes: 10
+        run: |
+          while ! mysqladmin ping -h"${{ env.MYSQL_HOST }}" -P"${{ env.MYSQL_PORT }}" --silent; do
+            sleep 1
+          done
+      - name: Set up JDK 11 # Installs java 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+      - name: MySQL Setup (SUDO) # Sets ONLY_FULL_GROUP_BY flag and gives runner privileges over database
+        run: |
+          sudo mysql -e "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));" -h ${{ env.MYSQL_HOST }} -P ${{ env.MYSQL_PORT }} -p${{ env.MYSQL_ROOT_PASSWORD }};
+          sudo mysql -e "CREATE USER '${{ env.MYSQL_USER }}'@'%' IDENTIFIED BY '${{ env.MYSQL_PASSWORD }}'; GRANT ALL ON ${{ env.MYSQL_DATABASE }}.* to '${{ env.MYSQL_USER }}'@'%';" -h ${{ env.MYSQL_HOST }} -P ${{ env.MYSQL_PORT }} -p${{ env.MYSQL_ROOT_PASSWORD }};
+      - name: Run Integration Tests ${{ matrix.branch }}
+        timeout-minutes: 60
+        run: make integrationtests branch=${{ matrix.branch }} db_host=${{ env.MYSQL_HOST }} db_port=${{ env.MYSQL_PORT }}

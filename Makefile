@@ -50,15 +50,16 @@ integrationtests: clean env preintegration
 	source .virtualenv/bin/activate
 	pip3 install -e .[TEST]
 	export IRIDA_UPLOADER_TEST='True'
-	xvfb-run --auto-servernum --server-num=1 integration-test $(branch)
+	xvfb-run --auto-servernum --server-num=1 integration-test $(branch) $(db_host) $(db_port)
 
 pep8: clean env
 	source .virtualenv/bin/activate
 	pip3 install pycodestyle
-	pycodestyle --show-source --exclude=".git","bin",".idea","docs",".github","site",".virtualenv","iridauploader/build" --ignore="E501" .
+	pycodestyle --show-source --exclude=".git","bin",".idea","docs",".github","site",".virtualenv","iridauploader/build" --ignore="E501,W503" .
 
 docs: requirements
 	source .virtualenv/bin/activate
+	pip3 install -r docs/requirements.txt
 	mkdocs build
 
 .ONESHELL:
