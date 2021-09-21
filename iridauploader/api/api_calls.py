@@ -430,13 +430,16 @@ class ApiCalls(object):
                 # use name and description from dictionary as base parameters when creating sample
                 sample_name = sample_dict['sampleName']
                 sample_desc = sample_dict['description']
+                sample_identifier = sample_dict['identifier']
                 # remove them from the dict so we don't have useless duplicate data
                 del sample_dict['sampleName']
                 del sample_dict['description']
+                del sample_dict['identifier']
                 sample_list.append(model.Sample(
                     sample_name=sample_name,
                     description=sample_desc,
-                    samp_dict=sample_dict
+                    samp_dict=sample_dict,
+                    sample_number=sample_identifier
                 ))
             self.cached_samples[project_id] = sample_list
 
@@ -663,7 +666,7 @@ class ApiCalls(object):
 
         :param sample: Sample object to send
         :param project_id: id of project to send sample too
-        :return: json response from server
+        :return: (int) sample identifier
         """
 
         logging.info("Creating sample '{}' for project '{}' on IRIDA.".format(sample.sample_name, project_id))
@@ -699,7 +702,7 @@ class ApiCalls(object):
                           "".format(response.status_code, response.text))
             raise self._get_irida_exception(response)
 
-        return json_res
+        return int(json_res['identifier'])
 
     def send_sequence_files(self, sequence_file, sample_name, project_id, upload_id, upload_mode=MODE_DEFAULT):
         """
@@ -816,6 +819,34 @@ class ApiCalls(object):
         except StopIteration:
             logging.error("The given sample doesn't exist: ".format(sample_name))
             raise exceptions.IridaResourceError("The given sample doesn't exist", sample_name)
+
+        json_obj = json.dumps(metadata.get_uploadable_dict())
+
+        headers_pkg = {'Content-Type': 'application/json'}
+
+        response = self._session.put(url, data=json_obj, headers=headers_pkg)
+
+        if response.status_code == 200:  # 200
+            json_res = json.loads(response.text)
+        else:
+            logging.error("Did not add metadata to sample. Response code is '{}' and error message is '{}'"
+                          "".format(response.status_code, response.text))
+            raise self._get_irida_exception(response)
+
+        return json_res
+
+    def send_metadata_by_sample_id(self, metadata, sample_id):
+        """
+        Put request to add metadata to specific sample ID
+
+        :param metadata: Metadata object
+        :param sample_id: id of sample to add metadata to
+        :return: json response from server
+        """
+
+        logging.info("Adding metadata to sample '{}' ".format(sample_id))
+
+        url = f"{self.base_url}/samples/{sample_id}/metadata"
 
         json_obj = json.dumps(metadata.get_uploadable_dict())
 
@@ -1147,8 +1178,11 @@ class ApiCalls(object):
 
         :param sample_name: sample to confirm existence of
         :param project_id: project that we think the sample is on
-        :return: True or False
+        :return: Integer of the sample identifier if it exists, otherwise false
         """
         logging.debug("sample exists: sample: {}, on project: {}".format(sample_name, project_id))
         sample_list = self.get_samples(project_id)
-        return any([s.sample_name.lower() == sample_name.lower() for s in sample_list])
+        for s in sample_list:
+            if s.sample_name.lower() == sample_name.lower():
+                return s.sample_number
+        return False
