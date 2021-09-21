@@ -501,7 +501,7 @@ class ApiCalls(object):
             sample_name -- the sample name identifier to get from irida, relative to a project
             project_id -- the id of the project the sample is on
 
-        returns list of assemblies files dictionary for given sample_id
+        returns list of assemblies files dictionary for given sample_name
         """
 
         logging.info("Getting assemblies files from sample '{}' on project '{}'".format(sample_name, project_id))
@@ -529,6 +529,32 @@ class ApiCalls(object):
         except StopIteration:
             logging.error("The given sample doesn't exist: ".format(sample_name))
             raise exceptions.IridaResourceError("The given sample ID doesn't exist", sample_name)
+
+        # todo future development if needed one day
+        # This response should be returned as some sort of file object
+        # This is related to how we return get_sequence_files too, but there is no real use for it at the moment, yagni
+        result = response.json()["resource"]["resources"]
+
+        return result
+
+    def get_assemblies_files_by_sample_id(self, sample_id):
+        """
+        API call to api/samples/sample_id/assemblies
+
+        :param sample_id: sample the assemblies are on
+        :return: list of assemblies files dictionary for given sample_name
+        """
+
+        logging.info("Getting assemblies files from sample '{}'".format(sample_id))
+
+        url = f"{self.base_url}/samples/{sample_id}/assemblies"
+
+        try:
+            response = self._session.get(url)
+
+        except StopIteration:
+            logging.error("The given sample doesn't exist: ".format(sample_id))
+            raise exceptions.IridaResourceError("The given sample ID doesn't exist", sample_id)
 
         # todo future development if needed one day
         # This response should be returned as some sort of file object
