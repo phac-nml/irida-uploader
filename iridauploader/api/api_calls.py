@@ -648,6 +648,29 @@ class ApiCalls(object):
 
         return result
 
+    def get_metadata_by_sample_id(self, sample_id):
+        """
+        API call to api/samples/{sampleId}/metadata
+        arguments:
+            sample_id
+        returns list of metadata associated with sampleID
+        """
+
+        logging.info("Getting metadata from sample id '{}'".format(sample_id))
+
+        url = f"{self.base_url}/samples/{sample_id}/metadata"
+
+        try:
+            response = self._session.get(url)
+
+        except StopIteration:
+            logging.error("The given sample id '{}' doesn't exist: ".format(sample_id))
+            raise exceptions.IridaResourceError("The given sample id '{}' doesn't exist", sample_id)
+
+        result = response.json()["resource"]["metadata"]
+
+        return result
+
     def send_project(self, project, clear_cache=True):
         """
         post request to send a project to IRIDA via API
