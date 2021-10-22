@@ -47,8 +47,8 @@ def _init_config_parser():
                         SettingsDefault._make(["parser", "directory"]),
                         SettingsDefault._make(["readonly", False]),
                         SettingsDefault._make(["delay", 0]),
-                        SettingsDefault._make(["timeout", 10]),
-                        SettingsDefault._make(["minimum_file_size", 0])]  # default timeout scale is 10 seconds per mb
+                        SettingsDefault._make(["timeout", 10]),  # default timeout scale is 10 seconds per mb
+                        SettingsDefault._make(["minimum_file_size", 0])]  # default minimum file size in kb
     # add defaults to config parser
     for config in default_settings:
         _conf_parser.set("Settings", config.setting, config.default_value)
