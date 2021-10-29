@@ -169,7 +169,6 @@ class ConfigDialog(QtWidgets.QDialog):
         min_file_size_int = config.read_config_option("minimum_file_size", int, 0)
         self._min_file_size.setValue(min_file_size_int)
 
-
     def _write_settings_to_file(self):
         """
         Writes the settings in the config boxes to file

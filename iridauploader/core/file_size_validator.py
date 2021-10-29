@@ -18,12 +18,12 @@ def validate_file_size_minimum(sequencing_run):
     validation_result = model.ValidationResult()
 
     for p in sequencing_run.project_list:
-            for s in p.sample_list:
-                # do validation of file size
-                if not _file_size_is_valid(s.sequence_file, minimum_file_size):
-                    error_msg = "File size for sample `{}`is smaller than configured minimum of `{} KB`. " \
-                                "Please verify your data.".format(s.sample_name, minimum_file_size)
-                    validation_result.add_error(FileSizeError(error_msg, s.sequence_file))
+        for s in p.sample_list:
+            # do validation of file size
+            if not _file_size_is_valid(s.sequence_file, minimum_file_size):
+                error_msg = "File size for sample `{}`is smaller than configured minimum of `{} KB`. " \
+                            "Please verify your data.".format(s.sample_name, minimum_file_size)
+                validation_result.add_error(FileSizeError(error_msg, s.sequence_file))
 
     return validation_result
 
