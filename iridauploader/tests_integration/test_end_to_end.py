@@ -83,7 +83,8 @@ class TestEndToEnd(unittest.TestCase):
                                   password=password,
                                   base_url=base_url,
                                   parser=parser,
-                                  readonly=readonly)
+                                  readonly=readonly,
+                                  minimum_file_size=-1)  # allow 0kb test files to be uploaded, code blocks still run
         config.write_config_options_to_file()
 
     def test_valid_miseq_upload(self):
