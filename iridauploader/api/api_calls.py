@@ -904,6 +904,10 @@ class ApiCalls(object):
         # override max byte read size
         # This lambda overrides httplibs hard coded 8192 byte read size
         # More details: https://github.com/requests/toolbelt/issues/75#issuecomment-237189952
+        # Update: although configuring blocksize has been added to Python 3.7, it is not implemented in Requests, and is
+        # labeled as "wontfix". So unless we want to move away from Multipart File Encoding, this lambda patch stays.
+        # If we do move away from Multipart File Encoding, choosing a faster file transfer method that does not rely on
+        # http would be better than switching to urllib3 or other python http packages.
         monitor._read = monitor.read
         monitor.read = lambda size: monitor._read(1024 * 1024)
         # return the monitor/encoder object
