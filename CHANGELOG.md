@@ -1,6 +1,15 @@
 Changes
 =======
 
+Beta 0.7.0
+----------
+Change:
+* Added `--minimum_file_size=[Integer]` argument/config option to set the minimum expected file size for files
+  * This is checked during the parsing / offline validation step
+  * Value in KB
+  * Default is 0 KB
+* Added `minimum_file_size` option to the GUI as an ADVANCED option
+
 Beta 0.6.2
 ----------
 Changes:
