@@ -430,7 +430,7 @@ class ApiCalls(object):
                 # use name and description from dictionary as base parameters when creating sample
                 sample_name = sample_dict['sampleName']
                 sample_desc = sample_dict['description']
-                sample_identifier = sample_dict['identifier']
+                sample_identifier = int(sample_dict['identifier'])
                 # remove them from the dict so we don't have useless duplicate data
                 del sample_dict['sampleName']
                 del sample_dict['description']
@@ -491,53 +491,7 @@ class ApiCalls(object):
 
         return result
 
-    def get_assemblies_files(self, project_id, sample_name):
-        """
-        API call to api/projects/project_id/sample_id/assemblies
-        We fetch the assemblies files through the project id on this route
-
-        arguments:
-
-            sample_name -- the sample name identifier to get from irida, relative to a project
-            project_id -- the id of the project the sample is on
-
-        returns list of assemblies files dictionary for given sample_name
-        """
-
-        logging.info("Getting assemblies files from sample '{}' on project '{}'".format(sample_name, project_id))
-
-        try:
-            project_url = self._get_link(self.base_url, "projects")
-            sample_url = self._get_link(project_url, "project/samples",
-                                        target_dict={
-                                            "key": "identifier",
-                                            "value": project_id
-                                        })
-
-        except StopIteration:
-            logging.error("The given project ID doesn't exist: ".format(project_id))
-            raise exceptions.IridaResourceError("The given project ID doesn't exist", project_id)
-
-        try:
-            url = self._get_link(sample_url, "sample/assemblies",
-                                 target_dict={
-                                     "key": "sampleName",
-                                     "value": sample_name
-                                 })
-            response = self._session.get(url)
-
-        except StopIteration:
-            logging.error("The given sample doesn't exist: ".format(sample_name))
-            raise exceptions.IridaResourceError("The given sample ID doesn't exist", sample_name)
-
-        # todo future development if needed one day
-        # This response should be returned as some sort of file object
-        # This is related to how we return get_sequence_files too, but there is no real use for it at the moment, yagni
-        result = response.json()["resource"]["resources"]
-
-        return result
-
-    def get_assemblies_files_by_sample_id(self, sample_id):
+    def get_assemblies_files(self, sample_id):
         """
         API call to api/samples/sample_id/assemblies
 
@@ -609,46 +563,7 @@ class ApiCalls(object):
 
         return result
 
-    def get_metadata(self, sample_name, project_id):
-        """
-        API call to api/samples/{sampleId}/metadata
-        arguments:
-            sample_name
-            project_id
-        returns list of metadata associated with sampleID
-        """
-
-        logging.info("Getting metadata from sample name '{}' found in project ID '{}'".format(sample_name, project_id))
-
-        try:
-            project_url = self._get_link(self.base_url, "projects")
-            sample_url = self._get_link(project_url, "project/samples",
-                                        target_dict={
-                                            "key": "identifier",
-                                            "value": project_id
-                                        })
-
-        except StopIteration:
-            logging.error("The given project ID doesn't exist: ".format(project_id))
-            raise exceptions.IridaResourceError("The given project ID doesn't exist", project_id)
-
-        try:
-            url = self._get_link(sample_url, "sample/metadata",
-                                 target_dict={
-                                     "key": "sampleName",
-                                     "value": sample_name
-                                 })
-            response = self._session.get(url)
-
-        except StopIteration:
-            logging.error("The given sample name doesn't exist: ".format(sample_name))
-            raise exceptions.IridaResourceError("The given sample name doesn't exist", sample_name)
-
-        result = response.json()["resource"]["metadata"]
-
-        return result
-
-    def get_metadata_by_sample_id(self, sample_id):
+    def get_metadata(self, sample_id):
         """
         API call to api/samples/{sampleId}/metadata
         arguments:
@@ -669,6 +584,7 @@ class ApiCalls(object):
 
         result = response.json()["resource"]["metadata"]
 
+        # TODO: api refactor project: build this data into a model/Metadata object
         return result
 
     def send_project(self, project, clear_cache=True):
@@ -751,7 +667,29 @@ class ApiCalls(object):
                           "".format(response.status_code, response.text))
             raise self._get_irida_exception(response)
 
-        return int(json_res['identifier'])
+        return int(json_res['resource']['identifier'])
+
+    def get_sample_details(self, sample_id):
+        """
+        Given a sample id, returns response from server for the baseurl/samples/sample_id endpoint
+        :param sample_id:
+        :return: server resource response
+        """
+        logging.info("Getting sample info for sample id '{}'".format(sample_id))
+
+        url = f"{self.base_url}/samples/{sample_id}"
+
+        try:
+            response = self._session.get(url)
+
+        except StopIteration:
+            logging.error("The given sample id '{}' doesn't exist: ".format(sample_id))
+            raise exceptions.IridaResourceError("The given sample id '{}' doesn't exist", sample_id)
+
+        # TODO: api refactor project: build this data into a model/Metadata object
+        result = response.json()
+
+        return result
 
     def send_sequence_files(self, sequence_file, sample_name, project_id, upload_id, upload_mode=MODE_DEFAULT):
         """
@@ -834,57 +772,7 @@ class ApiCalls(object):
         # minimum time should be 20 minutes
         return timeout_mb if timeout_mb > TIMEOUT_MINIMUM else TIMEOUT_MINIMUM
 
-    def send_metadata(self, metadata, project_id, sample_name):
-        """
-        Put request to add metadata to specific sample ID
-
-        :param metadata: Metadata object
-        :param project_id: id of project sample id is in
-        :param sample_name: name of sample in project to add metadata to
-        :return: json response from server
-        """
-
-        logging.info("Adding metadata to sample '{}' found in project '{}' on IRIDA.".format(sample_name, project_id))
-
-        try:
-            project_url = self._get_link(self.base_url, "projects")
-            sample_url = self._get_link(project_url, "project/samples",
-                                        target_dict={
-                                            "key": "identifier",
-                                            "value": project_id
-                                        })
-
-        except StopIteration:
-            logging.error("The given project ID doesn't exist: ".format(project_id))
-            raise exceptions.IridaResourceError("The given project ID doesn't exist", project_id)
-
-        try:
-            url = self._get_link(sample_url, "sample/metadata",
-                                 target_dict={
-                                     "key": "sampleName",
-                                     "value": sample_name
-                                 })
-
-        except StopIteration:
-            logging.error("The given sample doesn't exist: ".format(sample_name))
-            raise exceptions.IridaResourceError("The given sample doesn't exist", sample_name)
-
-        json_obj = json.dumps(metadata.get_uploadable_dict())
-
-        headers_pkg = {'Content-Type': 'application/json'}
-
-        response = self._session.put(url, data=json_obj, headers=headers_pkg)
-
-        if response.status_code == 200:  # 200
-            json_res = json.loads(response.text)
-        else:
-            logging.error("Did not add metadata to sample. Response code is '{}' and error message is '{}'"
-                          "".format(response.status_code, response.text))
-            raise self._get_irida_exception(response)
-
-        return json_res
-
-    def send_metadata_by_sample_id(self, metadata, sample_id):
+    def send_metadata(self, metadata, sample_id):
         """
         Put request to add metadata to specific sample ID
 
@@ -1223,11 +1111,22 @@ class ApiCalls(object):
 
     def sample_exists(self, sample_name, project_id):
         """
-        Check if a sample exists on a project
+        Given a sample name and project id, returns True or False for if sample exists
+        :param sample_name:
+        :param project_id:
+        :return:
+        """
+        return True if (self.get_sample_id(sample_name, project_id) is not False) else False
+
+    def get_sample_id(self, sample_name, project_id):
+        """
+        Given a sample name and project id, returns the sample id, or False if it doesn't exist
+
+        This method shares sample caching with the get_samples method
 
         :param sample_name: sample to confirm existence of
         :param project_id: project that we think the sample is on
-        :return: Integer of the sample identifier if it exists, otherwise false
+        :return: Integer of the sample identifier if it exists, otherwise False
         """
         logging.debug("sample exists: sample: {}, on project: {}".format(sample_name, project_id))
         sample_list = self.get_samples(project_id)

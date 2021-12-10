@@ -84,9 +84,10 @@ class TestApiIntegration(unittest.TestCase):
         sample_desc = "test_sample_desc"
         sample = model.Sample(sample_name, sample_desc)
 
-        sample_json_res = self.test_api.send_sample(sample, project_identifier)
+        sample_id = self.test_api.send_sample(sample, project_identifier)
 
         # make sure the returned values match what we tried to upload
+        sample_json_res = self.test_api.get_sample_details(sample_id)
         self.assertEqual(sample_json_res['resource']['sampleName'], sample_name)
         self.assertEqual(sample_json_res['resource']['description'], sample_desc)
 
@@ -117,7 +118,7 @@ class TestApiIntegration(unittest.TestCase):
         sample = model.Sample(sample_name, sample_desc)
 
         self.test_api.send_sample(sample, project_id)
-        self.assertTrue(self.test_api.sample_exists(sample_name, project_id))
+        self.assertNotEquals(self.test_api.get_sample_id(sample_name, project_id), False)
 
     def test_send_and_get_sequence_files(self):
         """
