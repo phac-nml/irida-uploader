@@ -45,7 +45,7 @@ If you would prefer to build a windows installer from source code, please see th
 
 #### Linux
 
-The IRIDA Uploader requires Python version 3.5 or newer
+The IRIDA Uploader requires Python version 3.6 or newer
 
     $ python3 --version
 

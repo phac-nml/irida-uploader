@@ -20,6 +20,8 @@ The following changes have been done to speed up extremely long REST requests, m
 * added `get_sample_details(self, sample_id)` as an `api` method to fetch full Sample data from IRIDA
 * added `sample_identifier` as a property to `Sample` objects
 
+* Dropped support for Python 3.5
+
 Beta 0.6.2
 ----------
 Changes:
