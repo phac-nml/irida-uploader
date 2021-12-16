@@ -667,7 +667,7 @@ class ApiCalls(object):
                           "".format(response.status_code, response.text))
             raise self._get_irida_exception(response)
 
-        return int(json_res['resource']['identifier'])
+        return json_res
 
     def get_sample_details(self, sample_id):
         """

@@ -84,9 +84,14 @@ class TestApiIntegration(unittest.TestCase):
         sample_desc = "test_sample_desc"
         sample = model.Sample(sample_name, sample_desc)
 
-        sample_id = self.test_api.send_sample(sample, project_identifier)
+        json_res = self.test_api.send_sample(sample, project_identifier)
 
         # make sure the returned values match what we tried to upload
+        self.assertEqual(json_res['resource']['sampleName'], sample_name)
+        self.assertEqual(json_res['resource']['description'], sample_desc)
+
+        # fetch the sample from the server and confirm it again
+        sample_id = int(json_res['resource']['identifier'])
         sample_json_res = self.test_api.get_sample_details(sample_id)
         self.assertEqual(sample_json_res['resource']['sampleName'], sample_name)
         self.assertEqual(sample_json_res['resource']['description'], sample_desc)
