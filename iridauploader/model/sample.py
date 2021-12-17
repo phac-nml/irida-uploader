@@ -40,7 +40,7 @@ class Sample:
             'required': False
         },
         '_sample_id': {
-            'type': 'int',
+            'type': 'integer',
             'nullable': True,
             'required': False
         },
