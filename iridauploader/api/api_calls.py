@@ -430,7 +430,7 @@ class ApiCalls(object):
                 # use name and description from dictionary as base parameters when creating sample
                 sample_name = sample_dict['sampleName']
                 sample_desc = sample_dict['description']
-                sample_identifier = int(sample_dict['identifier'])
+                sample_id = int(sample_dict['identifier'])
                 # remove them from the dict so we don't have useless duplicate data
                 del sample_dict['sampleName']
                 del sample_dict['description']
@@ -439,7 +439,7 @@ class ApiCalls(object):
                     sample_name=sample_name,
                     description=sample_desc,
                     samp_dict=sample_dict,
-                    sample_number=sample_identifier
+                    sample_id=sample_id
                 ))
             self.cached_samples[project_id] = sample_list
 
@@ -631,7 +631,7 @@ class ApiCalls(object):
 
         :param sample: Sample object to send
         :param project_id: id of project to send sample too
-        :return: (int) sample identifier
+        :return: json response from server
         """
 
         logging.info("Creating sample '{}' for project '{}' on IRIDA.".format(sample.sample_name, project_id))
@@ -1132,5 +1132,5 @@ class ApiCalls(object):
         sample_list = self.get_samples(project_id)
         for s in sample_list:
             if s.sample_name.lower() == sample_name.lower():
-                return s.sample_number
+                return s.sample_id
         return False

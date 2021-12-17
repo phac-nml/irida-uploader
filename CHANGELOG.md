@@ -17,6 +17,7 @@ The following changes have been done to speed up extremely long REST requests, m
   * `get_metadata`
   * `send_metadata`
 * added `get_sample_id(self, sample_name, project_id)` to fetch the `sample_id`. This can be used in the modified methods above.
+* removed `set_irida_id(...)` from Sample object, added `sample_id` property to Sample object
 * added `get_sample_details(self, sample_id)` as an `api` method to fetch full Sample data from IRIDA
 * added `sample_identifier` as a property to `Sample` objects
 
