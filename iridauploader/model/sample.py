@@ -40,7 +40,7 @@ class Sample:
             'required': False
         },
         '_sample_id': {
-            'anyof_type': ['string', 'integer'],
+            'type': 'int',
             'nullable': True,
             'required': False
         },
@@ -51,13 +51,13 @@ class Sample:
         }
     }
 
-    def __init__(self, sample_name, description='', sample_number=None, sample_id=None, samp_dict=None):
+    def __init__(self, sample_name, description='', sample_number=None, samp_dict=None, sample_id=None):
         """
         :param sample_name: string: displayed sample name on IRIDA
         :param description: string:
         :param sample_number: string or int: used during parsing step for some parsers that define their own numbers for samples
-        :param sample_id: string or int: unique (int) identifier defined by irida
         :param samp_dict: dictionary of additional values
+        :param sample_id: int: unique identifier defined by irida
         """
         self._sample_name = sample_name
         self._description = description
