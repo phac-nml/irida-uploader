@@ -3,12 +3,25 @@ Changes
 
 Beta 0.7.0
 ----------
-Change:
+Changes:
 * Added `--minimum_file_size=[Integer]` argument/config option to set the minimum expected file size for files
   * This is checked during the parsing / offline validation step
   * Value in KB
   * Default is 0 KB
 * Added `minimum_file_size` option to the GUI as an ADVANCED option
+
+Developer Changes:
+The following changes have been done to speed up extremely long REST requests, more api improvements should be expected in the future.
+* The following `api` module methods have been changed to accept `sample_id` instead of `sample_name` and `project_id`
+  * `get_assemblies_files`
+  * `get_metadata`
+  * `send_metadata`
+* added `get_sample_id(self, sample_name, project_id)` to fetch the `sample_id`. This can be used in the modified methods above.
+* removed `set_irida_id(...)` from Sample object, added `sample_id` property to Sample object
+* added `get_sample_details(self, sample_id)` as an `api` method to fetch full Sample data from IRIDA
+* added `sample_identifier` as a property to `Sample` objects
+
+* Dropped support for Python 3.5
 
 Beta 0.6.2
 ----------

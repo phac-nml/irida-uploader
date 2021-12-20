@@ -612,8 +612,11 @@ class TestEndToEnd(unittest.TestCase):
         # Make sure the upload was a success
         self.assertEqual(upload_result.exit_code, 0)
 
+        # Get sample_id for sample we uploaded to
+        sample_id = test_api.get_sample_id(sample_name, project_id)
+
         # Verify the files were uploaded
-        sequence_files = test_api.get_assemblies_files(project_id, sample_name)
+        sequence_files = test_api.get_assemblies_files(sample_id)
         self.assertEqual(len(sequence_files), 1)
         self.assertEqual(sequence_files[0]['fileName'], 'file_1.fasta')
 

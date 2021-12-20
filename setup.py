@@ -46,7 +46,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     include_package_data=True,
-    # Test cases makes make it incompatible with pre 3.5
-    python_requires='>=3.5',
+    # Test cases makes make it incompatible with pre 3.6
+    python_requires='>=3.6',
 
 )
