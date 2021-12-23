@@ -10,6 +10,9 @@ Changes:
   * Default is 0 KB
 * Added `minimum_file_size` option to the GUI as an ADVANCED option
 
+Bug fixes:
+* Fixed `directory` parser not raising validation errors (to display to user) when samplesheet file is malformed.
+
 Developer Changes:
 The following changes have been done to speed up extremely long REST requests, more api improvements should be expected in the future.
 * The following `api` module methods have been changed to accept `sample_id` instead of `sample_name` and `project_id`
