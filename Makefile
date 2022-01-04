@@ -50,7 +50,7 @@ integrationtests: clean env preintegration
 	source .virtualenv/bin/activate
 	pip3 install -e .[TEST]
 	export IRIDA_UPLOADER_TEST='True'
-	xvfb-run --auto-servernum --server-num=1 integration-test $(branch) $(db_host) $(db_port)
+	integration-test $(branch) $(db_host) $(db_port)
 
 pep8: clean env
 	source .virtualenv/bin/activate

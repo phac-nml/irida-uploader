@@ -10,6 +10,7 @@ from time import time, sleep
 import sys
 import subprocess
 from http import HTTPStatus
+from pathlib import Path
 
 
 class SetupIridaData:
@@ -50,13 +51,13 @@ class SetupIridaData:
             'create database ' + self.DB_NAME + ';'\
             '"| mysql -h ' + self.DB_HOST + ' -P ' + self.DB_PORT + ' -u test -ptest'
 
-        root_dir = "tests_integration/tmp"
-        output_files = "tests_integration/tmp/output-files"
-        reference_file = "tests_integration/tmp/reference-files"
-        sequence_files = "tests_integration/tmp/sequence-files"
-        assembly_files = "tests_integration/tmp/assembly-files"
+        root_dir = Path(__file__).parent.absolute()
+        output_files = Path(root_dir, "tmp", "output-files")
+        reference_file = Path(root_dir, "tmp", "reference-files")
+        sequence_files = Path(root_dir, "tmp", "sequence-files")
+        assembly_files = Path(root_dir, "tmp", "assembly-files")
 
-        self.IRIDA_CMD = 'mvn clean spring-boot:run --quiet '\
+        self.IRIDA_CMD = 'mvn clean compile spring-boot:start -DskipTests --quiet '\
                          '-Dspring-boot.run.arguments=\"'\
                             '--spring.datasource.url={} '.format(self.DB_JDBC_URL) +\
                             '--spring.datasource.username={} '.format(self.DB_USERNAME) +\
@@ -64,11 +65,11 @@ class SetupIridaData:
                             '--liquibase.update.database.schema=true '\
                             '--spring.jpa.hibernate.ddl-auto= '\
                             '--spring.jpa.properties.hibernate.hbm2ddl.import_files= '\
-                            '--irida.it.rootdirectory={} '.format(root_dir) +\
                             '--sequence.file.base.directory={} '.format(sequence_files) +\
                             '--reference.file.base.directory={} '.format(reference_file) +\
                             '--output.file.base.directory={} '.format(output_files) +\
-                            '--assembly.file.base.directory={}\"'.format(assembly_files)
+                            '--assembly.file.base.directory={} '.format(assembly_files) +\
+                            '--logging.pattern.console=\"'
 
         self.IRIDA_STOP = 'mvn spring-boot:stop'
 
