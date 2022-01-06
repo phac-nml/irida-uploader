@@ -39,7 +39,11 @@ TIMEOUT_BYTES_TO_MB_DIVISOR = 1024 * 1024
 # 20 minute minimum timeout
 TIMEOUT_MINIMUM = 1200
 
-
+SESSION_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.1.2222.33 Safari/537.36",
+    "Accept-Encoding": "*",
+    "Connection": "keep-alive"
+}
 class ApiCalls(object):
 
     def __init__(self, client_id, client_secret,
@@ -611,7 +615,8 @@ class ApiCalls(object):
         json_obj = json.dumps(project.get_uploadable_dict())
         headers = {
             "headers": {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                **SESSION_HEADERS
             }
         }
 
@@ -653,7 +658,8 @@ class ApiCalls(object):
 
         headers = {
             "headers": {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                **SESSION_HEADERS
             }
         }
 
@@ -729,7 +735,7 @@ class ApiCalls(object):
         # Get the data encoder
         data_pkg = self._get_sequence_data_pkg(sequence_file, upload_id)
         # Generate headers from the data encoder
-        headers_pkg = {'Content-Type': data_pkg.content_type}
+        headers_pkg = {'Content-Type': data_pkg.content_type, **SESSION_HEADERS}
 
         logging.debug("Sending files to [{}]".format(url))
         logging.debug("headers: " + str(headers_pkg))
@@ -787,7 +793,7 @@ class ApiCalls(object):
 
         json_obj = json.dumps(metadata.get_uploadable_dict())
 
-        headers_pkg = {'Content-Type': 'application/json'}
+        headers_pkg = {'Content-Type': 'application/json', **SESSION_HEADERS}
 
         response = self._session.put(url, data=json_obj, headers=headers_pkg)
 
@@ -957,7 +963,8 @@ class ApiCalls(object):
 
         headers = {
             "headers": {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                **SESSION_HEADERS
             }
         }
 
@@ -1079,7 +1086,8 @@ class ApiCalls(object):
                              })
         headers = {
             "headers": {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                **SESSION_HEADERS
             }
         }
 

@@ -1,7 +1,7 @@
 Changes
 =======
 
-Beta 0.7.0
+Beta 0.7.1
 ----------
 Changes:
 * Added `--minimum_file_size=[Integer]` argument/config option to set the minimum expected file size for files
