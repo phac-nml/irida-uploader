@@ -3,6 +3,11 @@ Changes
 
 Beta 0.7.1
 ----------
+Bug fixes:
+* Added User-Agent, Accept-Encoding, and Connection headers to API requests which should fix intermittent 10054 errors.
+
+Beta 0.7.0
+----------
 Changes:
 * Added `--minimum_file_size=[Integer]` argument/config option to set the minimum expected file size for files
   * This is checked during the parsing / offline validation step
