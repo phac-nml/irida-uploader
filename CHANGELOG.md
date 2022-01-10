@@ -1,6 +1,11 @@
 Changes
 =======
 
+Beta 0.7.1
+----------
+Bug fixes:
+* Added User-Agent, Accept-Encoding, and Connection headers to API requests which should fix intermittent 10054 errors.
+
 Beta 0.7.0
 ----------
 Changes:
