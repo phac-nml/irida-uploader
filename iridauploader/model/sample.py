@@ -39,6 +39,11 @@ class Sample:
             'nullable': True,
             'required': False
         },
+        '_sample_id': {
+            'type': 'integer',
+            'nullable': True,
+            'required': False
+        },
         '_skip': {
             'type': 'boolean',
             'nullable': True,
@@ -46,10 +51,18 @@ class Sample:
         }
     }
 
-    def __init__(self, sample_name, description='', sample_number=None, samp_dict=None):
+    def __init__(self, sample_name, description='', sample_number=None, samp_dict=None, sample_id=None):
+        """
+        :param sample_name: string: displayed sample name on IRIDA
+        :param description: string:
+        :param sample_number: string or int: used during parsing step for some parsers that define their own numbers for samples
+        :param samp_dict: dictionary of additional values
+        :param sample_id: int: unique identifier defined by irida
+        """
         self._sample_name = sample_name
         self._description = description
         self._sample_number = sample_number
+        self._sample_id = sample_id
         if samp_dict is None:
             samp_dict = {}
         self._sample_dict = dict(samp_dict)
@@ -69,6 +82,10 @@ class Sample:
         return self._sample_number
 
     @property
+    def sample_id(self):
+        return self._sample_id
+
+    @property
     def sequence_file(self):
         return self._sequence_file
 
@@ -83,12 +100,6 @@ class Sample:
     @skip.setter
     def skip(self, skip):
         self._skip = skip
-
-    def get_irida_id(self):
-        if "identifier" in self._sample_dict:
-            return self.get("identifier")
-        else:
-            return None
 
     def get_uploadable_dict(self):  # formatting for sending to irida when creating a project
         uploadable_dict = deepcopy(self._sample_dict)

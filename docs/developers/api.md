@@ -54,14 +54,13 @@ project_id -- the id of the project the sample is on
 
 list of sequencefile dictionary for given sample_id
 
-#### get_assemblies_files(self, project_id, sample_name)
+#### get_assemblies_files(self, sample_id)
 API call to api/projects/project_id/sample_id/assemblies
-We fetch the assemblies files through the project id on this route
+We fetch the assemblies files through the sample id on this route
 
 **arguments:**
 
-sample_name -- the sample name identifier to get from irida, relative to a project
-project_id -- the id of the project the sample is on
+sample_id -- sample the assemblies are on
 
 **returns:**
 
@@ -80,14 +79,13 @@ project_id -- the id of the project the sample is on
 
 returns list of fast5 files dictionary for given sample_id
 
-#### get_metadata(self, sample_name, project_id)
+#### get_metadata(self, sample_id)
 API call to api/samples/sample_id/metadata
-We fetch the other metadata metrics through the sample name and its id from the project
+We fetch the other metadata metrics through the sample id
 
 **arguments:**
 
 sample_id -- the sample number identifier to get from irida
-project_id -- the id of the project the sample is on
 
 **returns:**
 
@@ -125,6 +123,17 @@ project_id -- id of project to send sample too
 
 Unmodified json response from server
 
+#### get_sample_details(self, sample_id)
+Given a sample id, returns response from server for the baseurl/samples/sample_id endpoint
+
+**arguments:**
+
+sample_id -- Sample to fetch details from
+
+**returns:**
+
+Unmodified json response from server
+
 #### send_sequence_files(self, sequence_file, sample_name, project_id, upload_id, upload_mode=MODE_DEFAULT)
 Post request to send sequence files found in given sample argument
 raises error if either project ID or sample ID found in Sample object
@@ -146,18 +155,14 @@ upload_mode -- default:MODE_DEFAULT -- which upload mode will be used
 
 unmodified json response from server.
 
-#### send_metadata(self, metadata, project_id, sample_name)
-Put request to add user metadata to specific sample name in the project.
-Raises error if either project ID or sample name found in Sample object
-doesn't exist in irida
+#### send_metadata(self, metadata, sample_id)
+Put request to add user metadata to specific sample id.
 
 **arguments:**
 
 metadata -- Metadata object to send to irida
 
-project_id -- irida project identifier
-
-sample_name -- sample name found in specified irida project
+sample_id: id of sample to add metadata to
 
 **returns:**
 
@@ -246,3 +251,15 @@ project_id -- project that we think the sample is on
 **returns:**
 
 True or False
+
+#### get_sample_id(self, sample_name, project_id)
+Given a sample name and project id, returs the sample id, or False if it doesn't exist
+
+**arguments:**
+
+sample_name -- sample to confirm existence of
+project_id -- project that we think the sample is on
+
+**returns:**
+
+Integer of the sample identifier if it exists, otherwise False

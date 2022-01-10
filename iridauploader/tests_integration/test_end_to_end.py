@@ -83,7 +83,8 @@ class TestEndToEnd(unittest.TestCase):
                                   password=password,
                                   base_url=base_url,
                                   parser=parser,
-                                  readonly=readonly)
+                                  readonly=readonly,
+                                  minimum_file_size=-1)  # allow 0kb test files to be uploaded, code blocks still run
         config.write_config_options_to_file()
 
     def test_valid_miseq_upload(self):
@@ -611,8 +612,11 @@ class TestEndToEnd(unittest.TestCase):
         # Make sure the upload was a success
         self.assertEqual(upload_result.exit_code, 0)
 
+        # Get sample_id for sample we uploaded to
+        sample_id = test_api.get_sample_id(sample_name, project_id)
+
         # Verify the files were uploaded
-        sequence_files = test_api.get_assemblies_files(project_id, sample_name)
+        sequence_files = test_api.get_assemblies_files(sample_id)
         self.assertEqual(len(sequence_files), 1)
         self.assertEqual(sequence_files[0]['fileName'], 'file_1.fasta')
 
