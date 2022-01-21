@@ -1,6 +1,11 @@
 Changes
 =======
 
+Beta 0.7.1
+----------
+Bug fixes:
+* Added User-Agent, Accept-Encoding, and Connection headers to API requests which should fix intermittent 10054 errors.
+
 Beta 0.7.0
 ----------
 Changes:
@@ -9,6 +14,9 @@ Changes:
   * Value in KB
   * Default is 0 KB
 * Added `minimum_file_size` option to the GUI as an ADVANCED option
+
+Bug fixes:
+* Fixed `directory` parser not raising validation errors (to display to user) when samplesheet file is malformed.
 
 Developer Changes:
 The following changes have been done to speed up extremely long REST requests, more api improvements should be expected in the future.
