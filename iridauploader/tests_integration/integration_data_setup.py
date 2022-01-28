@@ -59,17 +59,17 @@ class SetupIridaData:
 
         self.IRIDA_CMD = 'mvn clean compile spring-boot:start -DskipTests --quiet '\
                          '-Dspring-boot.run.arguments=\"'\
-                            '--spring.datasource.url={} '.format(self.DB_JDBC_URL) +\
-                            '--spring.datasource.username={} '.format(self.DB_USERNAME) +\
-                            '--spring.datasource.password={} '.format(self.DB_PASSWORD) +\
-                            '--liquibase.update.database.schema=true '\
-                            '--spring.jpa.hibernate.ddl-auto= '\
-                            '--spring.jpa.properties.hibernate.hbm2ddl.import_files= '\
-                            '--sequence.file.base.directory={} '.format(sequence_files) +\
-                            '--reference.file.base.directory={} '.format(reference_file) +\
-                            '--output.file.base.directory={} '.format(output_files) +\
-                            '--assembly.file.base.directory={} '.format(assembly_files) +\
-                            '--logging.pattern.console=\"'
+                         '--spring.datasource.url={} '.format(self.DB_JDBC_URL) +\
+                         '--spring.datasource.username={} '.format(self.DB_USERNAME) +\
+                         '--spring.datasource.password={} '.format(self.DB_PASSWORD) +\
+                         '--liquibase.update.database.schema=true '\
+                         '--spring.jpa.hibernate.ddl-auto= '\
+                         '--spring.jpa.properties.hibernate.hbm2ddl.import_files= '\
+                         '--sequence.file.base.directory={} '.format(sequence_files) +\
+                         '--reference.file.base.directory={} '.format(reference_file) +\
+                         '--output.file.base.directory={} '.format(output_files) +\
+                         '--assembly.file.base.directory={} '.format(assembly_files) +\
+                         '--logging.pattern.console=\"'
 
         self.IRIDA_STOP = 'mvn spring-boot:stop'
 
