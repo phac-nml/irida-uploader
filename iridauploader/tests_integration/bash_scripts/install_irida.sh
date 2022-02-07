@@ -11,17 +11,12 @@ fi
 pushd repos
 
 echo "Downloading IRIDA..."
-if ! git clone https://github.com/phac-nml/irida.git
+if ! git clone https://github.com/phac-nml/irida.git --branch $1
 then
     echo >&2 "Failed to clone"
     exit 1
 else
   pushd irida
-  git checkout $1
-  git fetch
-  git reset --hard
-  git clean -fd
-  git pull
   echo "Preparing IRIDA for first excecution..."
 
   pushd lib
