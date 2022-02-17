@@ -1144,3 +1144,41 @@ class ApiCalls(object):
             if s.sample_name.lower() == sample_name.lower():
                 return s.sample_id
         return False
+
+    def create_user(self, username):
+        url = f"{self.base_url}/users"
+        headers = {
+            "headers": {
+                "Content-Type": "application/json",
+                **SESSION_HEADERS
+            }
+        }
+        json_obj = json.dumps({
+            "username" : username,
+            "email" : username+"@mail.server",
+            "password" : "Password1!",
+            "firstName" : "user",
+            "lastName" : "name",
+            "phoneNumber" : "5555555555"
+        })
+
+        response = self._session.post(url, json_obj, **headers)
+        print(response)
+        return response
+
+    def add_user_to_project(self, username, project_id):
+        url = f"{self.base_url}/projects/{project_id}/users"
+        headers = {
+            "headers": {
+                "Content-Type": "application/json",
+                **SESSION_HEADERS
+            }
+        }
+        json_obj = json.dumps({
+            "userId": username,
+            "role": "PROJECT_USER",
+        })
+
+        response = self._session.post(url, json_obj, **headers)
+        print(response)
+        return response

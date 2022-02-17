@@ -1,6 +1,8 @@
 IRIDA Uploader
 ==============
 
+##THIS IS A TEST BRANCH FOR DEBUGGING
+
 [![Integration Tests](https://github.com/phac-nml/irida-uploader/workflows/Integration%20Tests/badge.svg?branch=development&event=schedule)](https://github.com/phac-nml/irida-uploader/actions?query=branch%3Adevelopment)
 [![Documentation Status](https://readthedocs.org/projects/irida-uploader/badge/?version=stable)](https://irida-uploader.readthedocs.io/en/stable/?badge=stable)
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io/recipes/irida-uploader/README.html)
