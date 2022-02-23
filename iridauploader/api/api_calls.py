@@ -45,6 +45,15 @@ SESSION_HEADERS = {
     "Connection": "keep-alive"
 }
 
+HEADERS = {
+    "headers": {
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.1.2222.33 Safari/537.36",
+        "Accept-Encoding": "*",
+        "Connection": "keep-alive"
+    }
+}
+
 
 class ApiCalls(object):
 
@@ -237,6 +246,25 @@ class ApiCalls(object):
             raise exceptions.IridaConnectionError("Could not connect to IRIDA, URL '{}' responded with: {} {}"
                                                   "".format(url, response.status_code, response.reason))
 
+    @staticmethod
+    def _handle_exception(url, e):
+        """
+        Given an exception, generates a more detailed description and a IRIDA specific error
+        :param url: original url called (to be included in response)
+        :param e: exception that was raised
+        :return: IridaConnectionError to be raised by calling function
+        """
+        if type(e) is URLError:
+            logging.error("Could not connect to IRIDA, URL '{}' responded with: {}"
+                          "".format(url, str(e)))
+            return exceptions.IridaConnectionError("Could not connect to IRIDA, URL '{}' responded with: {}"
+                                                  "".format(url, str(e)))
+        else:
+            logging.error("Could not connect to IRIDA, non URLError Exception occurred. URL '{}' Error: {}"
+                          "".format(url, str(e)))
+            return exceptions.IridaConnectionError("Could not connect to IRIDA, non URLError Exception occurred. "
+                                              "URL '{}' Error: {}".format(url, str(e)))
+
     def _get_link(self, target_url, target_key, target_dict=None):
         """
         makes a call to target_url(api) expecting a json response
@@ -301,29 +329,6 @@ class ApiCalls(object):
                                            ", ".join([str(link["rel"]) for link in links_list]))
 
         return ret_val
-
-    def _get_upload_url(self, base_url, run_type_str):
-        """
-        Concatenates a base url with the run type for constructing the upload url path
-        :param base_url: Upload url
-        :param run_type_str: Type of sequencing run that is being uploaded
-        :return: url
-        """
-
-        """TODO:
-        There is currently an issue in the IRIDA API with finding links for different sequencer routes
-        once that is fixed, the following should be written as:
-
-        seq_run_url = self._get_link(base_url, "sequencingRuns")
-        return urljoin(seq_run_url, run_type_str)
-
-        or better yet:
-
-        seq_run_url = self._get_link(base_url, "sequencingRuns")
-        return self._get_link(seq_run_url, run_type_str)
-        """
-        seq_run_url = self._get_link(base_url, "sequencingRuns")
-        return urljoin(seq_run_url + "/", run_type_str)
 
     @staticmethod
     def _get_irida_exception(response):
@@ -961,14 +966,7 @@ class ApiCalls(object):
         if 'workflow' not in metadata_dict:
             metadata_dict['workflow'] = 'workflow'
 
-        url = self._get_upload_url(self.base_url, sequencing_run_type)
-
-        headers = {
-            "headers": {
-                "Content-Type": "application/json",
-                **SESSION_HEADERS
-            }
-        }
+        url = f"{self.base_url}/sequencingrun/{sequencing_run_type}"
 
         acceptable_properties = [
             "layoutType", "chemistry", "projectName",
@@ -988,7 +986,11 @@ class ApiCalls(object):
 
         json_obj = json.dumps(metadata_dict)
 
-        response = self._session.post(url, json_obj, **headers)
+        try:
+            response = self._session.post(url, json_obj, **HEADERS)
+        except Exception as e:
+            raise ApiCalls._handle_exception(url, e)
+
         if response.status_code == HTTPStatus.CREATED:  # 201
             json_res = json.loads(response.text)
         else:
