@@ -993,10 +993,19 @@ class ApiCalls(object):
         """
         logging.debug("Getting sequencing runs")
 
-        url = self._get_link(self.base_url, "sequencingRuns")
-        response = self._session.get(url)
+        url = f"{self.base_url}/sequencingrun"
 
-        json_res_list = response.json()["resource"]["resources"]
+        try:
+            response = self._session.get(url)
+        except Exception as e:
+            raise ApiCalls._handle_rest_exception(url, e)
+
+        if response.status_code == HTTPStatus.OK:  # 200
+            json_res_list = response.json()["resource"]["resources"]
+        else:
+            logging.error("Encountered error while getting sequence runs: {} {}"
+                          "".format(response.status_code, response.reason))
+            raise self._handle_irida_exception(response)
 
         return json_res_list
 
@@ -1062,18 +1071,15 @@ class ApiCalls(object):
         """
 
         logging.debug("Setting sequencing run '{}' to '{}'".format(identifier, status))
-        seq_run_url = self._get_link(self.base_url, "sequencingRuns")
 
-        url = self._get_link(seq_run_url, "self",
-                             target_dict={
-                                 "key": "identifier",
-                                 "value": identifier
-                             })
-
+        url = f"{self.base_url}/sequencingrun/{identifier}"
         update_dict = {"uploadStatus": status}
         json_obj = json.dumps(update_dict)
 
-        response = self._session.patch(url, json_obj, **JSON_HEADERS)
+        try:
+            response = self._session.patch(url, json_obj, **JSON_HEADERS)
+        except Exception as e:
+            raise ApiCalls._handle_rest_exception(url, e)
 
         if response.status_code == HTTPStatus.OK:  # 200
             json_res = json.loads(response.text)
