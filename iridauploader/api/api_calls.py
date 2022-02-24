@@ -212,7 +212,7 @@ class ApiCalls(object):
 
         return access_token
 
-    def _validate_url_existence(self, url):
+    def _validate_url_existence(self, url):#TODO DELETE THIS
         """
         tries to validate existence of given url by trying to open it.
         true if HTTP OK and no errors when authenticating credentials
@@ -246,26 +246,7 @@ class ApiCalls(object):
             raise exceptions.IridaConnectionError("Could not connect to IRIDA, URL '{}' responded with: {} {}"
                                                   "".format(url, response.status_code, response.reason))
 
-    @staticmethod
-    def _handle_exception(url, e):
-        """
-        Given an exception, generates a more detailed description and a IRIDA specific error
-        :param url: original url called (to be included in response)
-        :param e: exception that was raised
-        :return: IridaConnectionError to be raised by calling function
-        """
-        if type(e) is URLError:
-            logging.error("Could not connect to IRIDA, URL '{}' responded with: {}"
-                          "".format(url, str(e)))
-            return exceptions.IridaConnectionError("Could not connect to IRIDA, URL '{}' responded with: {}"
-                                                  "".format(url, str(e)))
-        else:
-            logging.error("Could not connect to IRIDA, non URLError Exception occurred. URL '{}' Error: {}"
-                          "".format(url, str(e)))
-            return exceptions.IridaConnectionError("Could not connect to IRIDA, non URLError Exception occurred. "
-                                              "URL '{}' Error: {}".format(url, str(e)))
-
-    def _get_link(self, target_url, target_key, target_dict=None):
+    def _get_link(self, target_url, target_key, target_dict=None):#TODO DELETE THIS
         """
         makes a call to target_url(api) expecting a json response
         tries to retrieve target_key from response to find link to resource
@@ -331,7 +312,26 @@ class ApiCalls(object):
         return ret_val
 
     @staticmethod
-    def _get_irida_exception(response):
+    def _handle_REST_exception(url, e):
+        """
+        Given an exception, generates a more detailed description and a IRIDA specific error
+        :param url: original url called (to be included in response)
+        :param e: exception that was raised
+        :return: IridaConnectionError to be raised by calling function
+        """
+        if type(e) is URLError:
+            logging.error("Could not connect to IRIDA, URL '{}' responded with: {}"
+                          "".format(url, str(e)))
+            return exceptions.IridaConnectionError("Could not connect to IRIDA, URL '{}' responded with: {}"
+                                                   "".format(url, str(e)))
+        else:
+            logging.error("Could not connect to IRIDA, non URLError Exception occurred. URL '{}' Error: {}"
+                          "".format(url, str(e)))
+            return exceptions.IridaConnectionError("Could not connect to IRIDA, non URLError Exception occurred. "
+                                                   "URL '{}' Error: {}".format(url, str(e)))
+
+    @staticmethod
+    def _handle_irida_exception(response):
         """
         Generates and returns an appropriate exception based on the status code in the response returned by irida
 
@@ -356,6 +356,9 @@ class ApiCalls(object):
                                                 "{status_code}: {err_msg}\n".format(
                                                     status_code=str(response.status_code),
                                                     err_msg=response.reason))
+        elif response.status_code == HTTPStatus.NOT_FOUND:
+            e = exceptions.IridaResourceError("The url you specified could not be reached. Please verify your URL and the "
+                                              "projects/samples/ect you specified.")
         else:
             e = exceptions.IridaConnectionError("Error encountered while communicating with IRIDA: "
                                                 "{status_code}: {err_msg}\n".format(
@@ -394,8 +397,8 @@ class ApiCalls(object):
                 msg_arg = " ".join(e.args)
                 logging.debug(msg_arg + " not found. Available keys: "
                               ", ".join(result[0].keys()))
-                raise exceptions.IridaKeyError(msg_arg + " not found. Available keys: "
-                                               ", ".join(result[0].keys()))
+                raise exceptions.IridaResourceError(msg_arg + " not found in data provided by IRIDA. Available keys: "
+                                                    ", ".join(result[0].keys()))
             self.cached_projects = project_list
         else:
             logging.debug("Loading projects from cache.")
@@ -421,19 +424,18 @@ class ApiCalls(object):
         logging.info("Getting samples from project '{}'".format(project_id))
 
         if project_id not in self.cached_samples:
+            url = f"{self.base_url}/projects/{project_id}/samples"
+
             try:
-                project_url = self._get_link(self.base_url, "projects")
-                url = self._get_link(project_url, "project/samples",
-                                     target_dict={
-                                         "key": "identifier",
-                                         "value": project_id
-                                     })
+                response = self._session.get(url)
+            except Exception as e:
+                raise ApiCalls._handle_REST_exception(url, e)
 
-            except StopIteration:
-                logging.error("The given project ID doesn't exist: ".format(project_id))
-                raise exceptions.IridaResourceError("The given project ID doesn't exist", project_id)
+            if response.status_code != HTTPStatus.OK: # 200
+                logging.error("Encountered error while getting samples: {} {}"
+                              "".format(response.status_code, response.reason))
+                raise ApiCalls._handle_irida_exception(response)
 
-            response = self._session.get(url)
             result = response.json()["resource"]["resources"]
 
             sample_list = []
@@ -989,14 +991,14 @@ class ApiCalls(object):
         try:
             response = self._session.post(url, json_obj, **HEADERS)
         except Exception as e:
-            raise ApiCalls._handle_exception(url, e)
+            raise ApiCalls._handle_REST_exception(url, e)
 
         if response.status_code == HTTPStatus.CREATED:  # 201
             json_res = json.loads(response.text)
         else:
             logging.error("Encountered error while creating sequence run: {} {}"
                           "".format(response.status_code, response.reason))
-            raise self._get_irida_exception(response)
+            raise self._handle_irida_exception(response)
 
         # Grab the run identifier from the returned json
         sequencing_run_id = json_res['resource']['identifier']
