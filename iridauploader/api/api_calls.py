@@ -40,19 +40,13 @@ TIMEOUT_BYTES_TO_MB_DIVISOR = 1024 * 1024
 TIMEOUT_MINIMUM = 1200
 
 SESSION_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.1.2222.33 Safari/537.36",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+                  "Chrome/71.1.2222.33 Safari/537.36",
     "Accept-Encoding": "*",
     "Connection": "keep-alive"
 }
 
-HEADERS = {
-    "headers": {
-        "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.1.2222.33 Safari/537.36",
-        "Accept-Encoding": "*",
-        "Connection": "keep-alive"
-    }
-}
+JSON_HEADERS = {"headers": {'Content-Type': 'application/json', **SESSION_HEADERS}}
 
 
 class ApiCalls(object):
@@ -312,7 +306,7 @@ class ApiCalls(object):
         return ret_val
 
     @staticmethod
-    def _handle_REST_exception(url, e):
+    def _handle_rest_exception(url, e):
         """
         Given an exception, generates a more detailed description and a IRIDA specific error
         :param url: original url called (to be included in response)
@@ -357,8 +351,8 @@ class ApiCalls(object):
                                                     status_code=str(response.status_code),
                                                     err_msg=response.reason))
         elif response.status_code == HTTPStatus.NOT_FOUND:
-            e = exceptions.IridaResourceError("The url you specified could not be reached. Please verify your URL and the "
-                                              "projects/samples/ect you specified.")
+            e = exceptions.IridaResourceError("The url you specified could not be reached. Please verify your URL and "
+                                              "the projects/samples/ect you specified.")
         else:
             e = exceptions.IridaConnectionError("Error encountered while communicating with IRIDA: "
                                                 "{status_code}: {err_msg}\n".format(
@@ -429,9 +423,9 @@ class ApiCalls(object):
             try:
                 response = self._session.get(url)
             except Exception as e:
-                raise ApiCalls._handle_REST_exception(url, e)
+                raise ApiCalls._handle_rest_exception(url, e)
 
-            if response.status_code != HTTPStatus.OK: # 200
+            if response.status_code != HTTPStatus.OK:  # 200
                 logging.error("Encountered error while getting samples: {} {}"
                               "".format(response.status_code, response.reason))
                 raise ApiCalls._handle_irida_exception(response)
@@ -622,20 +616,14 @@ class ApiCalls(object):
             self.cached_projects = None
         url = self._get_link(self.base_url, "projects")
         json_obj = json.dumps(project.get_uploadable_dict())
-        headers = {
-            "headers": {
-                "Content-Type": "application/json",
-                **SESSION_HEADERS
-            }
-        }
 
-        response = self._session.post(url, json_obj, **headers)
+        response = self._session.post(url, json_obj, **JSON_HEADERS)
 
         if response.status_code == HTTPStatus.CREATED:  # 201
             json_res = json.loads(response.text)
         else:
             logging.error("Error sending project: {} {}".format(response.status_code, response.text))
-            raise self._get_irida_exception(response)
+            raise self._handle_irida_exception(response)
 
         return json_res
 
@@ -665,22 +653,15 @@ class ApiCalls(object):
             logging.error("The given project ID doesn't exist: ".format(project_id))
             raise exceptions.IridaResourceError("The given project ID doesn't exist", project_id)
 
-        headers = {
-            "headers": {
-                "Content-Type": "application/json",
-                **SESSION_HEADERS
-            }
-        }
-
         json_obj = json.dumps(sample.get_uploadable_dict())
-        response = self._session.post(url, json_obj, **headers)
+        response = self._session.post(url, json_obj, **JSON_HEADERS)
 
         if response.status_code == HTTPStatus.CREATED:  # 201
             json_res = json.loads(response.text)
         else:
             logging.error("Did not create sample on server. Response code is '{}' and error message is '{}'"
                           "".format(response.status_code, response.text))
-            raise self._get_irida_exception(response)
+            raise self._handle_irida_exception(response)
 
         return json_res
 
@@ -766,7 +747,7 @@ class ApiCalls(object):
             json_res = json.loads(response.text)
         else:
             logging.error("Error while uploading [{}]: [{}]".format(sample_name, response.reason))
-            raise self._get_irida_exception(response)
+            raise self._handle_irida_exception(response)
 
         return json_res
 
@@ -802,16 +783,14 @@ class ApiCalls(object):
 
         json_obj = json.dumps(metadata.get_uploadable_dict())
 
-        headers_pkg = {'Content-Type': 'application/json', **SESSION_HEADERS}
-
-        response = self._session.put(url, data=json_obj, headers=headers_pkg)
+        response = self._session.put(url, data=json_obj, **JSON_HEADERS)
 
         if response.status_code == 200:  # 200
             json_res = json.loads(response.text)
         else:
             logging.error("Did not add metadata to sample. Response code is '{}' and error message is '{}'"
                           "".format(response.status_code, response.text))
-            raise self._get_irida_exception(response)
+            raise self._handle_irida_exception(response)
 
         return json_res
 
@@ -881,7 +860,7 @@ class ApiCalls(object):
         Creates the data encoder, and attaches a monitor for callback functionality
         """
         # build data encoder
-        encoder = self._get_multipart_encoder(sequence_file, upload_id)
+        encoder = ApiCalls._get_multipart_encoder(sequence_file, upload_id)
         # create callback monitor for file progress
         monitor = MultipartEncoderMonitor(encoder, self._send_file_callback)
         # override max byte read size
@@ -892,7 +871,8 @@ class ApiCalls(object):
         # return the monitor/encoder object
         return monitor
 
-    def _get_multipart_encoder(self, sequence_file, upload_id):
+    @staticmethod
+    def _get_multipart_encoder(sequence_file, upload_id):
         """
         Creates a multipart file encoder to be used for streaming files to IRIDA
         """
@@ -989,9 +969,9 @@ class ApiCalls(object):
         json_obj = json.dumps(metadata_dict)
 
         try:
-            response = self._session.post(url, json_obj, **HEADERS)
+            response = self._session.post(url, json_obj, **JSON_HEADERS)
         except Exception as e:
-            raise ApiCalls._handle_REST_exception(url, e)
+            raise ApiCalls._handle_rest_exception(url, e)
 
         if response.status_code == HTTPStatus.CREATED:  # 201
             json_res = json.loads(response.text)
@@ -1006,7 +986,6 @@ class ApiCalls(object):
         return sequencing_run_id
 
     def get_seq_runs(self):
-
         """
         Get list of all SequencingRun objects
 
@@ -1090,17 +1069,11 @@ class ApiCalls(object):
                                  "key": "identifier",
                                  "value": identifier
                              })
-        headers = {
-            "headers": {
-                "Content-Type": "application/json",
-                **SESSION_HEADERS
-            }
-        }
 
         update_dict = {"uploadStatus": status}
         json_obj = json.dumps(update_dict)
 
-        response = self._session.patch(url, json_obj, **headers)
+        response = self._session.patch(url, json_obj, **JSON_HEADERS)
 
         if response.status_code == HTTPStatus.OK:  # 200
             json_res = json.loads(response.text)
