@@ -318,6 +318,10 @@ class ApiCalls(object):
                           "".format(url, str(e)))
             return exceptions.IridaConnectionError("Could not connect to IRIDA, URL '{}' responded with: {}"
                                                    "".format(url, str(e)))
+        if type(e) is ConnectionError:
+            # This could be anything from disconnection during post to IRIDA crashing
+            logging.error("ConnectionError occurred while transferring data: " + str(e))
+            raise exceptions.IridaConnectionError(e)
         else:
             logging.error("Could not connect to IRIDA, non URLError Exception occurred. URL '{}' Error: {}"
                           "".format(url, str(e)))
@@ -371,10 +375,17 @@ class ApiCalls(object):
 
         if self.cached_projects is None:
             logging.debug("Loading projects from IRIDA server.")
-            url = self._get_link(self.base_url, "projects")
-            response = self._session.get(url)
+            url = f"{self.base_url}/projects"
 
-            result = response.json()["resource"]["resources"]
+            try:
+                response = self._session.get(url)
+            except Exception as e:
+                raise ApiCalls._handle_rest_exception(url, e)
+
+            if response.status_code == HTTPStatus.OK:  # 200
+                result = response.json()["resource"]["resources"]
+            else:
+                raise self._handle_irida_exception(response)
 
             try:
                 project_list = [
@@ -589,7 +600,10 @@ class ApiCalls(object):
             logging.error("The given sample id '{}' doesn't exist: ".format(sample_id))
             raise exceptions.IridaResourceError("The given sample id '{}' doesn't exist", sample_id)
 
-        result = response.json()["resource"]["metadata"]
+        if response.status_code == HTTPStatus.OK:  # 200
+            result = response.json()["resource"]["metadata"]
+        else:
+            raise self._handle_irida_exception(response)
 
         # TODO: api refactor project: build this data into a model/Metadata object
         return result
@@ -614,10 +628,13 @@ class ApiCalls(object):
 
         if clear_cache:
             self.cached_projects = None
-        url = self._get_link(self.base_url, "projects")
+        url = f"{self.base_url}/projects"
         json_obj = json.dumps(project.get_uploadable_dict())
 
-        response = self._session.post(url, json_obj, **JSON_HEADERS)
+        try:
+            response = self._session.post(url, json_obj, **JSON_HEADERS)
+        except Exception as e:
+            raise ApiCalls._handle_rest_exception(url, e)
 
         if response.status_code == HTTPStatus.CREATED:  # 201
             json_res = json.loads(response.text)
@@ -641,20 +658,13 @@ class ApiCalls(object):
         self.cached_samples = {}  # reset the cache, we're updating stuff
         self.cached_projects = None
 
-        try:
-            project_url = self._get_link(self.base_url, "projects")
-            url = self._get_link(project_url, "project/samples",
-                                 target_dict={
-                                     "key": "identifier",
-                                     "value": project_id
-                                 })
-
-        except StopIteration:
-            logging.error("The given project ID doesn't exist: ".format(project_id))
-            raise exceptions.IridaResourceError("The given project ID doesn't exist", project_id)
-
+        url = f"{self.base_url}/projects/{project_id}/samples"
         json_obj = json.dumps(sample.get_uploadable_dict())
-        response = self._session.post(url, json_obj, **JSON_HEADERS)
+
+        try:
+            response = self._session.post(url, json_obj, **JSON_HEADERS)
+        except Exception as e:
+            raise ApiCalls._handle_rest_exception(url, e)
 
         if response.status_code == HTTPStatus.CREATED:  # 201
             json_res = json.loads(response.text)
@@ -682,9 +692,12 @@ class ApiCalls(object):
             logging.error("The given sample id '{}' doesn't exist: ".format(sample_id))
             raise exceptions.IridaResourceError("The given sample id '{}' doesn't exist", sample_id)
 
-        # TODO: api refactor project: build this data into a model/Metadata object
-        result = response.json()
+        if response.status_code == HTTPStatus.OK:  # 200
+            result = response.json()
+        else:
+            raise self._handle_irida_exception(response)
 
+        # TODO: api refactor project: build this data into a model/Metadata object
         return result
 
     def send_sequence_files(self, sequence_file, sample_name, project_id, upload_id, upload_mode=MODE_DEFAULT):
@@ -708,18 +721,7 @@ class ApiCalls(object):
         self._current_upload_sample_name = sample_name
 
         # Get the url's needed to send sequence files
-        # Verify the project exists
-        try:
-            project_url = self._get_link(self.base_url, "projects")
-            samples_url = self._get_link(project_url, "project/samples",
-                                         target_dict={
-                                             "key": "identifier",
-                                             "value": project_id
-                                         })
-        except StopIteration:
-            raise exceptions.IridaResourceError("The given project ID doesn't exist", project_id)
-
-        # Get upload url
+        samples_url = f"{self.base_url}/projects/{project_id}/samples"
         url = self._get_sample_upload_url(sequence_file, samples_url, sample_name, upload_mode)
 
         # Get the data encoder
@@ -734,62 +736,14 @@ class ApiCalls(object):
 
         try:
             response = self._session.post(url, data=data_pkg, headers=headers_pkg, timeout=timeout)
-        except ConnectionError as e:
-            # This could be anything from disconnection during post to IRIDA crashing
-            logging.error("ConnectionError occurred while transferring data: " + str(e))
-            raise exceptions.IridaConnectionError(e)
         except Exception as e:
-            # Any other exception, like a library not handling the response properly could be caught here
-            logging.error("Exception occured while transferring data: " + str(e))
-            raise exceptions.IridaConnectionError(e)
+            logging.error("ConnectionError occurred while transferring data: " + str(e))
+            raise ApiCalls._handle_rest_exception(url, e)
 
         if response.status_code == HTTPStatus.CREATED:
             json_res = json.loads(response.text)
         else:
             logging.error("Error while uploading [{}]: [{}]".format(sample_name, response.reason))
-            raise self._handle_irida_exception(response)
-
-        return json_res
-
-    def _get_sequence_file_timeout(self, sequence_file):
-        """
-        Approximates transfer time and generates a timeout according to variables defined in this module.
-
-        These values can be overridden when importing the module
-        :param sequence_file:
-        :return:
-        """
-        # Get approximation for amount of data to send
-        filesize_bytes = Path(sequence_file.file_list[0]).stat().st_size
-        if sequence_file.is_paired_end():
-            filesize_bytes = filesize_bytes * 2
-        # Gives timeout_multiplier seconds per mb of data to transfer
-        timeout_mb = (filesize_bytes * self.timeout_multiplier / TIMEOUT_BYTES_TO_MB_DIVISOR)
-        # minimum time should be 20 minutes
-        return timeout_mb if timeout_mb > TIMEOUT_MINIMUM else TIMEOUT_MINIMUM
-
-    def send_metadata(self, metadata, sample_id):
-        """
-        Put request to add metadata to specific sample ID
-
-        :param metadata: Metadata object
-        :param sample_id: id of sample to add metadata to
-        :return: json response from server
-        """
-
-        logging.info("Adding metadata to sample '{}' ".format(sample_id))
-
-        url = f"{self.base_url}/samples/{sample_id}/metadata"
-
-        json_obj = json.dumps(metadata.get_uploadable_dict())
-
-        response = self._session.put(url, data=json_obj, **JSON_HEADERS)
-
-        if response.status_code == 200:  # 200
-            json_res = json.loads(response.text)
-        else:
-            logging.error("Did not add metadata to sample. Response code is '{}' and error message is '{}'"
-                          "".format(response.status_code, response.text))
             raise self._handle_irida_exception(response)
 
         return json_res
@@ -842,6 +796,52 @@ class ApiCalls(object):
             raise exceptions.IridaResourceError("The given sample ID does not exist on that project", sample_name)
 
         return url
+
+    def _get_sequence_file_timeout(self, sequence_file):
+        """
+        Approximates transfer time and generates a timeout according to variables defined in this module.
+
+        These values can be overridden when importing the module
+        :param sequence_file:
+        :return:
+        """
+        # Get approximation for amount of data to send
+        filesize_bytes = Path(sequence_file.file_list[0]).stat().st_size
+        if sequence_file.is_paired_end():
+            filesize_bytes = filesize_bytes * 2
+        # Gives timeout_multiplier seconds per mb of data to transfer
+        timeout_mb = (filesize_bytes * self.timeout_multiplier / TIMEOUT_BYTES_TO_MB_DIVISOR)
+        # minimum time should be 20 minutes
+        return timeout_mb if timeout_mb > TIMEOUT_MINIMUM else TIMEOUT_MINIMUM
+
+    def send_metadata(self, metadata, sample_id):
+        """
+        Put request to add metadata to specific sample ID
+
+        :param metadata: Metadata object
+        :param sample_id: id of sample to add metadata to
+        :return: json response from server
+        """
+
+        logging.info("Adding metadata to sample '{}' ".format(sample_id))
+
+        url = f"{self.base_url}/samples/{sample_id}/metadata"
+
+        json_obj = json.dumps(metadata.get_uploadable_dict())
+
+        try:
+            response = self._session.put(url, data=json_obj, **JSON_HEADERS)
+        except Exception as e:
+            raise ApiCalls._handle_rest_exception(url, e)
+
+        if response.status_code == HTTPStatus.OK:  # 200
+            json_res = json.loads(response.text)
+        else:
+            logging.error("Did not add metadata to sample. Response code is '{}' and error message is '{}'"
+                          "".format(response.status_code, response.text))
+            raise self._handle_irida_exception(response)
+
+        return json_res
 
     def _send_file_callback(self, monitor):
         """
