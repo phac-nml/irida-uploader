@@ -1,6 +1,12 @@
 Changes
 =======
 
+Beta 0.8.0
+---------
+Changes:
+* Added GUI option to import config settings from file
+  * This writes the settings loaded to the default config file s.t. the settings persist for automated uploads
+
 Beta 0.7.1
 ----------
 Bug fixes:
@@ -66,8 +72,6 @@ Added functionality:
   * Because the NextSeq2000 software does not generate a sample sheet that includes a project column, it needs to be created manually.
   * Please see the documentation for the `nextseq2k_nml` for details
 * Added a warning if the base_url does not end in /api/
-* Added GUI option to import config settings from file
-  * This writes the settings loaded to the default config file s.t. the settings persist for automated uploads
 * File upload timeout has be changed to dynamically scale with file size.
   * config option `timeout` has been added to scale this based on expected seconds per MB transfer speed.
   * Default is `10` seconds per MB, or 100kb/s
