@@ -5,7 +5,7 @@ from iridauploader.tests_integration.test_api_integration import TestApiIntegrat
 from iridauploader.tests_integration.test_end_to_end import TestEndToEnd
 
 # Modules level variables that can/will be changed when the setup starts
-base_url = "http://localhost:8080/api"
+base_url = "http://localhost:8080/api/"
 username = "admin"
 password = "password1"
 client_id = ""

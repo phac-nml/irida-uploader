@@ -382,7 +382,7 @@ class ApiCalls(object):
         # Need the sample id for upload, not the sample name.
         # This is cached so it's only 1 call per project uploading to
         sample_id = self.get_sample_id(sample_name, project_id)
-        url = f"{self.base_url}/projects/{project_id}/samples/{sample_id}/sequenceFiles"
+        url = f"{self.base_url}/samples/{sample_id}/sequenceFiles"
 
         try:
             response = self._session.get(url)
@@ -445,7 +445,7 @@ class ApiCalls(object):
         # Need the sample id for upload, not the sample name.
         # This is cached so it's only 1 call per project uploading to
         sample_id = self.get_sample_id(sample_name, project_id)
-        url = f"{self.base_url}/projects/{project_id}/samples/{sample_id}/sequenceFiles/fast5"
+        url = f"{self.base_url}/samples/{sample_id}/fast5"
 
         try:
             response = self._session.get(url)
@@ -602,7 +602,7 @@ class ApiCalls(object):
         # Need the sample id for upload, not the sample name.
         # This is cached so it's only 1 call per project uploading to
         sample_id = self.get_sample_id(sample_name, project_id)
-        sample_url = f"{self.base_url}/projects/{project_id}/samples/{sample_id}"
+        sample_url = f"{self.base_url}/samples/{sample_id}"
         url = ApiCalls._get_sample_upload_url(sequence_file, sample_url, upload_mode)
 
         # Get the data encoder
@@ -641,11 +641,11 @@ class ApiCalls(object):
         if upload_mode == MODE_ASSEMBLIES:
             url = f"{sample_url}/assemblies"
         elif upload_mode == MODE_FAST5:
-            url = f"{sample_url}/sequenceFiles/fast5"
+            url = f"{sample_url}/fast5"
         elif upload_mode == MODE_DEFAULT:
             if sequence_file.is_paired_end():
                 logging.debug("api_calls: sending paired-end file")
-                url = f"{sample_url}/sequenceFiles/pairs"
+                url = f"{sample_url}/pairs"
             else:
                 logging.debug("api_calls: sending single-end file")
                 url = f"{sample_url}/sequenceFiles"
