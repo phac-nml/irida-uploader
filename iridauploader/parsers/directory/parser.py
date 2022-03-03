@@ -98,11 +98,15 @@ class Parser(BaseParser):
         try:
             if run_data_directory_file_list is not None:
                 sample_parser.verify_sample_sheet_file_names_in_file_list(sample_sheet, run_data_directory_file_list)
-        except exceptions.SequenceFileError as error:
+        except (exceptions.SequenceFileError, exceptions.SampleSheetError) as error:
             validation_result.add_error(error)
             logging.error("Errors occurred while building sequence run from sample sheet")
             raise exceptions.ValidationError("Errors occurred while building sequence run from sample sheet",
                                              validation_result)
+        except Exception as error:
+            validation_result.add_error(error)
+            logging.error("System error while building sequencing run")
+            raise exceptions.ValidationError("System error while building sequencing run", validation_result)
 
         # Build a list of sample objects from sample sheet
         try:
@@ -110,10 +114,14 @@ class Parser(BaseParser):
                 sample_list = sample_parser.build_sample_list_from_sample_sheet_no_verify(sample_sheet)
             else:
                 sample_list = sample_parser.build_sample_list_from_sample_sheet_with_abs_path(sample_sheet)
-        except exceptions.DirectoryError as error:
+        except (exceptions.DirectoryError, exceptions.SampleSheetError) as error:
             validation_result.add_error(error)
             logging.error("Errors occurred while parsing files")
             raise exceptions.ValidationError("Errors occurred while parsing files", validation_result)
+        except Exception as error:
+            validation_result.add_error(error)
+            logging.error("System error while parsing files")
+            raise exceptions.ValidationError("System error while parsing files", validation_result)
 
         # verify samples in sample_list are all of one type, either single or paired end
         if not sample_parser.only_single_or_paired_in_sample_list(sample_list):
