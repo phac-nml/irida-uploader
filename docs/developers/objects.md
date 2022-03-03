@@ -30,11 +30,11 @@ The `Sample` object includes:
 
  * `name` : How the sample is identified on IRIDA
  * `description` : the description of the sample on IRIDA
+ * `sample_id` : IRIDA identifier for the sample object
+ * `sample_number` : a number used by some sequencers to denote (pre parsed) sample order
  * `sequence_file` : A `SequenceFile` object that holds the files to upload.
  * `sample_dict` : a meta data dictionary
-
-When using the API to get samples from IRIDA, the `get_irida_id` method can be used to get the samples numerical identification number.
-
+ 
 ### SequenceFile `model/sequence_file.py`
 
 The `SeuqenceFile` holds the file paths to the sequence data to be uploaded.

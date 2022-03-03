@@ -44,7 +44,9 @@ class ConfigDialog(QtWidgets.QDialog):
         self._read_only_mode_label = QtWidgets.QLabel("Read Only Mode")
         self._timeout_label = QtWidgets.QLabel("(ADVANCED) Timeout Seconds Per MB")
         self._timeout = QtWidgets.QSpinBox()
-        self._timeout.setRange(1, 100)
+        self._min_file_size_label = QtWidgets.QLabel("(ADVANCED) Minimum File Size per file (KB)")
+        self._min_file_size = QtWidgets.QSpinBox()
+        self._min_file_size.setRange(0, 2147483647)  # set max as max allowed by QSpinBox
 
         self._btn_check_settings = QtWidgets.QPushButton("Save and Test Settings")
         self._settings_status = QtWidgets.QLineEdit()
@@ -117,6 +119,11 @@ class ConfigDialog(QtWidgets.QDialog):
         timeout_layout.addWidget(self._timeout_label)
         timeout_layout.addWidget(self._timeout)
         layout.addLayout(timeout_layout)
+        # Min file size
+        min_file_size_layout = QtWidgets.QHBoxLayout()
+        min_file_size_layout.addWidget(self._min_file_size_label)
+        min_file_size_layout.addWidget(self._min_file_size)
+        layout.addLayout(min_file_size_layout)
         # Buttons
         status_layout = QtWidgets.QHBoxLayout()
         status_layout.addWidget(self._btn_check_settings)
@@ -163,6 +170,8 @@ class ConfigDialog(QtWidgets.QDialog):
         self._read_only_mode.setCheckState(read_only_state)
         timeout_int = config.read_config_option("timeout", int, 10)
         self._timeout.setValue(timeout_int)
+        min_file_size_int = config.read_config_option("minimum_file_size", int, 0)
+        self._min_file_size.setValue(min_file_size_int)
 
     def _write_settings_to_file(self):
         """
@@ -176,7 +185,8 @@ class ConfigDialog(QtWidgets.QDialog):
                                   base_url=self._base_url.text(),
                                   parser=self._parser.currentText(),
                                   readonly=self._read_only_mode.isChecked(),
-                                  timeout=self._timeout.value())
+                                  timeout=self._timeout.value(),
+                                  minimum_file_size=self._min_file_size.value())
         config.write_config_options_to_file()
 
     def _contact_irida(self):

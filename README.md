@@ -65,11 +65,7 @@ Running the unittests can be done with the command:
 
 #### Integration tests
 
-To run integration tests your will need some additional software.
-
-    $ sudo apt install xvfb
-
-You will also need to download and install chromedriver http://chromedriver.chromium.org/downloads
+To run integration tests You will need to download and install chromedriver http://chromedriver.chromium.org/downloads
 
 You will need to grant the IRIDA instance access to the mysql database needed for the tests
 

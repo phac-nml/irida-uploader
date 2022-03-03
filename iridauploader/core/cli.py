@@ -112,6 +112,9 @@ def init_argparser():
                                  help='Accepts an Integer for the expected transfer time in seconds per MB. '
                                       'Default is 10 second for every MB of data to transfer (100kb/s). Increasing this'
                                       ' number can reduce timeout errors when your transfer speed is very slow.')
+    argument_parser.add_argument('-fs', '--minimum_file_size', action='store', nargs='?', const=True, default=False,
+                                 help='Accepts an Integer for the minimum file size in KB. Default is 0 KB. Files that '
+                                      'are too small will appear as an error during run validation.')
     return argument_parser
 
 
@@ -130,6 +133,7 @@ def _set_config_override(args):
     readonly = None
     delay = None
     timeout = None
+    minimum_file_size = None
 
     if args.config_client_id is True:
         print("Enter Client ID:")
@@ -184,6 +188,12 @@ def _set_config_override(args):
     elif args.config_timeout is not False:
         timeout = int(args.config_timeout)
 
+    if args.minimum_file_size is True:
+        print("Enter minimum file size in KB (Integer):")
+        delay = int(input())
+    elif args.minimum_file_size is not False:
+        minimum_file_size = int(args.minimum_file_size)
+
     config.set_config_options(client_id=client_id,
                               client_secret=client_secret,
                               username=username,
@@ -192,7 +202,8 @@ def _set_config_override(args):
                               parser=parser,
                               readonly=readonly,
                               delay=delay,
-                              timeout=timeout)
+                              timeout=timeout,
+                              minimum_file_size=minimum_file_size)
 
 
 def _config_uploader(args):
@@ -232,7 +243,7 @@ def main():
 
     # Start Upload
     if args.batch:
-        return upload_batch(args.directory, args.force, args.upload_mode, args.coninue_partial)
+        return upload_batch(args.directory, args.force, args.upload_mode, args.continue_partial)
     else:
         return upload(args.directory, args.force, args.upload_mode, args.continue_partial)
 

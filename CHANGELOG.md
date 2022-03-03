@@ -1,6 +1,50 @@
 Changes
 =======
 
+Beta 0.7.1
+----------
+Bug fixes:
+* Added User-Agent, Accept-Encoding, and Connection headers to API requests which should fix intermittent 10054 errors.
+
+Beta 0.7.0
+----------
+Changes:
+* Added `--minimum_file_size=[Integer]` argument/config option to set the minimum expected file size for files
+  * This is checked during the parsing / offline validation step
+  * Value in KB
+  * Default is 0 KB
+* Added `minimum_file_size` option to the GUI as an ADVANCED option
+
+Bug fixes:
+* Fixed `directory` parser not raising validation errors (to display to user) when samplesheet file is malformed.
+
+Developer Changes:
+The following changes have been done to speed up extremely long REST requests, more api improvements should be expected in the future.
+* The following `api` module methods have been changed to accept `sample_id` instead of `sample_name` and `project_id`
+  * `get_assemblies_files`
+  * `get_metadata`
+  * `send_metadata`
+* added `get_sample_id(self, sample_name, project_id)` to fetch the `sample_id`. This can be used in the modified methods above.
+* removed `set_irida_id(...)` from Sample object, added `sample_id` property to Sample object
+* added `get_sample_details(self, sample_id)` as an `api` method to fetch full Sample data from IRIDA
+* added `sample_identifier` as a property to `Sample` objects
+
+* Dropped support for Python 3.5
+
+Beta 0.6.2
+----------
+Changes:
+* Added options for `miseq_win10_jun2021` and `seqfu` parsers (uses existing parsers)
+* Added in-depth documentation on using the irida uploader with windows 10 updated miseqs
+
+Bug fixes:
+* Fixed missing requirement issue with windows builds
+
+Beta 0.6.1
+----------
+Bug fixes:
+* Fixed issue where starting a batch upload from the command line would crash instead of running.
+
 Beta 0.6.0
 ----------
 Added functionality:
@@ -39,6 +83,7 @@ Developer changes:
 * Added documentation for how to draft a new release (for internal use)
 * Switched from travis ci to github actions for testing
 * Bumped PyQT5 version to latest (`PyQt5==5.15.2` & `PyQt5-sip==12.8.1`)
+* Update readthedocs/mkdocs to version 2
 
 Beta 0.5.1
 ----------

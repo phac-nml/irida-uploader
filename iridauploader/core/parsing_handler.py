@@ -5,7 +5,7 @@ import logging
 
 import iridauploader.config as config
 import iridauploader.parsers as parsers
-from iridauploader.core import model_validator
+from iridauploader.core import model_validator, file_size_validator
 
 
 def get_parser_from_config():
@@ -40,8 +40,14 @@ def parse_and_validate(directory):
         logging.debug("parsing_handler:Exception while getting sequencing run with sample_sheet")
         raise e
 
-    logging.info("Validating sequencing run")
+    logging.info("Validating sequencing run structure")
     validation_result = model_validator.validate_sequencing_run(sequencing_run)
+    if not validation_result.is_valid():
+        logging.info("parsing_handler:Exception while validating Sequencing Run")
+        raise parsers.exceptions.ValidationError("Sequencing Run is not valid", validation_result)
+
+    logging.info("Validating files contain data")
+    validation_result = file_size_validator.validate_file_size_minimum(sequencing_run)
     if not validation_result.is_valid():
         logging.info("parsing_handler:Exception while validating Sequencing Run")
         raise parsers.exceptions.ValidationError("Sequencing Run is not valid", validation_result)
