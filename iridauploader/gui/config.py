@@ -229,7 +229,7 @@ class ConfigDialog(QtWidgets.QDialog):
                                                                  caption="Select Uploader Config File",
                                                                  filter="*.conf")[0]
         logging.debug("GUI CONFIG: result: " + config_file_path)
-        if config_file_path is "":
+        if config_file_path == "":
             logging.debug("GUI CONFIG: user canceled opening file")
         else:
             # set the config file to be the file the user selected
