@@ -1,6 +1,11 @@
 Changes
 =======
 
+Beta 0.8.0
+Developer Changes:
+* Removed the Hateoas links requests and the _get_link function that handles the calls. All REST request URL's are now defined in the functions.
+* Added (or updated) both REST error handling and IRIDA exception handling to every api request 
+
 Beta 0.7.1
 ----------
 Bug fixes:
