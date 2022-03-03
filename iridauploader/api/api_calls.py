@@ -381,6 +381,7 @@ class ApiCalls(object):
 
         # Need the sample id for upload, not the sample name.
         # This is cached so it's only 1 call per project uploading to
+        # TODO: In the future, this function should accept sample_id instead of sample_name
         sample_id = self.get_sample_id(sample_name, project_id)
         url = f"{self.base_url}/samples/{sample_id}/sequenceFiles"
 
@@ -444,6 +445,7 @@ class ApiCalls(object):
 
         # Need the sample id for upload, not the sample name.
         # This is cached so it's only 1 call per project uploading to
+        # TODO: In the future, this function should accept sample_id instead of sample_name
         sample_id = self.get_sample_id(sample_name, project_id)
         url = f"{self.base_url}/samples/{sample_id}/fast5"
 
@@ -601,6 +603,7 @@ class ApiCalls(object):
         # Get the url's needed to send sequence files
         # Need the sample id for upload, not the sample name.
         # This is cached so it's only 1 call per project uploading to
+        # TODO: In the future, this function should accept sample_id instead of sample_name
         sample_id = self.get_sample_id(sample_name, project_id)
         sample_url = f"{self.base_url}/samples/{sample_id}"
         url = ApiCalls._get_sample_upload_url(sequence_file, sample_url, upload_mode)
