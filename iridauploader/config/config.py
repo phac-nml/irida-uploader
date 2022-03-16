@@ -98,13 +98,26 @@ def _load_config_from_file():
         exit(1)
 
     try:
-        _conf_parser.read(_user_config_file)
+        read_config_file_into_parser(_user_config_file)
     except Exception:
-        logging.warning("Error occurred when trying to load config file")
         logging.error("Config file {} is not valid.".format(_user_config_file))
         exit(1)
 
     logging.info("Config loaded from file {}".format(_user_config_file))
+
+
+def read_config_file_into_parser(config_file_path):
+    """
+    Read the config file into memory using the global _config_parser instance
+    :param config_file_path:
+    :return:
+    """
+    try:
+        global _conf_parser
+        _conf_parser.read(config_file_path)
+    except Exception as e:
+        logging.warning("Error occurred when trying to load config file")
+        raise e
 
 
 def set_config_options(client_id=None,

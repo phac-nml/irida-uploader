@@ -70,6 +70,11 @@ class ConfigDialog(QtWidgets.QDialog):
         self._get_settings_from_file()
         self._contact_irida()
 
+        # Error message popup
+        self._error_message_box = QtWidgets.QMessageBox(parent=self)
+        self._error_message_box.setText("Config file was invalid. Please check your file and try again.")
+        self._error_message_box.setIcon(QtWidgets.QMessageBox.Critical)
+
     def _layout(self):
         """
         Layout widgets
@@ -223,23 +228,38 @@ class ConfigDialog(QtWidgets.QDialog):
         self.move(qt_rectangle.topLeft())
 
     def _import_config_from_file(self):
+        """
+        Opens dialog to choose file, exits early if no file is chosen or file is invalid
+        Then, the files parameters are loaded and written to the default config file
+        :return:
+        """
         logging.debug("GUI CONFIG: _import_config_from_file clicked")
         # Open a file open dialog and get returned string
         config_file_path = QtWidgets.QFileDialog.getOpenFileName(self,
                                                                  caption="Select Uploader Config File",
                                                                  filter="*.conf")[0]
         logging.debug("GUI CONFIG: result: " + config_file_path)
+        # If user exits window without selecting a file, return early
         if config_file_path == "":
             logging.debug("GUI CONFIG: user canceled opening file")
-        else:
-            # set the config file to be the file the user selected
-            config.set_config_file(config_file_path)
-            # Load the properties into the window
-            self._get_settings_from_file()
-            # Reset the config file back to use default
-            config.set_config_file(None)
-            config.setup()
-            # Write the settings from the user selected file to the default file
-            self._write_settings_to_file()
-            # Check connection with IRIDA
-            self._contact_irida()
+            return
+
+        # Do a first pass on the loaded file to see if it is valid.
+        # If there is no exception, the file can be loaded normally.
+        try:
+            config.read_config_file_into_parser(config_file_path)
+        except Exception:
+            self._error_message_box.exec()
+            return
+
+        # set the config file to be the file the user selected
+        config.set_config_file(config_file_path)
+        # Load the properties into the window
+        self._get_settings_from_file()
+        # Reset the config file back to use default
+        config.set_config_file(None)
+        config.setup()
+        # Write the settings from the user selected file to the default file
+        self._write_settings_to_file()
+        # Check connection with IRIDA
+        self._contact_irida()
