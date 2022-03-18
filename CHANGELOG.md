@@ -1,6 +1,11 @@
 Changes
 =======
 
+Beta 0.8.0
+----------
+Developer Changes:
+* Integration tests now use SQL to add a client and user for tests, instead of selenium and ui navigation.
+
 Beta 0.7.1
 ----------
 Bug fixes:
