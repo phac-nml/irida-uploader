@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='iridauploader',
-    version='0.7.1',
+    version='0.8.0',
     description='IRIDA uploader: upload NGS data to IRIDA system',
     url='https://github.com/phac-nml/irida-uploader',
     author='Jeffrey Thiessen',
@@ -29,7 +29,7 @@ setuptools.setup(
                       ],
     extras_require={
         "GUI": ["PyQt5==5.15.2", "PyQt5-stubs==5.14.2.2"],
-        "TEST": ["selenium", "pytest"],
+        "TEST": ["pytest"],
         "WINDOWS": ["pynsist"],
     },
     entry_points={
