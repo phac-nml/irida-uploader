@@ -165,9 +165,11 @@ class Parser(BaseParser):
 
         # Try to build sequencing run from sample sheet & meta data, raise validation error if errors occur
         try:
+            bool_paired_files = run_metadata["layoutType"] == "PAIRED_END"
             sample_list = sample_parser.parse_sample_list(sample_sheet,
                                                           run_data_directory,
-                                                          run_data_directory_file_list)
+                                                          run_data_directory_file_list,
+                                                          bool_paired_files)
             sequencing_run = common.build_sequencing_run_from_samples(sample_list,
                                                                       run_metadata,
                                                                       self.get_parser_type_name())
