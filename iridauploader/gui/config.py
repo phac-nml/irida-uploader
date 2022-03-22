@@ -72,7 +72,11 @@ class ConfigDialog(QtWidgets.QDialog):
 
         # Error message popup
         self._error_message_box = QtWidgets.QMessageBox(parent=self)
-        self._error_message_box.setText("Config file was invalid. Please check your file and try again.")
+        self._error_message_box.setText(
+            'Config file was invalid. Please check your file and try again.<br>'
+            '<a href="https://irida-uploader.readthedocs.io/en/stable/configuration.html">'
+            'Click here for details on config files</a>'
+        )
         self._error_message_box.setIcon(QtWidgets.QMessageBox.Critical)
 
     def _layout(self):
