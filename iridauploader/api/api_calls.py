@@ -257,7 +257,7 @@ class ApiCalls(object):
                                                     err_msg=response.reason))
         elif response.status_code == HTTPStatus.NOT_FOUND:
             e = exceptions.IridaResourceError("The url you specified could not be reached. Please verify your URL and "
-                                              "the projects/samples/ect you specified.")
+                                              "the projects/samples/etc you specified.")
         else:
             e = exceptions.IridaConnectionError("Error encountered while communicating with IRIDA: "
                                                 "{status_code}: {err_msg}\n".format(
