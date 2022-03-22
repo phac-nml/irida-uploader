@@ -10,6 +10,9 @@ Changes:
 Developer Changes:
 * Integration tests now use SQL to add a client and user for tests, instead of selenium and ui navigation.
 
+Bug Fixes:
+* Fixed miniseq/win_10_miseq parser not detecting missing paired end files
+
 Beta 0.7.1
 ----------
 Bug fixes:
