@@ -2,7 +2,11 @@ Changes
 =======
 
 Beta 0.8.0
-----------
+---------
+Changes:
+* Added GUI option to import config settings from file
+  * This writes the settings loaded to the default config file s.t. the settings persist for automated uploads
+
 Developer Changes:
 * Integration tests now use SQL to add a client and user for tests, instead of selenium and ui navigation.
 * Removed the Hateoas links requests and the _get_link function that handles the calls. All REST request URL's are now defined in the functions.
