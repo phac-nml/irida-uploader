@@ -239,23 +239,23 @@ class ApiCalls(object):
         """
         logging.debug("response.status_code: " + str(response.status_code))
         logging.debug("response.text: " + response.text)
-        if response.status_code == HTTPStatus.BAD_REQUEST:
+        if response.status_code == HTTPStatus.BAD_REQUEST:  # 400
             e = exceptions.IridaResourceError("Request to IRIDA was invalid: "
                                               "{status_code}: {err_msg}\n".format(
                                                   status_code=str(response.status_code),
                                                   err_msg=response.reason))
         elif response.status_code in [HTTPStatus.UNAUTHORIZED,
-                                      HTTPStatus.FORBIDDEN]:
+                                      HTTPStatus.FORBIDDEN]:  # 401, 403
             e = exceptions.IridaResourceError("Request to IRIDA is Forbidden. Do you have access to this resource?: "
                                               "{status_code}: {err_msg}\n".format(
                                                   status_code=str(response.status_code),
                                                   err_msg=response.reason))
-        elif response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+        elif response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:  # 500
             e = exceptions.IridaConnectionError("IRIDA encountered an error while handling your request: "
                                                 "{status_code}: {err_msg}\n".format(
                                                     status_code=str(response.status_code),
                                                     err_msg=response.reason))
-        elif response.status_code == HTTPStatus.NOT_FOUND:
+        elif response.status_code == HTTPStatus.NOT_FOUND:  # 404
             e = exceptions.IridaResourceError("The url you specified could not be reached. Please verify your URL and "
                                               "the projects/samples/etc you specified.")
         else:
@@ -970,6 +970,27 @@ class ApiCalls(object):
         project_id = str(project_id)
         project_list = self.get_projects()
         return any([p.id == project_id for p in project_list])
+
+    def try_project_access(self, project_id):
+        """
+        Attempts a get request to a project, and returns the HTTPStatus that IRIDA returns
+        This is useful for determining if a user does not have access to a project or if it does not exist at all.
+
+        :param project_id:
+        :return: HTTPStatus(IntEnum)
+        """
+        logging.debug("Trying to access project: {}".format(project_id))
+
+        url = f"{self.base_url}/projects/{project_id}"
+
+        try:
+            response = self._session.get(url)
+        except Exception as e:
+            # Handle any exceptions where communication with the server fails
+            raise ApiCalls._handle_rest_exception(url, e)
+
+        logging.debug("IRIDA responded with status code: {}".format(response.status_code))
+        return response.status_code
 
     def sample_exists(self, sample_name, project_id):
         """
