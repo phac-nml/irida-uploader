@@ -3,6 +3,7 @@ This file has api related core functionality
 It handles initializing and managing an api instance as well as preparing IRIDA for an upload and starting the upload
 """
 
+from http import HTTPStatus
 import logging
 
 import iridauploader.api as api
@@ -95,9 +96,14 @@ def prepare_and_validate_for_upload(sequencing_run):
     for project in sequencing_run.project_list:
         logging.debug("Checking existence of project: {}".format(project.id))
         if not api_instance.project_exists(project.id):
-            # No project, add error to validation result and continue
-            logging.debug("Could not find project: {}".format(project.id))
-            err = api.exceptions.IridaResourceError("Project does not exist", project.id)
+            if api_instance.try_project_access(project.id) in [HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN]:
+                # Project exists but is not accessible by the user
+                logging.debug("Project found but user does not have permission")
+                err = api.exceptions.IridaResourceError("You do not have permission to access this project", project.id)
+            else:
+                # No project, add error to validation result and continue
+                logging.debug("Could not find project: {}".format(project.id))
+                err = api.exceptions.IridaResourceError("Project does not exist", project.id)
             validation_result.add_error(err)
             continue
         logging.debug("Project {} exists".format(project.id))
