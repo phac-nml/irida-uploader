@@ -9,6 +9,8 @@ Changes:
 
 Developer Changes:
 * Integration tests now use SQL to add a client and user for tests, instead of selenium and ui navigation.
+* Removed the Hateoas links requests and the _get_link function that handles the calls. All REST request URL's are now defined in the functions.
+* Added (or updated) both REST error handling and IRIDA exception handling to every api request 
 
 Bug Fixes:
 * Fixed miniseq/win_10_miseq parser not detecting missing paired end files
