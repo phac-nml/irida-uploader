@@ -1,6 +1,21 @@
 Changes
 =======
 
+Beta 0.8.0
+---------
+Changes:
+* Added GUI option to import config settings from file
+  * This writes the settings loaded to the default config file s.t. the settings persist for automated uploads
+* Added distinction between "Project does not exist" and "User does not have permission to access project" for error returned to user when trying to upload.
+
+Developer Changes:
+* Integration tests now use SQL to add a client and user for tests, instead of selenium and ui navigation.
+* Removed the Hateoas links requests and the _get_link function that handles the calls. All REST request URL's are now defined in the functions.
+* Added (or updated) both REST error handling and IRIDA exception handling to every api request 
+
+Bug Fixes:
+* Fixed miniseq/win_10_miseq parser not detecting missing paired end files
+
 Beta 0.7.1
 ----------
 Bug fixes:

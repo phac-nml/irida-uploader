@@ -987,7 +987,7 @@ class TestEndToEnd(unittest.TestCase):
 
         # Verify that the project does not exist
         project_id = "1000"
-        with self.assertRaises(api.exceptions.IridaKeyError):
+        with self.assertRaises(api.exceptions.IridaResourceError):
             test_api.get_samples(project_id)
 
     def test_upload_parse_fail(self):

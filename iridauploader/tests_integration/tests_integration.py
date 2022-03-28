@@ -1,3 +1,6 @@
+"""
+This file is responsible for managing the execution of an IRIDA instance and Test Suites
+"""
 import unittest
 
 from iridauploader.tests_integration.integration_data_setup import SetupIridaData
@@ -6,44 +9,13 @@ from iridauploader.tests_integration.test_end_to_end import TestEndToEnd
 
 # Modules level variables that can/will be changed when the setup starts
 base_url = "http://localhost:8080/api"
-username = "admin"
+username = "jeff"
 password = "password1"
-client_id = ""
-client_secret = ""
+client_id = "sequencerClient"
+client_secret = "sequencerClientSecret"
 
 
-def irida_setup(setup):
-    """
-    Kicks off setting up irida,
-    installs from github, resets the database, and runs it
-    :param setup:
-    :return:
-    """
-    setup.install_irida()
-    setup.reset_irida_db()
-    setup.run_irida()
-
-
-def data_setup(setup):
-    """
-    Starts a webdriver that interacts with IRIDA to have it ready for api use
-    :param setup:
-    :return: user id and passwords needed to interact with the IRIDA instance
-    """
-    irida_setup(setup)
-
-    setup.start_driver()
-    setup.login()
-    setup.set_new_admin_pw()
-    setup.create_client()
-
-    irida_secret = setup.get_irida_secret()
-    setup.close_driver()
-
-    return setup.IRIDA_AUTH_CODE_ID, irida_secret, setup.IRIDA_PASSWORD
-
-
-def start_setup(branch, db_host, db_port):
+def init_irida_setup(branch, db_host, db_port):
     """
     Initializes the Irida setup object
     :param branch: what branch from github to check out
@@ -57,12 +29,7 @@ def start_setup(branch, db_host, db_port):
     global client_id
     global client_secret
 
-    setup = SetupIridaData(
-        base_url[:base_url.index("/api")], username, password, branch, db_host, db_port)
-
-    client_id, client_secret, password = data_setup(setup)
-
-    return setup
+    return SetupIridaData(base_url[:base_url.index("/api")], username, password, branch, db_host, db_port)
 
 
 def create_test_suite():
@@ -99,8 +66,20 @@ def start(branch="master", db_host="localhost", db_port="3306"):
     """
     exit_code = 0
 
-    setup_handler = start_setup(branch, db_host, db_port)
+    # create a handler to manage a headless IRIDA instance
+    irida_handler = init_irida_setup(branch, db_host, db_port)
+    # Install IRIDA packages
+    irida_handler.install_irida()
+    # Delete and recreate the database
+    irida_handler.reset_irida_db()
+    # Launch IRIDA
+    # Note: This initializes the database tables
+    # Note: This call waits until IRIDA is running
+    irida_handler.run_irida()
+    # Add data to database that the tests depend on
+    irida_handler.update_irida_db()
 
+    # Run tests
     try:
         full_suite = create_test_suite()
 
@@ -112,6 +91,6 @@ def start(branch="master", db_host="localhost", db_port="3306"):
         raise e
     finally:
         # Make sure IRIDA is stopped even when an exception is raised
-        setup_handler.stop_irida()
+        irida_handler.stop_irida()
 
     return exit_code

@@ -312,7 +312,8 @@ class TestParseSampleList(unittest.TestCase):
                                 "fake_ngs_data", "Alignment_1", "some_dir", "Fastq", "01-1111_S1_L001_R2_001.fastq.gz")
         raw_file_list = [file_path_1, file_path_2]
 
-        res = sample_parser.parse_sample_list(sample_sheet_file=sheet_file, run_data_directory=data_dir, run_data_directory_file_list=file_list)
+        res = sample_parser.parse_sample_list(sample_sheet_file=sheet_file, run_data_directory=data_dir,
+                                              run_data_directory_file_list=file_list, bool_paired_files=True)
 
         # Check sample is the same
         self.assertEqual(res[0].get_uploadable_dict(), sample.get_uploadable_dict())
@@ -332,7 +333,8 @@ class TestParseSampleList(unittest.TestCase):
         file_path = path.join(directory, "SampleSheet.csv")
 
         with self.assertRaises(SequenceFileError):
-            res = sample_parser.parse_sample_list(sample_sheet_file=file_path, run_data_directory=data_dir, run_data_directory_file_list=file_list)
+            res = sample_parser.parse_sample_list(sample_sheet_file=file_path, run_data_directory=data_dir,
+                                                  run_data_directory_file_list=file_list, bool_paired_files=True)
 
     def test_not_valid_pf_list(self):
         """
@@ -346,7 +348,8 @@ class TestParseSampleList(unittest.TestCase):
         file_path = path.join(directory, "SampleSheet.csv")
 
         with self.assertRaises(SequenceFileError):
-            res = sample_parser.parse_sample_list(sample_sheet_file=file_path, run_data_directory=data_dir, run_data_directory_file_list=file_list)
+            res = sample_parser.parse_sample_list(sample_sheet_file=file_path, run_data_directory=data_dir,
+                                                  run_data_directory_file_list=file_list, bool_paired_files=True)
 
     def test_space_in_sample_name(self):
         directory = path.join(path_to_module, "ngs_space_in_sample_name")
@@ -356,7 +359,8 @@ class TestParseSampleList(unittest.TestCase):
         file_path = path.join(directory, "SampleSheet.csv")
 
         # Just making sure this doesn't throw an error
-        sample_parser.parse_sample_list(sample_sheet_file=file_path, run_data_directory=data_dir, run_data_directory_file_list=file_list)
+        sample_parser.parse_sample_list(sample_sheet_file=file_path, run_data_directory=data_dir,
+                                        run_data_directory_file_list=file_list, bool_paired_files=False)
 
 
 class TestParseSamples(unittest.TestCase):
@@ -497,7 +501,8 @@ class TestBuildISeqRun(unittest.TestCase):
 
         sample_list = sample_parser.parse_sample_list(sample_sheet_file=sheet_file,
                                                       run_data_directory=data_dir,
-                                                      run_data_directory_file_list=file_list)
+                                                      run_data_directory_file_list=file_list,
+                                                      bool_paired_files=True)
         sequence_run_type = 'miniseq'
 
         sequencing_run = parsers.common.build_sequencing_run_from_samples(sample_list, meta_data, sequence_run_type)

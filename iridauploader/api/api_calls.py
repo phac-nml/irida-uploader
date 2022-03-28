@@ -40,10 +40,13 @@ TIMEOUT_BYTES_TO_MB_DIVISOR = 1024 * 1024
 TIMEOUT_MINIMUM = 1200
 
 SESSION_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.1.2222.33 Safari/537.36",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+                  "Chrome/71.1.2222.33 Safari/537.36",
     "Accept-Encoding": "*",
     "Connection": "keep-alive"
 }
+
+JSON_HEADERS = {"headers": {'Content-Type': 'application/json', **SESSION_HEADERS}}
 
 
 class ApiCalls(object):
@@ -203,130 +206,31 @@ class ApiCalls(object):
 
         return access_token
 
-    def _validate_url_existence(self, url):
+    @staticmethod
+    def _handle_rest_exception(url, e):
         """
-        tries to validate existence of given url by trying to open it.
-        true if HTTP OK and no errors when authenticating credentials
-        if errors or non HTTP.OK code occur, throws a IridaConnectionError
-
-        arguments:
-            url -- the url link to open and validate
-
-        returns
-            true if http response OK 200
-            raises IridaConnectionError otherwise
+        Given an exception, generates a more detailed description and a IRIDA specific error
+        :param url: original url called (to be included in response)
+        :param e: exception that was raised
+        :return: IridaConnectionError to be raised by calling function
         """
-        try:
-            response = self._session.get(url)
-        except URLError as e:
+        if type(e) is URLError:
             logging.error("Could not connect to IRIDA, URL '{}' responded with: {}"
                           "".format(url, str(e)))
-            raise exceptions.IridaConnectionError("Could not connect to IRIDA, URL '{}' responded with: {}"
-                                                  "".format(url, str(e)))
-        except Exception as e:
+            return exceptions.IridaConnectionError("Could not connect to IRIDA, URL '{}' responded with: {}"
+                                                   "".format(url, str(e)))
+        if type(e) is ConnectionError:
+            # This could be anything from disconnection during post to IRIDA crashing
+            logging.error("ConnectionError occurred while transferring data: " + str(e))
+            raise exceptions.IridaConnectionError(e)
+        else:
             logging.error("Could not connect to IRIDA, non URLError Exception occurred. URL '{}' Error: {}"
                           "".format(url, str(e)))
-            raise exceptions.IridaConnectionError("Could not connect to IRIDA, non URLError Exception occurred. "
-                                                  "URL '{}' Error: {}".format(url, str(e)))
-
-        if response.status_code == HTTPStatus.OK:
-            return True
-        else:
-            logging.error("Could not connect to IRIDA, URL '{}' responded with: {} {}"
-                          "".format(url, response.status_code, response.reason))
-            raise exceptions.IridaConnectionError("Could not connect to IRIDA, URL '{}' responded with: {} {}"
-                                                  "".format(url, response.status_code, response.reason))
-
-    def _get_link(self, target_url, target_key, target_dict=None):
-        """
-        makes a call to target_url(api) expecting a json response
-        tries to retrieve target_key from response to find link to resource
-        raises exceptions if target_key not found or target_url is invalid
-
-        arguments:
-            target_url -- URL to retrieve link from
-            target_key -- name of link (e.g projects or project/samples)
-            target_dict -- optional dict containing key and value to search
-                in targets.
-            (e.g {key="identifier",value="100"} to retrieve where
-                identifier=100)
-
-        returns link if it exists
-        """
-
-        logging.debug("api_calls._get_link: target_url: {}, target_key: {}".format(target_url, target_key))
-
-        self._validate_url_existence(target_url)
-        response = self._session.get(target_url)
-
-        if target_dict:  # we are targeting specific resources in the response
-
-            # TODO: This try except block has been added to log a crash that has occurred, to find the source.
-            try:
-                resources_list = response.json()["resource"]["resources"]
-            except KeyError as e:
-                # This is occurring for an unknown reason.
-                # Once docs can be gathered displaying information, we can determine the source of the bug and fix it.
-                logging.error("Dumping json response from IRIDA:")
-                logging.error(str(response.json()))
-                logging.error("Dumping python KeyError:")
-                logging.error(e)
-                error_txt = "Response from IRIDA Could not be parsed. Please show the log to your IRIDA Administrator."
-                logging.error(error_txt)
-                raise exceptions.IridaKeyError(error_txt)
-            # try to get all keys from target_dict to our list or links
-            try:
-                links_list = next(
-                    r["links"] for r in resources_list
-                    if r[target_dict["key"]].lower() == str(target_dict["value"]).lower()
-                )
-
-            except KeyError:
-                raise exceptions.IridaKeyError(target_dict["key"] + " not found. Available keys: "
-                                               ", ".join(resources_list[0].keys()))
-
-            except StopIteration:
-                raise exceptions.IridaKeyError(target_dict["value"] + " not found.")
-
-        else:  # get all the links in the response
-            links_list = response.json()["resource"]["links"]
-        try:
-            ret_val = next(link["href"] for link in links_list
-                           if link["rel"] == target_key)
-
-        except StopIteration:
-            logging.debug(target_key + " not found in links. Available links: "
-                          ", ".join([str(link["rel"]) for link in links_list]))
-            raise exceptions.IridaKeyError(target_key + " not found in links. Available links: " + ""
-                                           ", ".join([str(link["rel"]) for link in links_list]))
-
-        return ret_val
-
-    def _get_upload_url(self, base_url, run_type_str):
-        """
-        Concatenates a base url with the run type for constructing the upload url path
-        :param base_url: Upload url
-        :param run_type_str: Type of sequencing run that is being uploaded
-        :return: url
-        """
-
-        """TODO:
-        There is currently an issue in the IRIDA API with finding links for different sequencer routes
-        once that is fixed, the following should be written as:
-
-        seq_run_url = self._get_link(base_url, "sequencingRuns")
-        return urljoin(seq_run_url, run_type_str)
-
-        or better yet:
-
-        seq_run_url = self._get_link(base_url, "sequencingRuns")
-        return self._get_link(seq_run_url, run_type_str)
-        """
-        seq_run_url = self._get_link(base_url, "sequencingRuns")
-        return urljoin(seq_run_url + "/", run_type_str)
+            return exceptions.IridaConnectionError("Could not connect to IRIDA, non URLError Exception occurred. "
+                                                   "URL '{}' Error: {}".format(url, str(e)))
 
     @staticmethod
-    def _get_irida_exception(response):
+    def _handle_irida_exception(response):
         """
         Generates and returns an appropriate exception based on the status code in the response returned by irida
 
@@ -335,22 +239,25 @@ class ApiCalls(object):
         """
         logging.debug("response.status_code: " + str(response.status_code))
         logging.debug("response.text: " + response.text)
-        if response.status_code == HTTPStatus.BAD_REQUEST:
+        if response.status_code == HTTPStatus.BAD_REQUEST:  # 400
             e = exceptions.IridaResourceError("Request to IRIDA was invalid: "
                                               "{status_code}: {err_msg}\n".format(
                                                   status_code=str(response.status_code),
                                                   err_msg=response.reason))
         elif response.status_code in [HTTPStatus.UNAUTHORIZED,
-                                      HTTPStatus.FORBIDDEN]:
+                                      HTTPStatus.FORBIDDEN]:  # 401, 403
             e = exceptions.IridaResourceError("Request to IRIDA is Forbidden. Do you have access to this resource?: "
                                               "{status_code}: {err_msg}\n".format(
                                                   status_code=str(response.status_code),
                                                   err_msg=response.reason))
-        elif response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+        elif response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:  # 500
             e = exceptions.IridaConnectionError("IRIDA encountered an error while handling your request: "
                                                 "{status_code}: {err_msg}\n".format(
                                                     status_code=str(response.status_code),
                                                     err_msg=response.reason))
+        elif response.status_code == HTTPStatus.NOT_FOUND:  # 404
+            e = exceptions.IridaResourceError("The url you specified could not be reached. Please verify your URL and "
+                                              "the projects/samples/etc you specified.")
         else:
             e = exceptions.IridaConnectionError("Error encountered while communicating with IRIDA: "
                                                 "{status_code}: {err_msg}\n".format(
@@ -369,10 +276,17 @@ class ApiCalls(object):
 
         if self.cached_projects is None:
             logging.debug("Loading projects from IRIDA server.")
-            url = self._get_link(self.base_url, "projects")
-            response = self._session.get(url)
+            url = f"{self.base_url}/projects"
 
-            result = response.json()["resource"]["resources"]
+            try:
+                response = self._session.get(url)
+            except Exception as e:
+                raise ApiCalls._handle_rest_exception(url, e)
+
+            if response.status_code == HTTPStatus.OK:  # 200
+                result = response.json()["resource"]["resources"]
+            else:
+                raise self._handle_irida_exception(response)
 
             try:
                 project_list = [
@@ -389,8 +303,8 @@ class ApiCalls(object):
                 msg_arg = " ".join(e.args)
                 logging.debug(msg_arg + " not found. Available keys: "
                               ", ".join(result[0].keys()))
-                raise exceptions.IridaKeyError(msg_arg + " not found. Available keys: "
-                                               ", ".join(result[0].keys()))
+                raise exceptions.IridaResourceError(msg_arg + " not found in data provided by IRIDA. Available keys: "
+                                                    ", ".join(result[0].keys()))
             self.cached_projects = project_list
         else:
             logging.debug("Loading projects from cache.")
@@ -416,19 +330,18 @@ class ApiCalls(object):
         logging.info("Getting samples from project '{}'".format(project_id))
 
         if project_id not in self.cached_samples:
+            url = f"{self.base_url}/projects/{project_id}/samples"
+
             try:
-                project_url = self._get_link(self.base_url, "projects")
-                url = self._get_link(project_url, "project/samples",
-                                     target_dict={
-                                         "key": "identifier",
-                                         "value": project_id
-                                     })
+                response = self._session.get(url)
+            except Exception as e:
+                raise ApiCalls._handle_rest_exception(url, e)
 
-            except StopIteration:
-                logging.error("The given project ID doesn't exist: ".format(project_id))
-                raise exceptions.IridaResourceError("The given project ID doesn't exist", project_id)
+            if response.status_code != HTTPStatus.OK:  # 200
+                logging.error("Encountered error while getting samples: {} {}"
+                              "".format(response.status_code, response.reason))
+                raise ApiCalls._handle_irida_exception(response)
 
-            response = self._session.get(url)
             result = response.json()["resource"]["resources"]
 
             sample_list = []
@@ -466,34 +379,24 @@ class ApiCalls(object):
 
         logging.info("Getting sequence files from sample '{}' on project '{}'".format(sample_name, project_id))
 
-        try:
-            project_url = self._get_link(self.base_url, "projects")
-            sample_url = self._get_link(project_url, "project/samples",
-                                        target_dict={
-                                            "key": "identifier",
-                                            "value": project_id
-                                        })
-
-        except StopIteration:
-            logging.error("The given project ID doesn't exist: ".format(project_id))
-            raise exceptions.IridaResourceError("The given project ID doesn't exist", project_id)
+        # Need the sample id for upload, not the sample name.
+        # This is cached so it's only 1 call per project uploading to
+        # TODO: In the future, this function should accept sample_id instead of sample_name
+        sample_id = self.get_sample_id(sample_name, project_id)
+        url = f"{self.base_url}/samples/{sample_id}/sequenceFiles"
 
         try:
-            url = self._get_link(sample_url, "sample/sequenceFiles",
-                                 target_dict={
-                                     "key": "sampleName",
-                                     "value": sample_name
-                                 })
             response = self._session.get(url)
+        except Exception as e:
+            raise ApiCalls._handle_rest_exception(url, e)
 
-        except StopIteration:
-            logging.error("The given sample doesn't exist: ".format(sample_name))
-            raise exceptions.IridaResourceError("The given sample ID doesn't exist", sample_name)
-
-        # todo future development
-        # This response should be parsed into SequenceFile objects
-        # This is a bit tricky because Forward and Reverse reads are different files in the returned resources
-        result = response.json()["resource"]["resources"]
+        if response.status_code == HTTPStatus.OK:  # 200
+            # todo future development
+            # This response should be parsed into SequenceFile objects
+            # This is a bit tricky because Forward and Reverse reads are different files in the returned resources
+            result = response.json()["resource"]["resources"]
+        else:
+            raise self._handle_irida_exception(response)
 
         return result
 
@@ -511,15 +414,17 @@ class ApiCalls(object):
 
         try:
             response = self._session.get(url)
+        except Exception as e:
+            raise ApiCalls._handle_rest_exception(url, e)
 
-        except StopIteration:
-            logging.error("The given sample doesn't exist: ".format(sample_id))
-            raise exceptions.IridaResourceError("The given sample ID doesn't exist", sample_id)
-
-        # todo future development if needed one day
-        # This response should be returned as some sort of file object
-        # This is related to how we return get_sequence_files too, but there is no real use for it at the moment, yagni
-        result = response.json()["resource"]["resources"]
+        if response.status_code == HTTPStatus.OK:  # 200
+            # todo future development if needed one day
+            # This response should be returned as some sort of file object
+            # This is related to how we return get_sequence_files too, but there is no real use for it at the moment,
+            # yagni
+            result = response.json()["resource"]["resources"]
+        else:
+            raise self._handle_irida_exception(response)
 
         return result
 
@@ -538,34 +443,25 @@ class ApiCalls(object):
 
         logging.info("Getting fast5 files from sample '{}' on project '{}'".format(sample_name, project_id))
 
-        try:
-            project_url = self._get_link(self.base_url, "projects")
-            sample_url = self._get_link(project_url, "project/samples",
-                                        target_dict={
-                                            "key": "identifier",
-                                            "value": project_id
-                                        })
-
-        except StopIteration:
-            logging.error("The given project ID doesn't exist: ".format(project_id))
-            raise exceptions.IridaResourceError("The given project ID doesn't exist", project_id)
+        # Need the sample id for upload, not the sample name.
+        # This is cached so it's only 1 call per project uploading to
+        # TODO: In the future, this function should accept sample_id instead of sample_name
+        sample_id = self.get_sample_id(sample_name, project_id)
+        url = f"{self.base_url}/samples/{sample_id}/fast5"
 
         try:
-            url = self._get_link(sample_url, "sample/sequenceFiles/fast5",
-                                 target_dict={
-                                     "key": "sampleName",
-                                     "value": sample_name
-                                 })
             response = self._session.get(url)
+        except Exception as e:
+            raise ApiCalls._handle_rest_exception(url, e)
 
-        except StopIteration:
-            logging.error("The given sample doesn't exist: ".format(sample_name))
-            raise exceptions.IridaResourceError("The given sample ID doesn't exist", sample_name)
-
-        # todo future development if needed one day
-        # This response should be returned as some sort of file object
-        # This is related to how we return get_sequence_files too, but there is no real use for it at the moment, yagni
-        result = response.json()["resource"]["resources"]
+        if response.status_code == HTTPStatus.OK:  # 200
+            # todo future development if needed one day
+            # This response should be returned as some sort of file object
+            # This is related to how we return get_sequence_files too, but there is no real use for it at the moment,
+            # yagni
+            result = response.json()["resource"]["resources"]
+        else:
+            raise self._handle_irida_exception(response)
 
         return result
 
@@ -583,12 +479,13 @@ class ApiCalls(object):
 
         try:
             response = self._session.get(url)
+        except Exception as e:
+            raise ApiCalls._handle_rest_exception(url, e)
 
-        except StopIteration:
-            logging.error("The given sample id '{}' doesn't exist: ".format(sample_id))
-            raise exceptions.IridaResourceError("The given sample id '{}' doesn't exist", sample_id)
-
-        result = response.json()["resource"]["metadata"]
+        if response.status_code == HTTPStatus.OK:  # 200
+            result = response.json()["resource"]["metadata"]
+        else:
+            raise self._handle_irida_exception(response)
 
         # TODO: api refactor project: build this data into a model/Metadata object
         return result
@@ -613,22 +510,19 @@ class ApiCalls(object):
 
         if clear_cache:
             self.cached_projects = None
-        url = self._get_link(self.base_url, "projects")
+        url = f"{self.base_url}/projects"
         json_obj = json.dumps(project.get_uploadable_dict())
-        headers = {
-            "headers": {
-                "Content-Type": "application/json",
-                **SESSION_HEADERS
-            }
-        }
 
-        response = self._session.post(url, json_obj, **headers)
+        try:
+            response = self._session.post(url, json_obj, **JSON_HEADERS)
+        except Exception as e:
+            raise ApiCalls._handle_rest_exception(url, e)
 
         if response.status_code == HTTPStatus.CREATED:  # 201
             json_res = json.loads(response.text)
         else:
             logging.error("Error sending project: {} {}".format(response.status_code, response.text))
-            raise self._get_irida_exception(response)
+            raise self._handle_irida_exception(response)
 
         return json_res
 
@@ -646,34 +540,20 @@ class ApiCalls(object):
         self.cached_samples = {}  # reset the cache, we're updating stuff
         self.cached_projects = None
 
-        try:
-            project_url = self._get_link(self.base_url, "projects")
-            url = self._get_link(project_url, "project/samples",
-                                 target_dict={
-                                     "key": "identifier",
-                                     "value": project_id
-                                 })
-
-        except StopIteration:
-            logging.error("The given project ID doesn't exist: ".format(project_id))
-            raise exceptions.IridaResourceError("The given project ID doesn't exist", project_id)
-
-        headers = {
-            "headers": {
-                "Content-Type": "application/json",
-                **SESSION_HEADERS
-            }
-        }
-
+        url = f"{self.base_url}/projects/{project_id}/samples"
         json_obj = json.dumps(sample.get_uploadable_dict())
-        response = self._session.post(url, json_obj, **headers)
+
+        try:
+            response = self._session.post(url, json_obj, **JSON_HEADERS)
+        except Exception as e:
+            raise ApiCalls._handle_rest_exception(url, e)
 
         if response.status_code == HTTPStatus.CREATED:  # 201
             json_res = json.loads(response.text)
         else:
             logging.error("Did not create sample on server. Response code is '{}' and error message is '{}'"
                           "".format(response.status_code, response.text))
-            raise self._get_irida_exception(response)
+            raise self._handle_irida_exception(response)
 
         return json_res
 
@@ -689,14 +569,15 @@ class ApiCalls(object):
 
         try:
             response = self._session.get(url)
+        except Exception as e:
+            raise ApiCalls._handle_rest_exception(url, e)
 
-        except StopIteration:
-            logging.error("The given sample id '{}' doesn't exist: ".format(sample_id))
-            raise exceptions.IridaResourceError("The given sample id '{}' doesn't exist", sample_id)
+        if response.status_code == HTTPStatus.OK:  # 200
+            result = response.json()
+        else:
+            raise self._handle_irida_exception(response)
 
         # TODO: api refactor project: build this data into a model/Metadata object
-        result = response.json()
-
         return result
 
     def send_sequence_files(self, sequence_file, sample_name, project_id, upload_id, upload_mode=MODE_DEFAULT):
@@ -720,19 +601,12 @@ class ApiCalls(object):
         self._current_upload_sample_name = sample_name
 
         # Get the url's needed to send sequence files
-        # Verify the project exists
-        try:
-            project_url = self._get_link(self.base_url, "projects")
-            samples_url = self._get_link(project_url, "project/samples",
-                                         target_dict={
-                                             "key": "identifier",
-                                             "value": project_id
-                                         })
-        except StopIteration:
-            raise exceptions.IridaResourceError("The given project ID doesn't exist", project_id)
-
-        # Get upload url
-        url = self._get_sample_upload_url(sequence_file, samples_url, sample_name, upload_mode)
+        # Need the sample id for upload, not the sample name.
+        # This is cached so it's only 1 call per project uploading to
+        # TODO: In the future, this function should accept sample_id instead of sample_name
+        sample_id = self.get_sample_id(sample_name, project_id)
+        sample_url = f"{self.base_url}/samples/{sample_id}"
+        url = ApiCalls._get_sample_upload_url(sequence_file, sample_url, upload_mode)
 
         # Get the data encoder
         data_pkg = self._get_sequence_data_pkg(sequence_file, upload_id)
@@ -746,22 +620,47 @@ class ApiCalls(object):
 
         try:
             response = self._session.post(url, data=data_pkg, headers=headers_pkg, timeout=timeout)
-        except ConnectionError as e:
-            # This could be anything from disconnection during post to IRIDA crashing
-            logging.error("ConnectionError occurred while transferring data: " + str(e))
-            raise exceptions.IridaConnectionError(e)
         except Exception as e:
-            # Any other exception, like a library not handling the response properly could be caught here
-            logging.error("Exception occured while transferring data: " + str(e))
-            raise exceptions.IridaConnectionError(e)
+            logging.error("ConnectionError occurred while transferring data: " + str(e))
+            raise ApiCalls._handle_rest_exception(url, e)
 
         if response.status_code == HTTPStatus.CREATED:
             json_res = json.loads(response.text)
         else:
             logging.error("Error while uploading [{}]: [{}]".format(sample_name, response.reason))
-            raise self._get_irida_exception(response)
+            raise self._handle_irida_exception(response)
 
         return json_res
+
+    @staticmethod
+    def _get_sample_upload_url(sequence_file, sample_url, upload_mode):
+        """
+        Gets the appropriate url for single end, paired end, or assemblies files.
+        :param sequence_file: Sequence Fle to upload
+        :param sample_url: Sample Url to upload to
+        :param upload_mode: String indicating upload mode
+        :return:
+        """
+        if upload_mode == MODE_ASSEMBLIES:
+            url = f"{sample_url}/assemblies"
+        elif upload_mode == MODE_FAST5:
+            url = f"{sample_url}/fast5"
+        elif upload_mode == MODE_DEFAULT:
+            if sequence_file.is_paired_end():
+                logging.debug("api_calls: sending paired-end file")
+                url = f"{sample_url}/pairs"
+            else:
+                logging.debug("api_calls: sending single-end file")
+                url = f"{sample_url}/sequenceFiles"
+        else:
+            error = "Upload mode '{}' is invalid. Upload mode must be one of {}".format(
+                upload_mode,
+                UPLOAD_MODES
+            )
+            logging.error(error)
+            raise exceptions.IridaResourceError(error, upload_mode)
+
+        return url
 
     def _get_sequence_file_timeout(self, sequence_file):
         """
@@ -795,67 +694,19 @@ class ApiCalls(object):
 
         json_obj = json.dumps(metadata.get_uploadable_dict())
 
-        headers_pkg = {'Content-Type': 'application/json', **SESSION_HEADERS}
+        try:
+            response = self._session.put(url, data=json_obj, **JSON_HEADERS)
+        except Exception as e:
+            raise ApiCalls._handle_rest_exception(url, e)
 
-        response = self._session.put(url, data=json_obj, headers=headers_pkg)
-
-        if response.status_code == 200:  # 200
+        if response.status_code == HTTPStatus.OK:  # 200
             json_res = json.loads(response.text)
         else:
             logging.error("Did not add metadata to sample. Response code is '{}' and error message is '{}'"
                           "".format(response.status_code, response.text))
-            raise self._get_irida_exception(response)
+            raise self._handle_irida_exception(response)
 
         return json_res
-
-    def _get_sample_upload_url(self, sequence_file, samples_url, sample_name, upload_mode):
-        """
-        Gets the appropriate url for single end, paired end, or assemblies files.
-        :param sequence_file: Sequence Fle to upload
-        :param samples_url: Sample Url to upload to
-        :param sample_name: Sample Name (identifier) to upload to
-        :param upload_mode: String indicating upload mode
-        :return:
-        """
-        try:
-            if upload_mode == MODE_ASSEMBLIES:
-                url = self._get_link(samples_url, "sample/assemblies",
-                                     target_dict={
-                                         "key": "sampleName",
-                                         "value": sample_name
-                                     })
-            elif upload_mode == MODE_FAST5:
-                url = self._get_link(samples_url, "sample/sequenceFiles/fast5",
-                                     target_dict={
-                                         "key": "sampleName",
-                                         "value": sample_name
-                                     })
-            elif upload_mode == MODE_DEFAULT:
-                part_url = self._get_link(samples_url, "sample/sequenceFiles",
-                                          target_dict={
-                                              "key": "sampleName",
-                                              "value": sample_name
-                                          })
-                # get paired or single end url
-                if sequence_file.is_paired_end():
-                    logging.debug("api_calls: sending paired-end file")
-                    url = self._get_link(part_url, "sample/sequenceFiles/pairs")
-                else:
-                    logging.debug("api_calls: sending single-end file")
-                    url = part_url
-            else:
-                error = "Upload mode '{}' is invalid. Upload mode must be one of {}".format(
-                    upload_mode,
-                    UPLOAD_MODES
-                )
-                logging.error(error)
-                raise exceptions.IridaResourceError(error, upload_mode)
-
-        except StopIteration:
-            logging.error("The given sample '{}' does not exist on that project".format(sample_name))
-            raise exceptions.IridaResourceError("The given sample ID does not exist on that project", sample_name)
-
-        return url
 
     def _send_file_callback(self, monitor):
         """
@@ -874,18 +725,23 @@ class ApiCalls(object):
         Creates the data encoder, and attaches a monitor for callback functionality
         """
         # build data encoder
-        encoder = self._get_multipart_encoder(sequence_file, upload_id)
+        encoder = ApiCalls._get_multipart_encoder(sequence_file, upload_id)
         # create callback monitor for file progress
         monitor = MultipartEncoderMonitor(encoder, self._send_file_callback)
         # override max byte read size
         # This lambda overrides httplibs hard coded 8192 byte read size
         # More details: https://github.com/requests/toolbelt/issues/75#issuecomment-237189952
+        # Update: although configuring blocksize has been added to Python 3.7, it is not implemented in Requests, and is
+        # labeled as "wontfix". So unless we want to move away from Multipart File Encoding, this lambda patch stays.
+        # If we do move away from Multipart File Encoding, choosing a faster file transfer method that does not rely on
+        # http would be better than switching to urllib3 or other python http packages.
         monitor._read = monitor.read
         monitor.read = lambda size: monitor._read(1024 * 1024)
         # return the monitor/encoder object
         return monitor
 
-    def _get_multipart_encoder(self, sequence_file, upload_id):
+    @staticmethod
+    def _get_multipart_encoder(sequence_file, upload_id):
         """
         Creates a multipart file encoder to be used for streaming files to IRIDA
         """
@@ -961,14 +817,7 @@ class ApiCalls(object):
         if 'workflow' not in metadata_dict:
             metadata_dict['workflow'] = 'workflow'
 
-        url = self._get_upload_url(self.base_url, sequencing_run_type)
-
-        headers = {
-            "headers": {
-                "Content-Type": "application/json",
-                **SESSION_HEADERS
-            }
-        }
+        url = f"{self.base_url}/sequencingrun/{sequencing_run_type}"
 
         acceptable_properties = [
             "layoutType", "chemistry", "projectName",
@@ -988,13 +837,17 @@ class ApiCalls(object):
 
         json_obj = json.dumps(metadata_dict)
 
-        response = self._session.post(url, json_obj, **headers)
+        try:
+            response = self._session.post(url, json_obj, **JSON_HEADERS)
+        except Exception as e:
+            raise ApiCalls._handle_rest_exception(url, e)
+
         if response.status_code == HTTPStatus.CREATED:  # 201
             json_res = json.loads(response.text)
         else:
             logging.error("Encountered error while creating sequence run: {} {}"
                           "".format(response.status_code, response.reason))
-            raise self._get_irida_exception(response)
+            raise self._handle_irida_exception(response)
 
         # Grab the run identifier from the returned json
         sequencing_run_id = json_res['resource']['identifier']
@@ -1002,7 +855,6 @@ class ApiCalls(object):
         return sequencing_run_id
 
     def get_seq_runs(self):
-
         """
         Get list of all SequencingRun objects
 
@@ -1010,10 +862,19 @@ class ApiCalls(object):
         """
         logging.debug("Getting sequencing runs")
 
-        url = self._get_link(self.base_url, "sequencingRuns")
-        response = self._session.get(url)
+        url = f"{self.base_url}/sequencingrun"
 
-        json_res_list = response.json()["resource"]["resources"]
+        try:
+            response = self._session.get(url)
+        except Exception as e:
+            raise ApiCalls._handle_rest_exception(url, e)
+
+        if response.status_code == HTTPStatus.OK:  # 200
+            json_res_list = response.json()["resource"]["resources"]
+        else:
+            logging.error("Encountered error while getting sequence runs: {} {}"
+                          "".format(response.status_code, response.reason))
+            raise self._handle_irida_exception(response)
 
         return json_res_list
 
@@ -1079,24 +940,15 @@ class ApiCalls(object):
         """
 
         logging.debug("Setting sequencing run '{}' to '{}'".format(identifier, status))
-        seq_run_url = self._get_link(self.base_url, "sequencingRuns")
 
-        url = self._get_link(seq_run_url, "self",
-                             target_dict={
-                                 "key": "identifier",
-                                 "value": identifier
-                             })
-        headers = {
-            "headers": {
-                "Content-Type": "application/json",
-                **SESSION_HEADERS
-            }
-        }
-
+        url = f"{self.base_url}/sequencingrun/{identifier}"
         update_dict = {"uploadStatus": status}
         json_obj = json.dumps(update_dict)
 
-        response = self._session.patch(url, json_obj, **headers)
+        try:
+            response = self._session.patch(url, json_obj, **JSON_HEADERS)
+        except Exception as e:
+            raise ApiCalls._handle_rest_exception(url, e)
 
         if response.status_code == HTTPStatus.OK:  # 200
             json_res = json.loads(response.text)
@@ -1118,6 +970,27 @@ class ApiCalls(object):
         project_id = str(project_id)
         project_list = self.get_projects()
         return any([p.id == project_id for p in project_list])
+
+    def try_project_access(self, project_id):
+        """
+        Attempts a get request to a project, and returns the HTTPStatus that IRIDA returns
+        This is useful for determining if a user does not have access to a project or if it does not exist at all.
+
+        :param project_id:
+        :return: HTTPStatus(IntEnum)
+        """
+        logging.debug("Trying to access project: {}".format(project_id))
+
+        url = f"{self.base_url}/projects/{project_id}"
+
+        try:
+            response = self._session.get(url)
+        except Exception as e:
+            # Handle any exceptions where communication with the server fails
+            raise ApiCalls._handle_rest_exception(url, e)
+
+        logging.debug("IRIDA responded with status code: {}".format(response.status_code))
+        return response.status_code
 
     def sample_exists(self, sample_name, project_id):
         """

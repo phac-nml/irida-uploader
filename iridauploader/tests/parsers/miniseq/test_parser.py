@@ -2,7 +2,7 @@ import unittest
 from os import path
 
 from iridauploader.parsers.miniseq.parser import Parser
-from iridauploader.parsers.exceptions import DirectoryError, ValidationError, SampleSheetError
+from iridauploader.parsers.exceptions import DirectoryError, ValidationError, SampleSheetError, SequenceFileError
 import iridauploader.model as model
 
 path_to_module = path.abspath(path.dirname(__file__))
@@ -184,6 +184,22 @@ class TestGetSequencingRun(unittest.TestCase):
 
         for error in validation_result.error_list:
             self.assertEqual(type(error), DirectoryError)
+
+    def test_missing_paired_file(self):
+        """
+        Given a valid sample sheet but missing a paired file, verify that an validation error is thrown
+        :return:
+        """
+        sample_sheet = path.join(path_to_module, "fake_ngs_data_missing_paired_file", "SampleSheet.csv")
+
+        with self.assertRaises(ValidationError) as context:
+            Parser().get_sequencing_run(sample_sheet)
+
+        validation_result = context.exception.validation_result
+        self.assertEqual(type(validation_result), model.ValidationResult)
+
+        for error in validation_result.error_list:
+            self.assertEqual(type(error), SequenceFileError)
 
     def test_valid_run(self):
         """

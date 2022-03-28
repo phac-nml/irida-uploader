@@ -86,13 +86,14 @@ def parse_metadata(sample_sheet_file):
     return metadata_dict
 
 
-def parse_sample_list(sample_sheet_file, run_data_directory, run_data_directory_file_list):
+def parse_sample_list(sample_sheet_file, run_data_directory, run_data_directory_file_list, bool_paired_files):
     """
     Creates a list of Sample Objects
 
     :param sample_sheet_file: Sample Sheet file
     :param run_data_directory: Data directory including run directory (e.g. my_run/Data/Intensities/BaseCalls)
     :param run_data_directory_file_list: The list of all files in the data directory
+    :param bool_paired_files: used for file validation
     :return: list of Sample objects
     """
     sample_list = _parse_samples(sample_sheet_file)
@@ -136,7 +137,22 @@ def parse_sample_list(sample_sheet_file, run_data_directory, run_data_directory_
                     pf_list, run_data_directory))
 
         # Add the dir to each file to create the full path
-        for i in range(len(pf_list)):
+        file_count = len(pf_list)
+
+        if bool_paired_files:
+            if file_count != 2:
+                raise exceptions.SequenceFileError((
+                    "The following file list {} found in the directory {} is invalid. "
+                    "Paired end run expected 2 files for this sample.").format(
+                        pf_list, run_data_directory))
+        else:
+            if file_count != 1:
+                raise exceptions.SequenceFileError((
+                    "The following file list {} found in the directory {} is invalid. "
+                    "Single end run expected 1 file for this sample.").format(
+                        pf_list, run_data_directory))
+
+        for i in range(file_count):
             pf_list[i] = path.join(run_data_directory, pf_list[i])
 
         sq = model.SequenceFile(file_list=pf_list, properties_dict=properties_dict)
