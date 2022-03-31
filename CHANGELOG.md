@@ -3,6 +3,11 @@ Changes
 
 Beta 0.8.0
 ---------
+Bug Fixes:
+* Fixed duplicate `/` in generated url's
+
+Beta 0.8.0
+---------
 Changes:
 * Added GUI option to import config settings from file
   * This writes the settings loaded to the default config file s.t. the settings persist for automated uploads
