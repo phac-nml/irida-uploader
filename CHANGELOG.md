@@ -1,7 +1,7 @@
 Changes
 =======
 
-Beta 0.8.0
+Beta 0.8.1
 ---------
 Bug Fixes:
 * Fixed duplicate `/` in generated url's
