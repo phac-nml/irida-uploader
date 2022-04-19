@@ -276,7 +276,7 @@ class ApiCalls(object):
 
         if self.cached_projects is None:
             logging.debug("Loading projects from IRIDA server.")
-            url = f"{self.base_url}/projects"
+            url = f"{self.base_url}projects"
 
             try:
                 response = self._session.get(url)
@@ -330,7 +330,7 @@ class ApiCalls(object):
         logging.info("Getting samples from project '{}'".format(project_id))
 
         if project_id not in self.cached_samples:
-            url = f"{self.base_url}/projects/{project_id}/samples"
+            url = f"{self.base_url}projects/{project_id}/samples"
 
             try:
                 response = self._session.get(url)
@@ -383,7 +383,7 @@ class ApiCalls(object):
         # This is cached so it's only 1 call per project uploading to
         # TODO: In the future, this function should accept sample_id instead of sample_name
         sample_id = self.get_sample_id(sample_name, project_id)
-        url = f"{self.base_url}/samples/{sample_id}/sequenceFiles"
+        url = f"{self.base_url}samples/{sample_id}/sequenceFiles"
 
         try:
             response = self._session.get(url)
@@ -410,7 +410,7 @@ class ApiCalls(object):
 
         logging.info("Getting assemblies files from sample '{}'".format(sample_id))
 
-        url = f"{self.base_url}/samples/{sample_id}/assemblies"
+        url = f"{self.base_url}samples/{sample_id}/assemblies"
 
         try:
             response = self._session.get(url)
@@ -447,7 +447,7 @@ class ApiCalls(object):
         # This is cached so it's only 1 call per project uploading to
         # TODO: In the future, this function should accept sample_id instead of sample_name
         sample_id = self.get_sample_id(sample_name, project_id)
-        url = f"{self.base_url}/samples/{sample_id}/fast5"
+        url = f"{self.base_url}samples/{sample_id}/fast5"
 
         try:
             response = self._session.get(url)
@@ -475,7 +475,7 @@ class ApiCalls(object):
 
         logging.info("Getting metadata from sample id '{}'".format(sample_id))
 
-        url = f"{self.base_url}/samples/{sample_id}/metadata"
+        url = f"{self.base_url}samples/{sample_id}/metadata"
 
         try:
             response = self._session.get(url)
@@ -510,7 +510,7 @@ class ApiCalls(object):
 
         if clear_cache:
             self.cached_projects = None
-        url = f"{self.base_url}/projects"
+        url = f"{self.base_url}projects"
         json_obj = json.dumps(project.get_uploadable_dict())
 
         try:
@@ -540,7 +540,7 @@ class ApiCalls(object):
         self.cached_samples = {}  # reset the cache, we're updating stuff
         self.cached_projects = None
 
-        url = f"{self.base_url}/projects/{project_id}/samples"
+        url = f"{self.base_url}projects/{project_id}/samples"
         json_obj = json.dumps(sample.get_uploadable_dict())
 
         try:
@@ -565,7 +565,7 @@ class ApiCalls(object):
         """
         logging.info("Getting sample info for sample id '{}'".format(sample_id))
 
-        url = f"{self.base_url}/samples/{sample_id}"
+        url = f"{self.base_url}samples/{sample_id}"
 
         try:
             response = self._session.get(url)
@@ -605,7 +605,7 @@ class ApiCalls(object):
         # This is cached so it's only 1 call per project uploading to
         # TODO: In the future, this function should accept sample_id instead of sample_name
         sample_id = self.get_sample_id(sample_name, project_id)
-        sample_url = f"{self.base_url}/samples/{sample_id}"
+        sample_url = f"{self.base_url}samples/{sample_id}"
         url = ApiCalls._get_sample_upload_url(sequence_file, sample_url, upload_mode)
 
         # Get the data encoder
@@ -690,7 +690,7 @@ class ApiCalls(object):
 
         logging.info("Adding metadata to sample '{}' ".format(sample_id))
 
-        url = f"{self.base_url}/samples/{sample_id}/metadata"
+        url = f"{self.base_url}samples/{sample_id}/metadata"
 
         json_obj = json.dumps(metadata.get_uploadable_dict())
 
@@ -817,7 +817,7 @@ class ApiCalls(object):
         if 'workflow' not in metadata_dict:
             metadata_dict['workflow'] = 'workflow'
 
-        url = f"{self.base_url}/sequencingrun/{sequencing_run_type}"
+        url = f"{self.base_url}sequencingrun/{sequencing_run_type}"
 
         acceptable_properties = [
             "layoutType", "chemistry", "projectName",
@@ -862,7 +862,7 @@ class ApiCalls(object):
         """
         logging.debug("Getting sequencing runs")
 
-        url = f"{self.base_url}/sequencingrun"
+        url = f"{self.base_url}sequencingrun"
 
         try:
             response = self._session.get(url)
@@ -941,7 +941,7 @@ class ApiCalls(object):
 
         logging.debug("Setting sequencing run '{}' to '{}'".format(identifier, status))
 
-        url = f"{self.base_url}/sequencingrun/{identifier}"
+        url = f"{self.base_url}sequencingrun/{identifier}"
         update_dict = {"uploadStatus": status}
         json_obj = json.dumps(update_dict)
 
@@ -981,7 +981,7 @@ class ApiCalls(object):
         """
         logging.debug("Trying to access project: {}".format(project_id))
 
-        url = f"{self.base_url}/projects/{project_id}"
+        url = f"{self.base_url}projects/{project_id}"
 
         try:
             response = self._session.get(url)
