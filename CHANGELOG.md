@@ -1,6 +1,11 @@
 Changes
 =======
 
+Beta 0.8.2
+---------
+Bug Fixes:
+* config file now evaluates any capitalization of True/False and displays errors to the user if unable to parse.
+
 Beta 0.8.1
 ---------
 Bug Fixes:
