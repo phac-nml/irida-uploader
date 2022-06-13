@@ -1,6 +1,11 @@
 Changes
 =======
 
+Beta 0.8.2
+----------
+Bug Fixes:
+* Catch mixed paired end and single end files in a sequencing run at the validation step and show user which samples are incorrect.
+
 Beta 0.8.1
 ---------
 Bug Fixes:
