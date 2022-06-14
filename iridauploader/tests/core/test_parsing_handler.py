@@ -45,6 +45,7 @@ class TestParseAndValidate(unittest.TestCase):
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)
 
+    @patch("iridauploader.core.uniform_file_count_validator.validate_uniform_file_count")
     @patch("iridauploader.core.file_size_validator.validate_file_size_minimum")
     @patch("iridauploader.core.parsing_handler.model_validator.validate_sequencing_run")
     @patch("iridauploader.core.parsing_handler.get_parser_from_config")
@@ -66,7 +67,7 @@ class TestParseAndValidate(unittest.TestCase):
         mock_get_parser.side_effect = [mock_parser_instance]
 
         mock_validation_result = unittest.mock.MagicMock()
-        mock_validation_result.is_valid.side_effect = [True, True]
+        mock_validation_result.is_valid.side_effect = [True, True, True]
 
         mock_validate_model.side_effect = [mock_validation_result]
         mock_validate_file_size.side_effect = [mock_validation_result]
