@@ -1,6 +1,11 @@
 Changes
 =======
 
+Beta 0.8.2
+---------
+Bug Fixes:
+* Fixed command line help text inconsistency
+
 Beta 0.8.1
 ---------
 Bug Fixes:
