@@ -104,7 +104,7 @@ class TestConfig(unittest.TestCase):
 
     def test_read_config_option(self):
         """
-        Test writing to config file, make sure writen values are written correctly
+        Test reading from well-defined config file
         :return:
         """
         # set up config
@@ -118,6 +118,61 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(config.read_config_option('base_url'), 'http://localhost:8080/irida-latest/api/')
         self.assertEqual(config.read_config_option('parser'), 'miseq')
         self.assertEqual(config.read_config_option('readonly', bool), False)
+
+    def test_read_config_option_case_false(self):
+        """
+        Test reading from well-defined config file with all lowercase boolean (false)
+        :return:
+        """
+        # set up config
+        config.set_config_file(os.path.join(path_to_module, "test_config_case_false.conf"))
+        config.setup()
+        # Test that all the parameters loaded from file are correct
+        self.assertEqual(config.read_config_option('client_id'), 'uploader')
+        self.assertEqual(config.read_config_option('client_secret'), 'secret')
+        self.assertEqual(config.read_config_option('username'), 'admin')
+        self.assertEqual(config.read_config_option('password'), 'password1')
+        self.assertEqual(config.read_config_option('base_url'), 'http://localhost:8080/irida-latest/api/')
+        self.assertEqual(config.read_config_option('parser'), 'miseq')
+        self.assertEqual(config.read_config_option('readonly', bool), False)
+
+    def test_read_config_option_case_true(self):
+        """
+        Test reading from well-defined config file with strange casing boolean (tRuE)
+        :return:
+        """
+        # set up config
+        config.set_config_file(os.path.join(path_to_module, "test_config_case_true.conf"))
+        config.setup()
+        # Test that all the parameters loaded from file are correct
+        self.assertEqual(config.read_config_option('client_id'), 'uploader')
+        self.assertEqual(config.read_config_option('client_secret'), 'secret')
+        self.assertEqual(config.read_config_option('username'), 'admin')
+        self.assertEqual(config.read_config_option('password'), 'password1')
+        self.assertEqual(config.read_config_option('base_url'), 'http://localhost:8080/irida-latest/api/')
+        self.assertEqual(config.read_config_option('parser'), 'miseq')
+        self.assertEqual(config.read_config_option('readonly', bool), True)
+
+    def test_read_config_option_case_error(self):
+        """
+        Test reading from ill-defined config file with a non-boolean entry
+        :return:
+        """
+        # set up config
+        config.set_config_file(os.path.join(path_to_module, "test_config_case_error.conf"))
+        config.setup()
+        # Test that all the parameters loaded from file are correct
+        self.assertEqual(config.read_config_option('client_id'), 'uploader')
+        self.assertEqual(config.read_config_option('client_secret'), 'secret')
+        self.assertEqual(config.read_config_option('username'), 'admin')
+        self.assertEqual(config.read_config_option('password'), 'password1')
+        self.assertEqual(config.read_config_option('base_url'), 'http://localhost:8080/irida-latest/api/')
+        self.assertEqual(config.read_config_option('parser'), 'miseq')
+        with self.assertRaises(NameError) as context:
+            self.assertEqual(config.read_config_option('readonly', bool), False)
+        self.assertTrue(
+            "Config file field 'readonly' expected 'True' or 'False' but instead got 'this_is_not_a_bool'" in
+            str(context.exception))
 
     def test_set_config_options(self):
         """

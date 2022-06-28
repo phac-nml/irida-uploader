@@ -254,7 +254,7 @@ def read_config_option(key, expected_type=None, default_value=None):
             if type(res) is bool:
                 return res
             elif type(res) is str:
-                return eval(res)
+                return _eval_boolean(res, key)
             else:
                 raise NameError
     except (ValueError, NameError, NoOptionError):
@@ -262,6 +262,27 @@ def read_config_option(key, expected_type=None, default_value=None):
             return default_value
         else:
             raise
+
+
+def _eval_boolean(string, field):
+    """
+    Converts string to bool value, accepts any case permutation.
+    If non true/false is given, displays error to user and raises to exit
+    :param string: string to evaluate as a boolean
+    :param field: config field the key originated from for logging and error message
+    :return: Boolean
+    """
+    caps = string.upper()
+    if caps == "TRUE":
+        logging.debug("Evaluated as True")
+        return True
+    elif caps == "FALSE":
+        logging.debug("Evaluated as False")
+        return False
+    else:
+        error_msg = "Config file field '{}' expected 'True' or 'False' but instead got '{}'".format(field, string)
+        logging.error(error_msg)
+        raise NameError(error_msg)
 
 
 def _update_config_option(field_name, field_value):
