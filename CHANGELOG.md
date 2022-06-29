@@ -7,6 +7,9 @@ Bug Fixes:
 * config file now evaluates any capitalization of True/False and displays errors to the user if unable to parse.
 * Fixed command line help text inconsistency
 
+Developer Changes:
+* Integration Tests now launch IRIDA with Gradle
+
 Beta 0.8.1
 ---------
 Bug Fixes:
