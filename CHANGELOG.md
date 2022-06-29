@@ -2,10 +2,11 @@ Changes
 =======
 
 Beta 0.8.2
----------
+----------
 Bug Fixes:
 * config file now evaluates any capitalization of True/False and displays errors to the user if unable to parse.
 * Fixed command line help text inconsistency
+* Catch mixed paired end and single end files in a sequencing run at the validation step and show user which samples are incorrect.
 
 Beta 0.8.1
 ---------

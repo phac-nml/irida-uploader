@@ -14,6 +14,8 @@ It contains a `project_list` which relate to the IRIDA projects that samples wil
 
 The `metadata` dict is mostly unused, but must include `layoutType` as either `PAIRED_END` or `SINGLE_END`, this determines if the samples within the sequencing run are paired end or single end reads.
 
+There is also a helper method `is_paired_end` that checks against the `metadata` dict and returns a boolean.
+
 ### Project `model/project.py`
 
 The `Project` object relates to a project on IRIDA.
