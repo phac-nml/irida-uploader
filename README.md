@@ -67,8 +67,6 @@ Running the unittests can be done with the command:
 
 To run integration tests You will need to download and install chromedriver http://chromedriver.chromium.org/downloads
 
-You will need Gradle installed to run IRIDA
-
 You will need to grant the IRIDA instance access to the mysql database needed for the tests
 
     $ mysql -e "CREATE USER 'test'@'localhost' IDENTIFIED BY 'test'; GRANT ALL ON irida_uploader_test.* to 'test'@'localhost';"
