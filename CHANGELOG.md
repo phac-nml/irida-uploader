@@ -8,6 +8,9 @@ Bug Fixes:
 * Fixed command line help text inconsistency
 * Catch mixed paired end and single end files in a sequencing run at the validation step and show user which samples are incorrect.
 
+Developer Changes:
+* Integration Tests now launch IRIDA with Gradle
+
 Beta 0.8.1
 ---------
 Bug Fixes:

@@ -55,8 +55,8 @@ class SetupIridaData:
                                self.DB_NAME + ' < {}'.format(sql_file)
 
         self.IRIDA_CMD = \
-            'mvn clean compile spring-boot:start -DskipTests --quiet ' +\
-            '-Dspring-boot.run.arguments=\"' +\
+            './gradlew -q clean bootRun -x check ' +\
+            '--args=\"' +\
             '--spring.datasource.url={} '.format(self.DB_JDBC_URL) +\
             '--spring.datasource.username={} '.format(self.DB_USERNAME) +\
             '--spring.datasource.password={} '.format(self.DB_PASSWORD) +\
@@ -70,8 +70,6 @@ class SetupIridaData:
             '--logging.pattern.console=' +\
             '\"'
 
-        self.IRIDA_STOP = 'mvn spring-boot:stop'
-
         self.PATH_TO_MODULE = path.dirname(__file__)
         if len(self.PATH_TO_MODULE) == 0:
             self.PATH_TO_MODULE = "."
@@ -82,6 +80,9 @@ class SetupIridaData:
 
         self.REPO_PATH = path.join(self.PATH_TO_MODULE, "repos")
         self.IRIDA_PATH = path.join(self.REPO_PATH, "irida")
+
+        # Handles the irida subprocess
+        self.irida_subprocess = None
 
     def install_irida(self):
         """
@@ -124,8 +125,11 @@ class SetupIridaData:
         Waits until IRIDA is up to return
         :return:
         """
-        subprocess.Popen(
-            self.IRIDA_CMD, cwd=self.IRIDA_PATH, shell=True)
+        self.irida_subprocess = subprocess.Popen(
+            "exec " + self.IRIDA_CMD,  # assign new process image
+            stdout=subprocess.PIPE,  # makes subprocess.Popen return pid of command, and not shell (default behaviour)
+            cwd=self.IRIDA_PATH,
+            shell=True)
         self._wait_until_up()
 
     def _wait_until_up(self):
@@ -150,10 +154,9 @@ class SetupIridaData:
 
     def stop_irida(self):
         """
-        Stops the IRIDA mvn process
+        Kill the IRIDA gradlew process
         This will sometimes dump errors into the log, but it is harmless
         :return:
         """
-        stopper = subprocess.Popen(
-            self.IRIDA_STOP, cwd=self.IRIDA_PATH, shell=True)
-        stopper.wait()
+        self.irida_subprocess.kill()
+        self.irida_subprocess = None
