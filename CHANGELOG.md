@@ -1,6 +1,11 @@
 Changes
 =======
 
+Beta 0.8.3
+----------
+Bug Fixes:
+* Fixed ConnectionError's setting run to ERROR when run has uploaded samples. Now sets these runs to PARTIAL to allow continuing from where the ConnectionError occured.
+
 Beta 0.8.2
 ----------
 Bug Fixes:

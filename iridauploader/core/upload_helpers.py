@@ -225,7 +225,10 @@ def upload_sequencing_run(sequencing_run, directory_status, upload_mode, upload_
         logging.error("Lost connection to Irida")
         logging.error("Errors: " + pformat(e.args))
         full_error = "Lost connection to Irida. Errors: " + pformat(e.args)
-        _set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
+        if directory_status.run_id is not None: # A run ID was generated, so the run is partial and can be continued
+            _set_and_write_directory_status(directory_status, DirectoryStatus.PARTIAL, full_error)
+        else:
+            _set_and_write_directory_status(directory_status, DirectoryStatus.ERROR, full_error)
         raise e
     except api.exceptions.IridaResourceError as e:
         logging.error("Could not access IRIDA resource")
