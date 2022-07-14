@@ -162,6 +162,7 @@ def upload_sequencing_run(sequencing_run, directory_status, upload_mode, run_id=
         logging.info("Using existing run id '{}' for this upload.".format(run_id))
     # Update directory status file
     directory_status.run_id = run_id
+    directory_status.status = model.DirectoryStatus.PARTIAL
     progress.write_directory_status(directory_status)
 
     try:
