@@ -8,6 +8,7 @@ from iridauploader.parsers.miseq.parser import Parser
 from iridauploader.api import MODE_DEFAULT, MODE_FAST5, MODE_ASSEMBLIES
 from iridauploader.api.exceptions import IridaResourceError
 from iridauploader.model.exceptions import ModelValidationError
+from iridauploader.model import DirectoryStatus
 
 path_to_module = path.abspath(path.dirname(__file__))
 if len(path_to_module) == 0:
@@ -151,6 +152,7 @@ class TestUploadSequencingRun(unittest.TestCase):
 
     class StubDirectoryStatus:
         run_id = None
+        status = None
 
         def set_sample_uploaded(self, sample_name, project_id, uploaded):
             return None
@@ -189,12 +191,13 @@ class TestUploadSequencingRun(unittest.TestCase):
         stub_api_instance.set_seq_run_uploading.side_effect = [True]
         stub_api_instance.send_sequence_files.side_effect = [True, True, True]
         stub_api_instance.set_seq_run_complete.side_effect = [True]
+        stub_directory_status = self.StubDirectoryStatus()
 
         mock_api_instance.side_effect = [stub_api_instance]
         mock_progress.side_effect = [None, None, None, None, None, None, None, None, None, None]
 
         api_handler.upload_sequencing_run(sequencing_run,
-                                          directory_status=self.StubDirectoryStatus(),
+                                          directory_status=stub_directory_status,
                                           upload_mode=MODE_DEFAULT)
 
         # ensure the response matches our mocks, and that all the needed functions were called correctly
@@ -210,6 +213,9 @@ class TestUploadSequencingRun(unittest.TestCase):
                                upload_id=55, upload_mode=MODE_DEFAULT)
         ])
         stub_api_instance.set_seq_run_complete.assert_called_once_with(mock_sequence_run_id)
+        # Verify the DirectoryStatus object got assigned a run_id and status for upload
+        self.assertEqual(stub_directory_status.status, DirectoryStatus.PARTIAL)
+        self.assertEqual(stub_directory_status.run_id, mock_sequence_run_id)
 
     @patch("iridauploader.core.api_handler._get_api_instance")
     @patch("iridauploader.progress.write_directory_status")

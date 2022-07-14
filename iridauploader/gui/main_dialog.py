@@ -413,8 +413,11 @@ class MainDialog(QtWidgets.QDialog):
             # We need to block upload until the user clicks continue
             self._upload_button.set_block()
             # give user info
-            self._show_and_fill_info_partial_upload_options(
-                "This run directory is partially uploaded. Choose how you would like to Continue.")
+            user_message = "This run directory is partially uploaded. Choose how you would like to Continue."
+            if status.message is not None:
+                user_message = user_message + " This directory had the error(s) below. "
+                self._show_previous_error(status.message)
+            self._show_and_fill_info_partial_upload_options(user_message)
 
         elif status.status_equals(DirectoryStatus.ERROR):
             # We need to block upload until the user clicks continue

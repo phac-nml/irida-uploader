@@ -45,10 +45,16 @@ class TestParseAndValidate(unittest.TestCase):
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)
 
+    @patch("iridauploader.core.uniform_file_count_validator.validate_uniform_file_count")
     @patch("iridauploader.core.file_size_validator.validate_file_size_minimum")
     @patch("iridauploader.core.parsing_handler.model_validator.validate_sequencing_run")
     @patch("iridauploader.core.parsing_handler.get_parser_from_config")
-    def test_all_functions_called(self, mock_get_parser, mock_validate_model, mock_validate_file_size):
+    def test_all_functions_called(
+            self,
+            mock_get_parser,
+            mock_validate_model,
+            mock_validate_file_size,
+            mock_validate_uniform_file_count):
         """
         Makes sure that all relevant functions are called so that it will parse and validate fully
         :return:
@@ -61,10 +67,11 @@ class TestParseAndValidate(unittest.TestCase):
         mock_get_parser.side_effect = [mock_parser_instance]
 
         mock_validation_result = unittest.mock.MagicMock()
-        mock_validation_result.is_valid.side_effect = [True, True]
+        mock_validation_result.is_valid.side_effect = [True, True, True]
 
         mock_validate_model.side_effect = [mock_validation_result]
         mock_validate_file_size.side_effect = [mock_validation_result]
+        mock_validate_uniform_file_count.side_effect = [mock_validation_result]
 
         res = parsing_handler.parse_and_validate("mock_directory")
 

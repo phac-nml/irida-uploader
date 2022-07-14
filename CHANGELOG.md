@@ -1,6 +1,24 @@
 Changes
 =======
 
+Beta 0.8.3
+----------
+Changes:
+* [GUI] Partial uploads now display the reason (error) that caused the run to stop.
+
+Bug Fixes:
+* Fixed Error's setting run to ERROR when run has uploaded samples. Now sets these runs to PARTIAL to allow continuing from where the Error occurred.
+
+Beta 0.8.2
+----------
+Bug Fixes:
+* config file now evaluates any capitalization of True/False and displays errors to the user if unable to parse.
+* Fixed command line help text inconsistency
+* Catch mixed paired end and single end files in a sequencing run at the validation step and show user which samples are incorrect.
+
+Developer Changes:
+* Integration Tests now launch IRIDA with Gradle
+
 Beta 0.8.1
 ---------
 Bug Fixes:

@@ -71,3 +71,11 @@ class SequencingRun:
 
     def get_dict(self):
         return self.__dict__
+
+    def is_paired_end(self):
+        """
+        Checks the metadata field to see if run is paired end or single end
+        :return: boolean
+        """
+        layout_type = self.metadata['layoutType']
+        return True if layout_type == "PAIRED_END" else False

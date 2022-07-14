@@ -20,7 +20,7 @@ DESCRIPTION = textwrap.dedent('''
 This program parses sequencing runs and uploads them to IRIDA.
 
 required arguments:
-  --d DIRECTORY, --directory DIRECTORY
+  -d DIRECTORY, --directory DIRECTORY
                         Location of sequencing run to upload.
                         Directory must be writable.
 ''')
