@@ -22,6 +22,7 @@ class TestSetAndWriteDirectoryStatus(unittest.TestCase):
     class StubDirectoryStatus:
         status = None
         message = ""
+        run_id = None
 
     def setUp(self):
         print("\nStarting " + self.__module__ + ": " + self._testMethodName)
@@ -41,6 +42,46 @@ class TestSetAndWriteDirectoryStatus(unittest.TestCase):
         # run function
         upload_helpers._set_and_write_directory_status(stub_dir_status, mock_status, mock_message)
         # verify write
+        mock_progress.write_directory_status.assert_called_with(stub_dir_status)
+
+    @patch("iridauploader.core.upload_helpers.progress")
+    def test_valid_write_error(self, mock_progress):
+        """
+        Tessts a valid write attempt of ERROR, where the upload has not begun
+        :param mock_progress:
+        :return:
+        """
+        mock_initial_status = DirectoryStatus.ERROR
+        mock_expected_status = DirectoryStatus.ERROR
+        mock_message = "message"
+        stub_dir_status = self.StubDirectoryStatus()
+        stub_dir_status.run_id = None  # Upload has not started
+        # mock main call to test
+        mock_progress.write_directory_status.side_effect = [None]
+        # run function
+        upload_helpers._set_and_write_directory_status(stub_dir_status, mock_initial_status, mock_message)
+        # verify write
+        stub_dir_status.status = mock_expected_status
+        mock_progress.write_directory_status.assert_called_with(stub_dir_status)
+
+    @patch("iridauploader.core.upload_helpers.progress")
+    def test_valid_write_partial(self, mock_progress):
+        """
+        Tessts a valid write attempt of PARTIAL, ERROR is given but the run has started
+        :param mock_progress:
+        :return:
+        """
+        mock_initial_status = DirectoryStatus.ERROR
+        mock_expected_status = DirectoryStatus.ERROR
+        mock_message = "message"
+        stub_dir_status = self.StubDirectoryStatus()
+        stub_dir_status.run_id = 123  # Upload has not started
+        # mock main call to test
+        mock_progress.write_directory_status.side_effect = [None]
+        # run function
+        upload_helpers._set_and_write_directory_status(stub_dir_status, mock_initial_status, mock_message)
+        # verify write
+        stub_dir_status.status = mock_expected_status
         mock_progress.write_directory_status.assert_called_with(stub_dir_status)
 
     @patch("iridauploader.core.upload_helpers.progress.write_directory_status")
@@ -114,7 +155,6 @@ class TestParseAndValidate(unittest.TestCase):
     def test_valid_parse(self, mock_parsing_handler, mock_set_and_write):
         """
         verifies parse and validate was called,
-        and _set_and_write_directory_status is called once with PARTIAL
         :param mock_parsing_handler:
         :param mock_set_and_write:
         :return:
@@ -127,15 +167,13 @@ class TestParseAndValidate(unittest.TestCase):
             directory_status=stub_directory_status, parse_as_partial=False))
 
         mock_parsing_handler.parse_and_validate.assert_called_with(stub_directory_status.directory)
-        mock_set_and_write.assert_called_with(stub_directory_status, DirectoryStatus.PARTIAL)
 
     @patch("iridauploader.core.upload_helpers.set_uploaded_samples_to_skip")
     @patch("iridauploader.core.upload_helpers._set_and_write_directory_status")
     @patch("iridauploader.core.upload_helpers.parsing_handler")
     def test_valid_partial_parse(self, mock_parsing_handler, mock_set_and_write, mock_set_uploaded_samples_to_skip):
         """
-        verifies parse and validate was called,
-        and _set_and_write_directory_status is called once with PARTIAL
+        verifies parse and validate was called with partial run handling
         :param mock_parsing_handler:
         :param mock_set_and_write:
         :return:
@@ -149,7 +187,6 @@ class TestParseAndValidate(unittest.TestCase):
             directory_status=stub_directory_status, parse_as_partial=True))
 
         mock_parsing_handler.parse_and_validate.assert_called_with(stub_directory_status.directory)
-        mock_set_and_write.assert_called_with(stub_directory_status, DirectoryStatus.PARTIAL)
         mock_set_uploaded_samples_to_skip.assert_called_with("return_value",
                                                              stub_directory_status.get_sample_status_list())
 
@@ -509,40 +546,6 @@ class TestUploadSequencingRun(unittest.TestCase):
                                                                   run_id=None)
         mock_set_and_write.assert_called_with(stub_directory_status,
                                               DirectoryStatus.ERROR,
-                                              'Lost connection to Irida. Errors: ()')
-
-    @patch("iridauploader.core.upload_helpers._set_and_write_directory_status")
-    @patch("iridauploader.core.upload_helpers.api_handler")
-    def test_invalid_connection_partial_upload(self, mock_api_handler, mock_set_and_write):
-        """
-        tests catching and raising IridaConnectionError
-        and _set_and_write_directory_status is DirectoryStatus.PARTIAL
-        :param mock_api_handler:
-        :param mock_set_and_write:
-        :return:
-        """
-        mock_api_handler.upload_sequencing_run.side_effect = [IridaConnectionError]
-        mock_set_and_write.side_effect = [True]
-
-        # Init directory status as partially uploaded
-        # We are setting this to partial here to emulate api_handler.upload_sequencing_run setting the run to partial
-        # during the upload process. It is not used in the function we are testing. For that see the test
-        # test_valid_partial_upload
-        stub_directory_status = self.StubDirectoryStatus()
-        stub_directory_status.status = DirectoryStatus.PARTIAL
-        stub_directory_status.run_id = 123
-
-        with self.assertRaises(IridaConnectionError):
-            upload_helpers.upload_sequencing_run(directory_status=stub_directory_status,
-                                                 sequencing_run='run',
-                                                 upload_mode='mode')
-
-        mock_api_handler.upload_sequencing_run.assert_called_with(directory_status=stub_directory_status,
-                                                                  sequencing_run='run',
-                                                                  upload_mode='mode',
-                                                                  run_id=None)
-        mock_set_and_write.assert_called_with(stub_directory_status,
-                                              DirectoryStatus.PARTIAL,
                                               'Lost connection to Irida. Errors: ()')
 
     @patch("iridauploader.core.upload_helpers._set_and_write_directory_status")

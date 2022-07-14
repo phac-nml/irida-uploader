@@ -3,8 +3,11 @@ Changes
 
 Beta 0.8.3
 ----------
+Changes:
+* [GUI] Partial uploads now display the reason (error) that caused the run to stop.
+
 Bug Fixes:
-* Fixed ConnectionError's setting run to ERROR when run has uploaded samples. Now sets these runs to PARTIAL to allow continuing from where the ConnectionError occured.
+* Fixed Error's setting run to ERROR when run has uploaded samples. Now sets these runs to PARTIAL to allow continuing from where the Error occurred.
 
 Beta 0.8.2
 ----------
