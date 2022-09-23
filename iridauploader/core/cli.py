@@ -115,6 +115,9 @@ def init_argparser():
     argument_parser.add_argument('-fs', '--minimum_file_size', action='store', nargs='?', const=True, default=False,
                                  help='Accepts an Integer for the minimum file size in KB. Default is 0 KB. Files that '
                                       'are too small will appear as an error during run validation.')
+    argument_parser.add_argument('-ct', '--multithread', action='store', nargs='?', const=True, default=False,
+                                 help='Integer to denote number of threads to use when uploading. '
+                                      '0 to disable multithreading..')
     return argument_parser
 
 
@@ -134,6 +137,7 @@ def _set_config_override(args):
     delay = None
     timeout = None
     minimum_file_size = None
+    multithread = None
 
     if args.config_client_id is True:
         print("Enter Client ID:")
@@ -184,15 +188,21 @@ def _set_config_override(args):
 
     if args.config_timeout is True:
         print("Enter timeout per MB in seconds (Integer):")
-        delay = int(input())
+        timeout = int(input())
     elif args.config_timeout is not False:
         timeout = int(args.config_timeout)
 
     if args.minimum_file_size is True:
         print("Enter minimum file size in KB (Integer):")
-        delay = int(input())
+        minimum_file_size = int(input())
     elif args.minimum_file_size is not False:
         minimum_file_size = int(args.minimum_file_size)
+
+    if args.multithread is True:
+        print("Enter number of threads for multithreading (Integer):")
+        multithread = int(input())
+    elif args.multithread is not False:
+        multithread = int(args.multithread)
 
     config.set_config_options(client_id=client_id,
                               client_secret=client_secret,
@@ -203,7 +213,8 @@ def _set_config_override(args):
                               readonly=readonly,
                               delay=delay,
                               timeout=timeout,
-                              minimum_file_size=minimum_file_size)
+                              minimum_file_size=minimum_file_size,
+                              multithread=multithread)
 
 
 def _config_uploader(args):

@@ -5,6 +5,7 @@ It handles initializing and managing an api instance as well as preparing IRIDA 
 
 from http import HTTPStatus
 import logging
+import concurrent.futures
 
 import iridauploader.api as api
 import iridauploader.config as config
@@ -17,7 +18,8 @@ from iridauploader.core import model_validator
 _api_instance = None
 
 
-def _initialize_api(client_id, client_secret, base_url, username, password, timeout_multiplier, max_wait_time=20):
+def _initialize_api(
+        client_id, client_secret, base_url, username, password, timeout_multiplier, max_wait_time=20, threads=0):
     """
     Creates the ApiCalls object from the api layer.
     Sets the instance to use the global _api_instance variable so it behaves as a singleton that can be easily re-init
@@ -36,6 +38,7 @@ def _initialize_api(client_id, client_secret, base_url, username, password, time
                                  timeout_multiplier, max_wait_time)
     if not base_url.endswith('/api/'):
         logging.warning("base_url does not end in /api/, this configuration might be incorrect")
+    # todo something messed up going on here with a double init
     _api_instance = api.ApiCalls(client_id, client_secret, base_url, username, password, max_wait_time)
     return _api_instance
 
@@ -168,28 +171,9 @@ def upload_sequencing_run(sequencing_run, directory_status, upload_mode, run_id=
     try:
         # set seq run to upload
         api_instance.set_seq_run_uploading(run_id)
-        # loop through projects
-        for project in sequencing_run.project_list:
-            # loop through samples
-            for sample in project.sample_list:
-                if sample.skip:
-                    logging.info("Skipping Sample {} on Project {}, already uploaded."
-                                 "".format(sample.sample_name, project.id))
-                else:
-                    logging.info("Uploading to Sample {} on Project {}".format(sample.sample_name, project.id))
-                    # upload files
-                    api_instance.send_sequence_files(sequence_file=sample.sequence_file,
-                                                     sample_name=sample.sample_name,
-                                                     project_id=project.id,
-                                                     upload_id=run_id,
-                                                     upload_mode=upload_mode)
-                # Update status file on progress
-                # Skipped samples are set to uploaded too, s.t. if they are skipped,
-                #   and the upload fails and is continued again, they will be skipped again.
-                directory_status.set_sample_uploaded(sample_name=sample.sample_name,
-                                                     project_id=project.id,
-                                                     uploaded=True)
-                progress.write_directory_status(directory_status)
+
+        # Upload
+        _run_upload_handler(api_instance, sequencing_run, run_id, directory_status, upload_mode)
 
         # set seq run to complete
         api_instance.set_seq_run_complete(run_id)
@@ -207,6 +191,134 @@ def upload_sequencing_run(sequencing_run, directory_status, upload_mode, run_id=
         api_instance.set_seq_run_error(run_id)
         raise e
     # Todo: once threading is added, the upload canceled error will likely need to be caught/raised here
+
+
+def _run_upload_handler(api_instance, sequencing_run, run_id, directory_status, upload_mode):
+    """
+    Gets the multithreading config option and runs either the standard upload, or the multithreaded upload
+    :param api_instance: api instance should have already been initialized
+    :param sequencing_run: sequencing run to upload
+    :param run_id: run id to use for upload
+    :param directory_status:
+    :param upload_mode:
+    :return:
+    """
+    thread_count = config.read_config_option("multithread", int, 0)
+    thread_count = 4  # TODO REMOVE THIS TESTING LINE
+
+    if thread_count < 2:
+        return _run_upload_basic(api_instance, sequencing_run, run_id, directory_status, upload_mode)
+    else:
+        _run_upload_multithreaded(api_instance, sequencing_run, run_id, directory_status, upload_mode, thread_count)
+
+
+def _run_upload_basic(api_instance, sequencing_run, run_id, directory_status, upload_mode):
+    """
+    Loop through projects and files one at a time to upload
+    :param api_instance:
+    :param sequencing_run:
+    :param run_id:
+    :param directory_status:
+    :param upload_mode:
+    :return:
+    """
+    # loop through projects
+    for project in sequencing_run.project_list:
+        # loop through samples
+        for sample in project.sample_list:
+            if sample.skip:
+                logging.info("Skipping Sample {} on Project {}, already uploaded."
+                             "".format(sample.sample_name, project.id))
+            else:
+                logging.info("Uploading to Sample {} on Project {}".format(sample.sample_name, project.id))
+                # upload files
+                api_instance.send_sequence_files(sequence_file=sample.sequence_file,
+                                                 sample_name=sample.sample_name,
+                                                 project_id=project.id,
+                                                 upload_id=run_id,
+                                                 upload_mode=upload_mode)
+            # Update status file on progress
+            # Skipped samples are set to uploaded too, s.t. if they are skipped,
+            #   and the upload fails and is continued again, they will be skipped again.
+            directory_status.set_sample_uploaded(sample_name=sample.sample_name,
+                                                 project_id=project.id,
+                                                 uploaded=True)
+            progress.write_directory_status(directory_status)
+
+
+def _run_upload_multithreaded(api_instance, sequencing_run, run_id, directory_status, upload_mode, max_threads):
+    """
+    Starts a threading pool with thread count defined in config. Threadpool then uploads samples simultaneously
+    :param api_instance: api instance should have already been initialized
+    :param sequencing_run: sequencing run to upload
+    :param run_id: run id to use for upload
+    :param directory_status:
+    :param upload_mode:
+    :param max_threads: number of threads to use
+    :return:
+    """
+
+    def _run_upload(data_dict, sequence_run_id, d_status):
+        """
+        Do the data upload
+        :param data_dict: dictionary containing the "project" and "sample"
+        :param sequence_run_id: run id to upload with
+        :return:
+        """
+        project_data = data_dict["project"]
+        sample_data = data_dict["sample"]
+        logging.debug("Processing queue item for project {} sample {}".format(project_data.id,
+                                                                              sample_data.sample_name))
+
+        api_instance.send_sequence_files(sequence_file=sample_data.sequence_file,
+                                         sample_name=sample_data.sample_name,
+                                         project_id=project_data.id,
+                                         upload_id=sequence_run_id)
+        #todo this causes a race condition I think, not all samples getting updated to True even though they are being uploaded
+        d_status.set_sample_uploaded(sample_name=sample.sample_name,
+                                     project_id=project.id,
+                                     uploaded=True)
+        progress.write_directory_status(d_status)
+
+    # Put all the project/samples into a single list so the thread pool can assign them easier
+    all_samples = []
+    for project in sequencing_run.project_list:
+        for sample in project.sample_list:
+            if sample.skip:
+                logging.info("Skipping Sample {} on Project {}, already uploaded."
+                             "".format(sample.sample_name, project.id))
+            else:
+                all_samples.append({"project": project, "sample": sample})
+
+    logging.info("Starting Multithreaded upload of {} samples with {} threads".format(len(all_samples), max_threads))
+
+    # Keep track of the first exception, if an exception occurs
+    upload_exception = None
+
+    # Create a executor for our thread pool
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_threads) as executor:
+        # future_to_upload is a list of future uploads (this starts the threads)
+        future_to_upload = {executor.submit(_run_upload, data, run_id, directory_status): data for data in all_samples}
+        # as uploads/futures finish, they will be be handled here
+        for future in concurrent.futures.as_completed(future_to_upload):
+            try:
+                # attempt to get the result. If an exception occurred, it will be thrown here
+                future.result()
+            except concurrent.futures.CancelledError:
+                # In the case that we signaled cancellations, all futures will end up here.
+                logging.debug("Upload on this thread canceled")
+            except Exception as e:
+                # If an exception occurs during upload capture it and cancel all futures
+                upload_exception = e
+                logging.error("Exception occured during upload. Canceling other uploads in threading pool.")
+                for ff in future_to_upload:
+                    ff.cancel()
+
+    logging.info("Finished Multithreading, all threads closed")
+
+    # Raise the exception so it can be handled at a higher level
+    if upload_exception:
+        raise upload_exception
 
 
 def send_project(project):

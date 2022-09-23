@@ -48,7 +48,8 @@ def _init_config_parser():
                         SettingsDefault._make(["readonly", False]),
                         SettingsDefault._make(["delay", 0]),
                         SettingsDefault._make(["timeout", 10]),  # default timeout scale is 10 seconds per mb
-                        SettingsDefault._make(["minimum_file_size", 0])]  # default minimum file size in kb
+                        SettingsDefault._make(["minimum_file_size", 0]),  # default minimum file size in kb
+                        SettingsDefault._make(["multithread", 0])]
     # add defaults to config parser
     for config in default_settings:
         _conf_parser.set("Settings", config.setting, config.default_value)
@@ -129,7 +130,8 @@ def set_config_options(client_id=None,
                        readonly=None,
                        delay=None,
                        timeout=None,
-                       minimum_file_size=None):
+                       minimum_file_size=None,
+                       multithread=None):
     """
     Updates the config options for all not None parameters
     :param client_id:
@@ -142,6 +144,7 @@ def set_config_options(client_id=None,
     :param delay:
     :param timeout:
     :param minimum_file_size:
+    :param multithread:
     :return:
     """
     global _conf_parser
@@ -183,7 +186,10 @@ def set_config_options(client_id=None,
         # minimum_file_size is always an int
         logging.debug("Setting 'minimum_file_size' config to {}".format(minimum_file_size))
         _update_config_option('minimum_file_size', minimum_file_size)
-
+    if multithread is not None:
+        # multithread is always an int
+        logging.debug("Setting 'multithread' config to {}".format(multithread))
+        _update_config_option('multithread', multithread)
 
 def setup():
     """
