@@ -195,7 +195,8 @@ class ConfigDialog(QtWidgets.QDialog):
                                   parser=self._parser.currentText(),
                                   readonly=self._read_only_mode.isChecked(),
                                   timeout=self._timeout.value(),
-                                  minimum_file_size=self._min_file_size.value())
+                                  minimum_file_size=self._min_file_size.value(),
+                                  multithread=0)  # GUI forces sequential upload
         config.write_config_options_to_file()
 
     def _contact_irida(self):
