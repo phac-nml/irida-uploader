@@ -347,6 +347,55 @@ class TestUploadSequencingRun(unittest.TestCase):
         stub_api_instance.set_seq_run_uploading.assert_called_once_with(mock_sequence_run_id)
         stub_api_instance.set_seq_run_error.assert_called_once_with(mock_sequence_run_id)
 
+    @patch("iridauploader.config.read_config_option")
+    @patch("iridauploader.core.api_handler._get_api_instance")
+    @patch("iridauploader.progress.write_directory_status")
+    def test_valid_all_functions_called_multithreading(self, mock_progress, mock_api_instance, mock_conf_parser):
+        """
+        Makes sure that all functions are called when a valid sequencing run in given
+        :return:
+        """
+        global sequencing_run
+
+        # set up all the mock data for a fake upload
+        for samp in sequencing_run.project_list[0].sample_list:
+            samp.sequence_file = "mock_sample"
+
+        mock_sequence_run_id = 55
+
+        stub_api_instance = unittest.mock.MagicMock()
+        stub_api_instance.create_seq_run.side_effect = [mock_sequence_run_id]
+        stub_api_instance.set_seq_run_uploading.side_effect = [True]
+        stub_api_instance.send_sequence_files.side_effect = [True, True, True]
+        stub_api_instance.set_seq_run_complete.side_effect = [True]
+        stub_directory_status = self.StubDirectoryStatus()
+
+        mock_api_instance.side_effect = [stub_api_instance]
+        mock_progress.side_effect = [None, None, None, None, None, None, None, None, None, None]
+
+        mock_conf_parser.side_effect = [2]  # return 2 for multithreading value
+
+        api_handler.upload_sequencing_run(sequencing_run,
+                                          directory_status=stub_directory_status,
+                                          upload_mode=MODE_DEFAULT)
+
+        # ensure the response matches our mocks, and that all the needed functions were called correctly
+        stub_api_instance.create_seq_run.assert_called_once_with(sequencing_run.metadata,
+                                                                 sequencing_run.sequencing_run_type)
+        stub_api_instance.set_seq_run_uploading.assert_called_once_with(mock_sequence_run_id)
+        stub_api_instance.send_sequence_files.assert_has_calls([
+            unittest.mock.call(project_id='6', sample_name='01-1111', sequence_file='mock_sample',
+                               upload_id=55, upload_mode=MODE_DEFAULT),
+            unittest.mock.call(project_id='6', sample_name='02-2222', sequence_file='mock_sample',
+                               upload_id=55, upload_mode=MODE_DEFAULT),
+            unittest.mock.call(project_id='6', sample_name='03-3333', sequence_file='mock_sample',
+                               upload_id=55, upload_mode=MODE_DEFAULT)
+        ])
+        stub_api_instance.set_seq_run_complete.assert_called_once_with(mock_sequence_run_id)
+        # Verify the DirectoryStatus object got assigned a run_id and status for upload
+        self.assertEqual(stub_directory_status.status, DirectoryStatus.PARTIAL)
+        self.assertEqual(stub_directory_status.run_id, mock_sequence_run_id)
+
 
 class TestSendProject(unittest.TestCase):
     """
