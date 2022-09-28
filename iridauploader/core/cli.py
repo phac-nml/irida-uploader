@@ -115,9 +115,9 @@ def init_argparser():
     argument_parser.add_argument('-fs', '--minimum_file_size', action='store', nargs='?', const=True, default=False,
                                  help='Accepts an Integer for the minimum file size in KB. Default is 0 KB. Files that '
                                       'are too small will appear as an error during run validation.')
-    argument_parser.add_argument('-ct', '--multithread', action='store', nargs='?', const=True, default=False,
+    argument_parser.add_argument('-mt', '--multithread', action='store', nargs='?', const=True, default=False,
                                  help='Integer to denote number of threads to use when uploading. '
-                                      '0 to disable multithreading..')
+                                      '0 (default) disables multithreading.')
     return argument_parser
 
 

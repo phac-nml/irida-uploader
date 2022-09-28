@@ -204,7 +204,6 @@ def _run_upload_handler(api_instance, sequencing_run, run_id, directory_status, 
     :return:
     """
     thread_count = config.read_config_option("multithread", int, 0)
-    thread_count = 4  # TODO REMOVE THIS TESTING LINE
 
     if thread_count < 2:
         return _run_upload_basic(api_instance, sequencing_run, run_id, directory_status, upload_mode)
