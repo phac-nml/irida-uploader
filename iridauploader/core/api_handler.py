@@ -19,7 +19,7 @@ _api_instance = None
 
 
 def _initialize_api(
-        client_id, client_secret, base_url, username, password, timeout_multiplier, max_wait_time=20, threads=0):
+        client_id, client_secret, base_url, username, password, timeout_multiplier, max_wait_time=20):
     """
     Creates the ApiCalls object from the api layer.
     Sets the instance to use the global _api_instance variable so it behaves as a singleton that can be easily re-init
@@ -258,29 +258,33 @@ def _run_upload_multithreaded(api_instance, sequencing_run, run_id, directory_st
     :return:
     """
 
-    def _run_upload(data_dict, sequence_run_id, d_status):
+    def _run_upload(d_dict, sequence_run_id, u_mode):
         """
         Do the data upload
-        :param data_dict: dictionary containing the "project" and "sample"
+        :param d_dict: dictionary containing the "project" and "sample"
         :param sequence_run_id: run id to upload with
         :return:
         """
-        project_data = data_dict["project"]
-        sample_data = data_dict["sample"]
+        project_data = d_dict["project"]
+        sample_data = d_dict["sample"]
         logging.debug("Processing queue item for project {} sample {}".format(project_data.id,
                                                                               sample_data.sample_name))
 
         api_instance.send_sequence_files(sequence_file=sample_data.sequence_file,
                                          sample_name=sample_data.sample_name,
                                          project_id=project_data.id,
-                                         upload_id=sequence_run_id)
-        #todo this causes a race condition I think, not all samples getting updated to True even though they are being uploaded
-        d_status.set_sample_uploaded(sample_name=sample.sample_name,
-                                     project_id=project.id,
+                                         upload_id=sequence_run_id,
+                                         upload_mode=u_mode)
+        return d_dict
+
+    def _set_sample_uploaded(d_status, s_name, p_id):
+        d_status.set_sample_uploaded(sample_name=s_name,
+                                     project_id=p_id,
                                      uploaded=True)
         progress.write_directory_status(d_status)
 
     # Put all the project/samples into a single list so the thread pool can assign them easier
+    # filter out runs that have already been uploaded (skip)
     all_samples = []
     for project in sequencing_run.project_list:
         for sample in project.sample_list:
@@ -298,12 +302,16 @@ def _run_upload_multithreaded(api_instance, sequencing_run, run_id, directory_st
     # Create a executor for our thread pool
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_threads) as executor:
         # future_to_upload is a list of future uploads (this starts the threads)
-        future_to_upload = {executor.submit(_run_upload, data, run_id, directory_status): data for data in all_samples}
+        future_to_upload = {executor.submit(_run_upload, data, run_id, upload_mode): data for data in all_samples}
         # as uploads/futures finish, they will be be handled here
         for future in concurrent.futures.as_completed(future_to_upload):
             try:
                 # attempt to get the result. If an exception occurred, it will be thrown here
-                future.result()
+                data_dict = future.result()
+                # Write to the directory status file. This part is sequential in order of completed
+                sample_name = data_dict["sample"].sample_name
+                project_id = data_dict["project"].id
+                _set_sample_uploaded(directory_status, sample_name, project_id)
             except concurrent.futures.CancelledError:
                 # In the case that we signaled cancellations, all futures will end up here.
                 logging.debug("Upload on this thread canceled")
