@@ -26,6 +26,7 @@ CLEANUP_DIRECTORY_LIST = [
     path.join(path_to_module, "fake_ngs_data_nonexistent_project"),
     path.join(path_to_module, "fake_ngs_data_parse_fail"),
     path.join(path_to_module, "fake_ngs_data_no_completed_file"),
+    path.join(path_to_module, "fake_ngs_data_multithread"),
     path.join(path_to_module, "fake_fast5_data"),
     path.join(path_to_module, "fake_assemblies_data"),
     path.join(path_to_module, "fake_batch_data", "run_1"),
@@ -65,7 +66,7 @@ class TestEndToEnd(unittest.TestCase):
                 os.remove(log_file_path)
 
     @staticmethod
-    def write_to_config_file(client_id, client_secret, username, password, base_url, parser, readonly):
+    def write_to_config_file(client_id, client_secret, username, password, base_url, parser, readonly, multithread=0):
         """
         Write to out sample configuration file so that the IRIDA instance will be accessed
         :param client_id:
@@ -75,6 +76,7 @@ class TestEndToEnd(unittest.TestCase):
         :param base_url:
         :param parser:
         :param readonly:
+        :param multithread:
         :return:
         """
         config.set_config_options(client_id=client_id,
@@ -84,7 +86,8 @@ class TestEndToEnd(unittest.TestCase):
                                   base_url=base_url,
                                   parser=parser,
                                   readonly=readonly,
-                                  minimum_file_size=-1)  # allow 0kb test files to be uploaded, code blocks still run
+                                  minimum_file_size=-1,
+                                  multithread=multithread)  # allow 0kb test files to be uploaded, code blocks still run
         config.write_config_options_to_file()
 
     def test_valid_miseq_upload(self):
@@ -492,6 +495,147 @@ class TestEndToEnd(unittest.TestCase):
                         '03thread_S1_L001_R2_001.fastq.gz'
                     ]
                     self.assertEqual(res_sequence_file_names.sort(), expected_sequence_file_names.sort())
+
+    def test_valid_miseq_upload_multithreaded(self):
+        """
+        Test a valid miseq directory for upload from end to end, this uses multithreading
+        :return:
+        """
+        # Set our sample config file to use miseq parser and the correct irida credentials
+        self.write_to_config_file(
+            client_id=tests_integration.client_id,
+            client_secret=tests_integration.client_secret,
+            username=tests_integration.username,
+            password=tests_integration.password,
+            base_url=tests_integration.base_url,
+            parser="miseq",
+            readonly=False,
+            multithread=3
+        )
+
+        # instance an api
+        test_api = api.ApiCalls(
+            client_id=tests_integration.client_id,
+            client_secret=tests_integration.client_secret,
+            base_url=tests_integration.base_url,
+            username=tests_integration.username,
+            password=tests_integration.password
+        )
+
+        # Create a test project, the uploader does not make new projects on its own
+        # so one must exist to upload samples into
+        # This may not be the project that the files get uploaded to,
+        # but one will be made in the case this is the only test being run
+        project_name = "test_project"
+        project_description = "test_project_description"
+        project = model.Project(name=project_name, description=project_description)
+        test_api.send_project(project)
+        # We always upload to project "1" so that tests will be consistent no matter how many / which tests are run
+        project_id = "1"
+
+        # Do the upload
+        upload_result = upload_run_single_entry(path.join(path_to_module, "fake_ngs_data_multithread"))
+
+        # Make sure the upload was a success
+        self.assertEqual(upload_result.exit_code, 0)
+
+        # Verify the files were uploaded
+        sample_list = test_api.get_samples(project_id)
+
+        sample_1_found = False
+        sample_2_found = False
+        sample_3_found = False
+        sample_4_found = False
+        sample_5_found = False
+        sample_6_found = False
+
+        for sample in sample_list:
+            if sample.sample_name in ["111", "222", "333", "444", "555", "666"]:
+                if sample.sample_name == "111":
+                    sample_1_found = True
+                    sequence_files = test_api.get_sequence_files(project_id, sample.sample_name)
+                    self.assertEqual(len(sequence_files), 2)
+                    res_sequence_file_names = [
+                        sequence_files[0]['fileName'],
+                        sequence_files[1]['fileName']
+                    ]
+                    expected_sequence_file_names = [
+                        '111_S1_L001_R1_001.fastq.gz',
+                        '111_S1_L001_R2_001.fastq.gz'
+                    ]
+                    self.assertEqual(res_sequence_file_names.sort(), expected_sequence_file_names.sort())
+                elif sample.sample_name == "222":
+                    sample_2_found = True
+                    sequence_files = test_api.get_sequence_files(project_id, sample.sample_name)
+                    self.assertEqual(len(sequence_files), 2)
+                    res_sequence_file_names = [
+                        sequence_files[0]['fileName'],
+                        sequence_files[1]['fileName']
+                    ]
+                    expected_sequence_file_names = [
+                        '222_S1_L001_R1_001.fastq.gz',
+                        '222_S1_L001_R2_001.fastq.gz'
+                    ]
+                    self.assertEqual(res_sequence_file_names.sort(), expected_sequence_file_names.sort())
+                elif sample.sample_name == "333":
+                    sample_3_found = True
+                    sequence_files = test_api.get_sequence_files(project_id, sample.sample_name)
+                    self.assertEqual(len(sequence_files), 2)
+                    res_sequence_file_names = [
+                        sequence_files[0]['fileName'],
+                        sequence_files[1]['fileName']
+                    ]
+                    expected_sequence_file_names = [
+                        '333_S1_L001_R1_001.fastq.gz',
+                        '333_S1_L001_R2_001.fastq.gz'
+                    ]
+                    self.assertEqual(res_sequence_file_names.sort(), expected_sequence_file_names.sort())
+                elif sample.sample_name == "444":
+                    sample_4_found = True
+                    sequence_files = test_api.get_sequence_files(project_id, sample.sample_name)
+                    self.assertEqual(len(sequence_files), 2)
+                    res_sequence_file_names = [
+                        sequence_files[0]['fileName'],
+                        sequence_files[1]['fileName']
+                    ]
+                    expected_sequence_file_names = [
+                        '444_S1_L001_R1_001.fastq.gz',
+                        '444_S1_L001_R2_001.fastq.gz'
+                    ]
+                    self.assertEqual(res_sequence_file_names.sort(), expected_sequence_file_names.sort())
+                elif sample.sample_name == "555":
+                    sample_5_found = True
+                    sequence_files = test_api.get_sequence_files(project_id, sample.sample_name)
+                    self.assertEqual(len(sequence_files), 2)
+                    res_sequence_file_names = [
+                        sequence_files[0]['fileName'],
+                        sequence_files[1]['fileName']
+                    ]
+                    expected_sequence_file_names = [
+                        '555_S1_L001_R1_001.fastq.gz',
+                        '555_S1_L001_R2_001.fastq.gz'
+                    ]
+                    self.assertEqual(res_sequence_file_names.sort(), expected_sequence_file_names.sort())
+                elif sample.sample_name == "666":
+                    sample_6_found = True
+                    sequence_files = test_api.get_sequence_files(project_id, sample.sample_name)
+                    self.assertEqual(len(sequence_files), 2)
+                    res_sequence_file_names = [
+                        sequence_files[0]['fileName'],
+                        sequence_files[1]['fileName']
+                    ]
+                    expected_sequence_file_names = [
+                        '666_S1_L001_R1_001.fastq.gz',
+                        '666_S1_L001_R2_001.fastq.gz'
+                    ]
+                    self.assertEqual(res_sequence_file_names.sort(), expected_sequence_file_names.sort())
+
+        self.assertEqual(sample_1_found, True)
+        self.assertEqual(sample_2_found, True)
+        self.assertEqual(sample_3_found, True)
+        self.assertEqual(sample_4_found, True)
+        self.assertEqual(sample_5_found, True)
+        self.assertEqual(sample_6_found, True)
 
     def test_valid_directory_upload(self):
         """
