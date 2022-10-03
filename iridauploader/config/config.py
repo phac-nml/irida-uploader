@@ -191,6 +191,7 @@ def set_config_options(client_id=None,
         logging.debug("Setting 'multithread' config to {}".format(multithread))
         _update_config_option('multithread', multithread)
 
+
 def setup():
     """
     Initialize and setup components for the configuration file
