@@ -16,6 +16,7 @@ path_to_module = path.dirname(__file__)
 if len(path_to_module) == 0:
     path_to_module = '.'
 
+
 CLEANUP_DIRECTORY_LIST = [
     path.join(path_to_module, "fake_dir_data"),
     path.join(path_to_module, "fake_miniseq_data"),
