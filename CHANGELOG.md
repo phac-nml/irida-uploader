@@ -7,6 +7,10 @@ Changes:
 * Added `-mt`, `--multithread` option to command line to specifiy number of threads used when uploading. Default is no multithreading
   * GUI uploader forces a single thread, as this utility is for deployed environments and users using multiple threads could overwhelm IRIDA upload servers.
 
+Bug Fixes:
+* Fixed config timeout value not being set correctly sometimes.
+* Fixed config timeout value division by string issue.
+
 Beta 0.8.3
 ----------
 Changes:

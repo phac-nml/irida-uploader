@@ -87,6 +87,8 @@ class TestEndToEnd(unittest.TestCase):
                                   base_url=base_url,
                                   parser=parser,
                                   readonly=readonly,
+                                  delay=0,
+                                  timeout=10,
                                   minimum_file_size=-1,
                                   multithread=multithread)  # allow 0kb test files to be uploaded, code blocks still run
         config.write_config_options_to_file()
