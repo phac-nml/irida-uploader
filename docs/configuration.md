@@ -28,6 +28,8 @@ The config file has the following fields:
 * `delay` : Can be given a Integer to delay a run from uploading when discovered for a number of minutes. When automating batch upload jobs on windows, we recommend this delay be at least 60 minutes.
 * `timeout` : Accepts an Integer for the expected transfer time in seconds per MB. Default is 10 second for every MB of data to transfer. Increasing this number can help reduce timeout errors in cases where connection speed is very slow.
 * `minimum_file_size` : Accepts an Integer for the minimum file size in KB. Default is 0 KB. Files that are too small will appear as an error during run validation.
+* `multithread` : Integer to denote number of threads to use when uploading. 0 (default) disables multithreading. This feature is disabled when uploading via GUI.
+
 ###Example
 ```
 [Settings]
