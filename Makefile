@@ -38,6 +38,15 @@ unittests: clean env
 	export IRIDA_UPLOADER_TEST='True'
 	python3 -m unittest discover -s tests -t iridauploader
 
+coverage: clean env
+	source .virtualenv/bin/activate
+	pip3 install -e .[TEST]
+	coverage erase
+	export IRIDA_UPLOADER_TEST='True'
+	coverage run --omit="iridauploader/tests/*","iridauploader/tests_integration/*" -m unittest discover -s tests -t iridauploader
+	coverage run --omit="iridauploader/tests/*","iridauploader/tests_integration/*" -a iridauploader/tests_integration/start_integration_tests.py $(branch) $(db_host) $(db_port)
+	coverage html
+
 preintegration:
 	mkdir iridauploader/tests_integration/tmp
 	mkdir iridauploader/tests_integration/tmp/output-files

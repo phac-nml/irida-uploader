@@ -29,7 +29,7 @@ setuptools.setup(
                       ],
     extras_require={
         "GUI": ["PyQt5==5.15.2", "PyQt5-stubs==5.14.2.2"],
-        "TEST": ["pytest"],
+        "TEST": ["pytest", "coverage"],
         "WINDOWS": ["pynsist"],
     },
     entry_points={

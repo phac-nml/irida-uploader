@@ -14,6 +14,7 @@ site/
 .pytest_cache/
 iridauploader/tests_integration/repos/
 iridauploader/tests_integration/test_config.conf
+iridauploader/tests_integration/tmp/
 irida-uploader.log
 irida_uploader_status.info
 .vscode/
