@@ -184,13 +184,13 @@ def _set_config_override(args):
 
     if args.config_timeout is True:
         print("Enter timeout per MB in seconds (Integer):")
-        delay = int(input())
+        timeout = int(input())
     elif args.config_timeout is not False:
         timeout = int(args.config_timeout)
 
     if args.minimum_file_size is True:
         print("Enter minimum file size in KB (Integer):")
-        delay = int(input())
+        minimum_file_size = int(input())
     elif args.minimum_file_size is not False:
         minimum_file_size = int(args.minimum_file_size)
 

@@ -16,6 +16,7 @@ path_to_module = path.dirname(__file__)
 if len(path_to_module) == 0:
     path_to_module = '.'
 
+
 CLEANUP_DIRECTORY_LIST = [
     path.join(path_to_module, "fake_dir_data"),
     path.join(path_to_module, "fake_miniseq_data"),
@@ -84,6 +85,8 @@ class TestEndToEnd(unittest.TestCase):
                                   base_url=base_url,
                                   parser=parser,
                                   readonly=readonly,
+                                  delay=0,
+                                  timeout=10,
                                   minimum_file_size=-1)  # allow 0kb test files to be uploaded, code blocks still run
         config.write_config_options_to_file()
 

@@ -1,6 +1,12 @@
 Changes
 =======
 
+Beta 0.8.4
+----------
+Bug Fixes:
+* Fixed config timeout value not being set correctly sometimes.
+* Fixed config timeout value division by string issue.
+
 Beta 0.8.3
 ----------
 Changes:
