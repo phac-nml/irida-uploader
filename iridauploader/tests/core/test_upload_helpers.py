@@ -597,3 +597,32 @@ class TestUploadSequencingRun(unittest.TestCase):
                                                                   run_id=None)
         mock_set_and_write.assert_called_with("status", DirectoryStatus.ERROR,
                                               'Could not upload file to IRIDA. Errors: ()')
+
+class TestSetRunDelayed(unittest.TestCase):
+    """
+    Tests core.upload_helpers.set_run_delayed
+    """
+
+    class StubDirectoryStatus:
+        directory = "dir"
+
+        def get_sample_status_list(self):
+            return ['item']
+
+    def setUp(self):
+        print("\nStarting " + self.__module__ + ": " + self._testMethodName)
+
+    @patch("iridauploader.core.upload_helpers._set_and_write_directory_status")
+    def test_valid(self, mock_set_and_write):
+        """
+        verifies parse and validate was called,
+        :param mock_set_and_write:
+        :return:
+        """
+        stub_directory_status = self.StubDirectoryStatus()
+        # mock_parsing_handler.parse_and_validate.side_effect = ["return_value"]
+        mock_set_and_write.side_effect = [True]
+
+        upload_helpers.set_run_delayed(directory_status=stub_directory_status)
+
+        mock_set_and_write.assert_called_with(stub_directory_status, DirectoryStatus.DELAYED)
