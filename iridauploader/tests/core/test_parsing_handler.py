@@ -104,3 +104,118 @@ class TestParseAndValidate(unittest.TestCase):
         # make sure the invalid sequencing run raises a ValidationError
         with self.assertRaises(parsers.exceptions.ValidationError):
             parsing_handler.parse_and_validate("mock_directory")
+
+    @patch("iridauploader.core.parsing_handler.model_validator.validate_sequencing_run")
+    @patch("iridauploader.core.parsing_handler.get_parser_from_config")
+    def test_invalid_sequencing_dir(self, mock_get_parser, mock_validate):
+        """
+        Check that an exception is thrown when a bad directory is given
+        :return:
+        """
+        # add mock data (as strings) to the function calls that are essential
+        mock_parser_instance = unittest.mock.MagicMock()
+        mock_parser_instance.get_sample_sheet.side_effect = [parsers.exceptions.DirectoryError("", "")]
+
+        mock_get_parser.side_effect = [mock_parser_instance]
+
+        # make sure the invalid sequencing run raises a ValidationError
+        with self.assertRaises(parsers.exceptions.DirectoryError):
+            parsing_handler.parse_and_validate("mock_directory")
+
+    @patch("iridauploader.core.parsing_handler.model_validator.validate_sequencing_run")
+    @patch("iridauploader.core.parsing_handler.get_parser_from_config")
+    def test_invalid_sample_sheet(self, mock_get_parser, mock_validate):
+        """
+        Check that an exception is thrown when an invalid sample sheet is given
+        :return:
+        """
+        # add mock data (as strings) to the function calls that are essential
+        mock_parser_instance = unittest.mock.MagicMock()
+        mock_parser_instance.get_sample_sheet.side_effect = ["mock_sample_sheet"]
+        mock_parser_instance.get_sequencing_run.side_effect = [parsers.exceptions.ValidationError("","")]
+
+        mock_get_parser.side_effect = [mock_parser_instance]
+
+        mock_validation_result = unittest.mock.MagicMock()
+        mock_validation_result.is_valid.side_effect = [False]
+
+        mock_validate.side_effect = [mock_validation_result]
+
+        # make sure the invalid sequencing run raises a ValidationError
+        with self.assertRaises(parsers.exceptions.ValidationError):
+            parsing_handler.parse_and_validate("mock_directory")
+
+    @patch("iridauploader.core.uniform_file_count_validator.validate_uniform_file_count")
+    @patch("iridauploader.core.file_size_validator.validate_file_size_minimum")
+    @patch("iridauploader.core.parsing_handler.model_validator.validate_sequencing_run")
+    @patch("iridauploader.core.parsing_handler.get_parser_from_config")
+    def test_invalid_file_count(
+            self,
+            mock_get_parser,
+            mock_validate_model,
+            mock_validate_file_size,
+            mock_validate_uniform_file_count):
+        """
+        Makes sure that all relevant functions are called so that it will parse and validate fully
+        :return:
+        """
+        # add mock data (as strings) to the function calls that are essential
+        mock_parser_instance = unittest.mock.MagicMock()
+        mock_parser_instance.get_sample_sheet.side_effect = ["mock_sample_sheet"]
+        mock_parser_instance.get_sequencing_run.side_effect = ["mock_sequencing_run"]
+
+        mock_get_parser.side_effect = [mock_parser_instance]
+
+        mock_validation_result = unittest.mock.MagicMock()
+        mock_validation_result.is_valid.side_effect = [True, False, True]
+
+        mock_validate_model.side_effect = [mock_validation_result]
+        mock_validate_file_size.side_effect = [mock_validation_result]
+        mock_validate_uniform_file_count.side_effect = [mock_validation_result]
+
+        # make sure the invalid sequencing run raises a ValidationError
+        with self.assertRaises(parsers.exceptions.ValidationError):
+            parsing_handler.parse_and_validate("mock_directory")
+
+        # verify that the functions were called the mock data we set up
+        mock_parser_instance.get_sample_sheet.assert_called_once_with("mock_directory")
+        mock_parser_instance.get_sequencing_run.assert_called_once_with("mock_sample_sheet")
+        mock_validate_model.assert_called_once_with("mock_sequencing_run")
+
+    @patch("iridauploader.core.uniform_file_count_validator.validate_uniform_file_count")
+    @patch("iridauploader.core.file_size_validator.validate_file_size_minimum")
+    @patch("iridauploader.core.parsing_handler.model_validator.validate_sequencing_run")
+    @patch("iridauploader.core.parsing_handler.get_parser_from_config")
+    def test_invalid_file_size(
+            self,
+            mock_get_parser,
+            mock_validate_model,
+            mock_validate_file_size,
+            mock_validate_uniform_file_count):
+        """
+        Makes sure that all relevant functions are called so that it will parse and validate fully
+        :return:
+        """
+        # add mock data (as strings) to the function calls that are essential
+        mock_parser_instance = unittest.mock.MagicMock()
+        mock_parser_instance.get_sample_sheet.side_effect = ["mock_sample_sheet"]
+        mock_parser_instance.get_sequencing_run.side_effect = ["mock_sequencing_run"]
+
+        mock_get_parser.side_effect = [mock_parser_instance]
+
+        mock_validation_result = unittest.mock.MagicMock()
+        mock_validation_result.is_valid.side_effect = [True, True, False]
+
+        mock_validate_model.side_effect = [mock_validation_result]
+        mock_validate_file_size.side_effect = [mock_validation_result]
+        mock_validate_uniform_file_count.side_effect = [mock_validation_result]
+
+        # make sure the invalid sequencing run raises a ValidationError
+        with self.assertRaises(parsers.exceptions.ValidationError):
+            parsing_handler.parse_and_validate("mock_directory")
+
+        # verify that the functions were called the mock data we set up
+        mock_parser_instance.get_sample_sheet.assert_called_once_with("mock_directory")
+        mock_parser_instance.get_sequencing_run.assert_called_once_with("mock_sample_sheet")
+        mock_validate_model.assert_called_once_with("mock_sequencing_run")
+        mock_validate_file_size.assert_called_once_with("mock_sequencing_run")
