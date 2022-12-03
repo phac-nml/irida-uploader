@@ -57,8 +57,7 @@ class TestSample(unittest.TestCase):
              '_sample_name': 's1',
              '_sample_number': 1,
              '_sequence_file': None,
-             '_skip': False
-        }
+             '_skip': False}
         self.assertEqual(d, samp.get_dict())
 
     def test_get_item_none(self):
@@ -121,7 +120,7 @@ class TestModelValidationError(unittest.TestCase):
         """
         test properties
         """
-        m = model.exceptions.ModelValidationError("msg","this")
+        m = model.exceptions.ModelValidationError("msg", "this")
         self.assertEqual("this", m.object)
         self.assertEqual("msg", m.message)
 
@@ -129,7 +128,7 @@ class TestModelValidationError(unittest.TestCase):
         """
         Test the __str__ method
         """
-        m = model.exceptions.ModelValidationError("msg",None)
+        m = model.exceptions.ModelValidationError("msg", None)
         m_str = str(m)
         self.assertEqual('msg', m_str)
 

@@ -132,7 +132,7 @@ class TestParseAndValidate(unittest.TestCase):
         # add mock data (as strings) to the function calls that are essential
         mock_parser_instance = unittest.mock.MagicMock()
         mock_parser_instance.get_sample_sheet.side_effect = ["mock_sample_sheet"]
-        mock_parser_instance.get_sequencing_run.side_effect = [parsers.exceptions.ValidationError("","")]
+        mock_parser_instance.get_sequencing_run.side_effect = [parsers.exceptions.ValidationError("", "")]
 
         mock_get_parser.side_effect = [mock_parser_instance]
 

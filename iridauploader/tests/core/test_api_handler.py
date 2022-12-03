@@ -75,7 +75,6 @@ class TestPrepareAndValidateForUpload(unittest.TestCase):
         with self.assertRaises(Exception):
             res = api_handler.prepare_and_validate_for_upload(sequencing_run)
 
-
     @patch("iridauploader.core.api_handler._get_api_instance")
     def test_invalid_validation_project_does_not_exist(self, mock_api_instance):
         """
@@ -246,6 +245,7 @@ class TestPrepareAndValidateForUpload(unittest.TestCase):
         self.assertFalse(res.is_valid())
         self.assertEqual(res.error_count(), 1)
         self.assertEqual(type(res.error_list[0]), IridaResourceError)
+
 
 class TestUploadSequencingRun(unittest.TestCase):
     """
@@ -509,6 +509,7 @@ class TestUploadSequencingRun(unittest.TestCase):
                                                                  sequencing_run.sequencing_run_type)
         stub_api_instance.set_seq_run_uploading.assert_called_once_with(mock_sequence_run_id)
         stub_api_instance.set_seq_run_error.assert_called_once_with(mock_sequence_run_id)
+
 
 class TestSendProject(unittest.TestCase):
     """

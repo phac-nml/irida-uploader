@@ -1,6 +1,11 @@
 Changes
 =======
 
+TBD
+---
+Changes:
+* [Developer] Fixed minor bugs with object models not handling properties correctly.
+
 Beta 0.8.3
 ----------
 Changes:

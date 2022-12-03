@@ -598,6 +598,7 @@ class TestUploadSequencingRun(unittest.TestCase):
         mock_set_and_write.assert_called_with("status", DirectoryStatus.ERROR,
                                               'Could not upload file to IRIDA. Errors: ()')
 
+
 class TestSetRunDelayed(unittest.TestCase):
     """
     Tests core.upload_helpers.set_run_delayed
