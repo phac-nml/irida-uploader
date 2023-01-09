@@ -28,6 +28,14 @@ The config file has the following fields:
 * `delay` : Can be given a Integer to delay a run from uploading when discovered for a number of minutes. When automating batch upload jobs on windows, we recommend this delay be at least 60 minutes.
 * `timeout` : Accepts an Integer for the expected transfer time in seconds per MB. Default is 10 second for every MB of data to transfer. Increasing this number can help reduce timeout errors in cases where connection speed is very slow.
 * `minimum_file_size` : Accepts an Integer for the minimum file size in KB. Default is 0 KB. Files that are too small will appear as an error during run validation.
+* `http_max_retries` : Accepts an Integer for the number of retry attempts for http/https requests. Default = 5
+* `http_backoff_factor` : Accepts a Float for the backoff time multiplier per attempt. This number should be between 0 (no backoff) and 10. Default = 0
+  * {backoff factor} * (2 ** ({number of total retries} - 1))
+  * example calculations in seconds
+  * backoff = 1 = [0.5, 1, 2, 4, 8, 16, 32, 64, 128, 256, ...]
+  * backoff = 2 = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, ...]
+  * backoff = 10 = [5, 10, 20, 40, 80, 160, 320, 640, 1280, 2560, ...]
+
 ###Example
 ```
 [Settings]
@@ -41,6 +49,8 @@ readonly = False
 delay = 0
 timeout = 10
 minimum_file_size = 0
+http_max_retries = 5
+http_backoff_factor = 0
 ```
 This can also be found in the file `examples/example_config.conf`
 

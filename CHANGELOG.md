@@ -7,6 +7,11 @@ Bug Fixes:
 * Fixed config timeout value not being set correctly sometimes.
 * Fixed config timeout value division by string issue.
 
+Changes:
+* Added 2 new config arguments to specify number of retries and backoff time for http/https requests
+  * http_max_retries
+  * http_backoff_factor
+
 Beta 0.8.3
 ----------
 Changes:

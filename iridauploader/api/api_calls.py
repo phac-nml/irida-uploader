@@ -2,6 +2,7 @@ import ast
 import json
 import logging
 import threading
+import time
 
 from http import HTTPStatus
 from pathlib import Path
@@ -9,6 +10,7 @@ from rauth import OAuth2Service
 from requests import ConnectionError
 from requests.adapters import HTTPAdapter
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
+from urllib3.util.retry import Retry
 from urllib.parse import urljoin, urlparse
 from urllib.error import URLError
 
@@ -52,7 +54,8 @@ JSON_HEADERS = {"headers": {'Content-Type': 'application/json', **SESSION_HEADER
 class ApiCalls(object):
 
     def __init__(self, client_id, client_secret,
-                 base_url, username, password, timeout_multiplier=10, max_wait_time=20, http_max_retries=5):
+                 base_url, username, password, timeout_multiplier=10, max_wait_time=20,
+                 http_max_retries=5, http_backoff_factor=0):
         """
         Create OAuth2Session and store it
 
@@ -75,6 +78,7 @@ class ApiCalls(object):
         self.timeout_multiplier = timeout_multiplier
         self.max_wait_time = max_wait_time
         self.http_max_retries = http_max_retries
+        self.http_backoff_factor = http_backoff_factor
 
         self._session_lock = threading.Lock()
         self._session_set_externally = False
@@ -108,8 +112,24 @@ class ApiCalls(object):
         access_token = self._get_access_token(oauth_service)
         _sess = oauth_service.get_session(access_token)
         # We add a HTTPAdapter with max retries so we don't fail out if one request gets lost
-        _sess.mount('https://', HTTPAdapter(max_retries=self.http_max_retries))
-        _sess.mount('http://', HTTPAdapter(max_retries=self.http_max_retries))
+        logging.info("Session configured with {} retries and {} backoff factor.".format(
+            self.http_max_retries, self.http_backoff_factor))
+        # Backoff calculation via Retry
+        # {backoff factor} * (2 ** ({number of total retries} - 1))
+        # example in seconds
+        # backoff = 1 = [0.5, 1, 2, 4, 8, 16, 32, 64, 128, 256, ...]
+        # backoff = 2 = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, ...]
+        # backoff = 10 = [5, 10, 20, 40, 80, 160, 320, 640, 1280, 2560, ...]
+        retry_strategy = Retry(
+            total=self.http_max_retries,
+            backoff_factor=self.http_backoff_factor,
+            status_forcelist=[429, 500, 502, 503, 504],
+            method_whitelist=["HEAD", "GET", "PUT", "POST"],  # by default POST is excluded
+        )
+        # override retries built in max backoff value
+        Retry.DEFAULT_BACKOFF_MAX = self.http_backoff_factor
+        _sess.mount('https://', HTTPAdapter(max_retries=retry_strategy))
+        _sess.mount('http://', HTTPAdapter(max_retries=retry_strategy))
         self._session_instance = _sess
 
     def _create_session(self):
@@ -542,6 +562,24 @@ class ApiCalls(object):
 
         url = f"{self.base_url}projects/{project_id}/samples"
         json_obj = json.dumps(sample.get_uploadable_dict())
+
+        # uploaded_flag = False
+        # max_for_retries = 5
+        # backoff_time_sec = 120
+        # ex = None
+        # for i in range(max_for_retries):
+        #     if uploaded_flag is True:
+        #         break
+        #     try:
+        #         response = self._session.post(url, json_obj, **JSON_HEADERS)
+        #         uploaded_flag = True
+        #     except Exception as e:
+        #         time.sleep(backoff_time_sec)
+        #         ex = e
+        #     if uploaded_flag is False and i == max_for_retries:
+        #         raise ApiCalls._handle_rest_exception(url, ex)
+
+
 
         try:
             response = self._session.post(url, json_obj, **JSON_HEADERS)

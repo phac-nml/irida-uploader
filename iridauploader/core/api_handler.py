@@ -19,7 +19,8 @@ _api_instance = None
 
 
 def _initialize_api(
-        client_id, client_secret, base_url, username, password, timeout_multiplier, max_wait_time=20):
+        client_id, client_secret, base_url, username, password, timeout_multiplier, max_wait_time=20,
+        http_max_retries=5, http_backoff_factor=0):
     """
     Creates the ApiCalls object from the api layer.
     Sets the instance to use the global _api_instance variable so it behaves as a singleton that can be easily re-init
@@ -46,6 +47,8 @@ def _initialize_api(
         password=password,
         timeout_multiplier=timeout_multiplier,
         max_wait_time=max_wait_time,
+        http_max_retries=http_max_retries,
+        http_backoff_factor=http_backoff_factor,
     )
     return _api_instance
 
@@ -77,13 +80,18 @@ def initialize_api_from_config():
     username = config.read_config_option("username")
     password = config.read_config_option("password")
     timeout = config.read_config_option("timeout", expected_type=int)
+    http_max_retries = config.read_config_option("http_max_retries", expected_type=int)
+    http_backoff_factor = config.read_config_option("http_backoff_factor", expected_type=float)
 
     return _initialize_api(client_id=client_id,
                            client_secret=client_secret,
                            base_url=base_url,
                            username=username,
                            password=password,
-                           timeout_multiplier=timeout)
+                           timeout_multiplier=timeout,
+                           http_max_retries=http_max_retries,
+                           http_backoff_factor=http_backoff_factor,
+                           )
 
 
 def prepare_and_validate_for_upload(sequencing_run):
