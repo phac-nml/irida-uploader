@@ -5,6 +5,7 @@ Beta 0.8.4
 ----------
 Changes:
 * [Developer] Fixed minor bugs with object models not handling properties correctly.
+* [Developer] Added command `make coverage` to all tests and collect coverage, exporting results as html
 Bug Fixes:
 * Fixed config timeout value not being set correctly sometimes.
 * Fixed config timeout value division by string issue.
