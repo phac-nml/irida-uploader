@@ -563,24 +563,6 @@ class ApiCalls(object):
         url = f"{self.base_url}projects/{project_id}/samples"
         json_obj = json.dumps(sample.get_uploadable_dict())
 
-        # uploaded_flag = False
-        # max_for_retries = 5
-        # backoff_time_sec = 120
-        # ex = None
-        # for i in range(max_for_retries):
-        #     if uploaded_flag is True:
-        #         break
-        #     try:
-        #         response = self._session.post(url, json_obj, **JSON_HEADERS)
-        #         uploaded_flag = True
-        #     except Exception as e:
-        #         time.sleep(backoff_time_sec)
-        #         ex = e
-        #     if uploaded_flag is False and i == max_for_retries:
-        #         raise ApiCalls._handle_rest_exception(url, ex)
-
-
-
         try:
             response = self._session.post(url, json_obj, **JSON_HEADERS)
         except Exception as e:
