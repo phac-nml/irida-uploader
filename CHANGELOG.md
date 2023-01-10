@@ -1,10 +1,13 @@
 Changes
 =======
 
-TBD
----
+Beta 0.8.4
+----------
 Changes:
 * [Developer] Fixed minor bugs with object models not handling properties correctly.
+Bug Fixes:
+* Fixed config timeout value not being set correctly sometimes.
+* Fixed config timeout value division by string issue.
 
 Beta 0.8.3
 ----------
