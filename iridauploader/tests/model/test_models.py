@@ -60,6 +60,19 @@ class TestSample(unittest.TestCase):
              '_skip': False}
         self.assertEqual(d, samp.get_dict())
 
+    def test_get_sample_dict(self):
+        """
+        test metadata dictionary
+        """
+        samp = model.Sample(
+            sample_name="s1",
+            description="desc",
+            sample_number=1,
+            samp_dict={"some": "values", "are": "here"},
+            sample_id=1
+        )
+        self.assertEqual({"some": "values", "are": "here"}, samp.sample_dict)
+
     def test_get_item_none(self):
         """
         test __getitem__ for item that doesn't exist

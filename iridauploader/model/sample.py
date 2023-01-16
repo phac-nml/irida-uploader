@@ -94,6 +94,10 @@ class Sample:
         self._sequence_file = sq
 
     @property
+    def sample_dict(self):
+        return self._sample_dict
+
+    @property
     def skip(self):
         return self._skip
 
