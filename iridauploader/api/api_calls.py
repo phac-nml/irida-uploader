@@ -366,20 +366,7 @@ class ApiCalls(object):
 
             sample_list = []
             for sample_dict in result:
-                # use name and description from dictionary as base parameters when creating sample
-                sample_name = sample_dict['sampleName']
-                sample_desc = sample_dict['description']
-                sample_id = int(sample_dict['identifier'])
-                # remove them from the dict so we don't have useless duplicate data
-                del sample_dict['sampleName']
-                del sample_dict['description']
-                del sample_dict['identifier']
-                sample_list.append(model.Sample(
-                    sample_name=sample_name,
-                    description=sample_desc,
-                    samp_dict=sample_dict,
-                    sample_id=sample_id
-                ))
+                sample_list.append(ApiCalls._build_sample_obj_from_resource(sample_dict))
             self.cached_samples[project_id] = sample_list
 
         return self.cached_samples[project_id]
@@ -577,11 +564,11 @@ class ApiCalls(object):
 
         return json_res
 
-    def get_sample_details(self, sample_id):
+    def get_sample_by_id(self, sample_id):
         """
         Given a sample id, returns response from server for the baseurl/samples/sample_id endpoint
         :param sample_id:
-        :return: server resource response
+        :return: Sample obj or None
         """
         logging.info("Getting sample info for sample id '{}'".format(sample_id))
 
@@ -592,13 +579,59 @@ class ApiCalls(object):
         except Exception as e:
             raise ApiCalls._handle_rest_exception(url, e)
 
-        if response.status_code == HTTPStatus.OK:  # 200
-            result = response.json()
-        else:
+        if response.status_code == HTTPStatus.OK:  # 200, return sample object
+            sample_dict = response.json()["resource"]
+            return ApiCalls._build_sample_obj_from_resource(sample_dict)
+        elif response.status_code == HTTPStatus.NOT_FOUND:  # 404, return None
+            return None
+        else:  # any other exception
             raise self._handle_irida_exception(response)
 
-        # TODO: api refactor project: build this data into a model/Metadata object
-        return result
+    def get_sample_by_name(self, project_id, sample_name):
+        """
+        Given a project id and sample name, returns a Sample object, or None is sample does not exist
+        :param project_id:
+        :param sample_name:
+        :return: Sample obj or None
+        """
+
+        logging.info("Getting sample info for project id '{}' and sample name '{}'".format(project_id, sample_name))
+
+        url = f"{self.base_url}projects/{project_id}/samples/bySequencerId/{sample_name}"
+
+        try:
+            response = self._session.get(url)
+        except Exception as e:
+            raise ApiCalls._handle_rest_exception(url, e)
+        if response.status_code == HTTPStatus.OK:  # 200, return sample object
+            sample_dict = response.json()["resource"]
+            return ApiCalls._build_sample_obj_from_resource(sample_dict)
+        elif response.status_code == HTTPStatus.NOT_FOUND:  # 404, return None
+            return None
+        else:  # any other exception
+            raise self._handle_irida_exception(response)
+
+    # TODO: in the graphql api rewrite these type of functions should exist in their own files per object type
+    @staticmethod
+    def _build_sample_obj_from_resource(resource_dict):
+        """
+        Given a resource dictionary for a sample, return a Sample object
+        """
+        # use name and description from dictionary as base parameters when creating sample
+        s_name = resource_dict['sampleName']
+        s_desc = resource_dict['description']
+        s_id = int(resource_dict['identifier'])
+        # remove them from the dict so we don't have useless duplicate data
+        del resource_dict['sampleName']
+        del resource_dict['description']
+        del resource_dict['identifier']
+        sample_obj = model.Sample(
+            sample_name=s_name,
+            description=s_desc,
+            samp_dict=resource_dict,
+            sample_id=s_id
+        )
+        return sample_obj
 
     def send_sequence_files(self, sequence_file, sample_name, project_id, upload_id, upload_mode=MODE_DEFAULT):
         """
@@ -1012,6 +1045,7 @@ class ApiCalls(object):
         logging.debug("IRIDA responded with status code: {}".format(response.status_code))
         return response.status_code
 
+    # TODO: this function should be removed during the graphql api rewrite
     def sample_exists(self, sample_name, project_id):
         """
         Given a sample name and project id, returns True or False for if sample exists
@@ -1019,9 +1053,12 @@ class ApiCalls(object):
         :param project_id:
         :return:
         """
-        return True if (self.get_sample_id(sample_name, project_id) is not False) else False
+        return True if (self.get_sample_by_name(project_id, sample_name) is not None) else False
 
-    def get_sample_id(self, sample_name, project_id):
+    # TODO: This function should be removed during the graphql api rewrite.
+    # It does not need to exist because get_sample_by_name returns an object with this information, but it is baked into
+    # other functions. Additionally we don't want to break any user scripts until we fully rewrite the api with graphql
+    def get_sample_id(self, sample_name, project_id):  # todo remove this
         """
         Given a sample name and project id, returns the sample id, or False if it doesn't exist
 
@@ -1032,8 +1069,5 @@ class ApiCalls(object):
         :return: Integer of the sample identifier if it exists, otherwise False
         """
         logging.debug("sample exists: sample: {}, on project: {}".format(sample_name, project_id))
-        sample_list = self.get_samples(project_id)
-        for s in sample_list:
-            if s.sample_name.lower() == sample_name.lower():
-                return s.sample_id
-        return False
+        res = self.get_sample_by_name(project_id, sample_name)
+        return res.sample_id if (res is not None) else False
