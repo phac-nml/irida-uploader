@@ -140,9 +140,10 @@ def prepare_and_validate_for_upload(sequencing_run):
         # Create samples that do not exist
         logging.debug("Creating {} samples".format(len(samples_to_create)))
         for sample_project_id_tuple in samples_to_create:
-            logging.debug("Sample not found, creating new Sample")
             sample = sample_project_id_tuple[0]
             project_id = sample_project_id_tuple[1]
+            logging.debug("Sample {} was not found on project {}, creating new Sample".format(
+                sample.sample_name, project_id))
             try:
                 api_instance.send_sample(sample, project_id)
                 logging.debug("Sample Created")
@@ -155,17 +156,17 @@ def prepare_and_validate_for_upload(sequencing_run):
                 validation_result.add_error(e)
                 continue
 
-    # validate created samples were actually created
-    logging.debug("validating creation of {} samples".format(len(samples_to_create)))
-    for sample_project_id_tuple in samples_to_create:
-        sample = sample_project_id_tuple[0]
-        project_id = sample_project_id_tuple[1]
-        logging.debug("Verifying sample {} on project {} was created".format(sample.sample_name, project_id))
-        if not api_instance.sample_exists(sample.sample_name, project_id):
-            logging.debug("Sample was not created")
-            err = api.exceptions.IridaResourceError("Could not create new Sample on Project {}", project_id)
-            validation_result.add_error(err)
-            continue
+        # validate created samples were actually created
+        logging.debug("validating creation of {} samples".format(len(samples_to_create)))
+        for sample_project_id_tuple in samples_to_create:
+            sample = sample_project_id_tuple[0]
+            project_id = sample_project_id_tuple[1]
+            logging.debug("Verifying sample {} on project {} was created".format(sample.sample_name, project_id))
+            if not api_instance.sample_exists(sample.sample_name, project_id):
+                logging.debug("Sample was not created")
+                err = api.exceptions.IridaResourceError("Could not create new Sample on Project {}", project_id)
+                validation_result.add_error(err)
+                continue
 
     return validation_result
 

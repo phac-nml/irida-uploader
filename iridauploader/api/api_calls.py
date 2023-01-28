@@ -533,6 +533,7 @@ class ApiCalls(object):
 
         return json_res
 
+    # TODO: in the graphql api rewrite, it would be nice if these types of functions returned the Object the created
     def send_sample(self, sample, project_id):
         """
         Post request to send a sample to a project
@@ -595,7 +596,7 @@ class ApiCalls(object):
         :return: Sample obj or None
         """
 
-        logging.info("Getting sample info for project id '{}' and sample name '{}'".format(project_id, sample_name))
+        logging.info("Getting Sample object for project id '{}' and sample name '{}'".format(project_id, sample_name))
 
         url = f"{self.base_url}projects/{project_id}/samples/bySequencerId/{sample_name}"
 
@@ -604,11 +605,14 @@ class ApiCalls(object):
         except Exception as e:
             raise ApiCalls._handle_rest_exception(url, e)
         if response.status_code == HTTPStatus.OK:  # 200, return sample object
+            logging.debug("sample found")
             sample_dict = response.json()["resource"]
             return ApiCalls._build_sample_obj_from_resource(sample_dict)
         elif response.status_code == HTTPStatus.NOT_FOUND:  # 404, return None
+            logging.debug("sample not found")
             return None
         else:  # any other exception
+            logging.debug("exception occurred: {}".format(response))
             raise self._handle_irida_exception(response)
 
     # TODO: in the graphql api rewrite these type of functions should exist in their own files per object type

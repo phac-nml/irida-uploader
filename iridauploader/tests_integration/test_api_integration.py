@@ -92,9 +92,9 @@ class TestApiIntegration(unittest.TestCase):
 
         # fetch the sample from the server and confirm it again
         sample_id = int(json_res['resource']['identifier'])
-        sample_json_res = self.test_api.get_sample_details(sample_id)
-        self.assertEqual(sample_json_res['resource']['sampleName'], sample_name)
-        self.assertEqual(sample_json_res['resource']['description'], sample_desc)
+        res_sample = self.test_api.get_sample_by_id(sample_id)
+        self.assertEqual(res_sample.sample_name, sample_name)
+        self.assertEqual(res_sample.description, sample_desc)
 
         # get a list of samples on our project and make sure they match what we uploaded
         sample_list = self.test_api.get_samples(project_identifier)
