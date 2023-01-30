@@ -93,7 +93,7 @@ You can run the entire test suite and generate a coverage report with the follow
 
     $ make coverage
 
-Then you can open the generated `htmlcov/index.html` with your web browser to see the detailed report.
+To view the detailed report, open the generated `htmlcov/index.html` with your web browser.
 
 Documentation
 ------------------------------
