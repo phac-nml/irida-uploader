@@ -36,7 +36,7 @@ unittests: clean env
 	source .virtualenv/bin/activate
 	pip3 install -e .[TEST]
 	export IRIDA_UPLOADER_TEST='True'
-	coverage run --omit="iridauploader/tests/*","iridauploader/tests_integration/*" -m unittest discover -s tests -t iridauploader
+	coverage run -m unittest discover -s tests -t iridauploader
 
 preintegration:
 	mkdir iridauploader/tests_integration/tmp
@@ -50,15 +50,15 @@ integrationtests: clean env preintegration
 	source .virtualenv/bin/activate
 	pip3 install -e .[TEST]
 	export IRIDA_UPLOADER_TEST='True'
-	coverage run --omit="iridauploader/tests/*","iridauploader/tests_integration/*" iridauploader/tests_integration/start_integration_tests.py $(branch) $(db_host) $(db_port)
+	coverage run iridauploader/tests_integration/start_integration_tests.py $(branch) $(db_host) $(db_port)
 
 coverage: clean env
 	source .virtualenv/bin/activate
 	pip3 install -e .[TEST]
 	coverage erase
 	export IRIDA_UPLOADER_TEST='True'
-	coverage run --omit="iridauploader/tests/*","iridauploader/tests_integration/*" -m unittest discover -s tests -t iridauploader
-	coverage run --omit="iridauploader/tests/*","iridauploader/tests_integration/*" -a iridauploader/tests_integration/start_integration_tests.py master $(db_host) $(db_port)
+	coverage run -m unittest discover -s tests -t iridauploader
+	coverage run -a iridauploader/tests_integration/start_integration_tests.py master $(db_host) $(db_port)
 	coverage html
 	coverage report
 
