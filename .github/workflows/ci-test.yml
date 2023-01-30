@@ -133,12 +133,13 @@ jobs:
         id: download
         with:
           name: 'coverage'
-      - name: Coverage Comment
+      - name: Coverage comment
         id: coverage_comment
         uses: py-cov-action/python-coverage-comment-action@v3
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MERGE_COVERAGE_FILES: true
+          VERBOSE: true
       - name: Store Pull Request comment to be posted
         uses: actions/upload-artifact@v3
         if: steps.coverage_comment.outputs.COMMENT_FILE_WRITTEN == 'true'
