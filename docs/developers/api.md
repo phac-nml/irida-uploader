@@ -22,6 +22,11 @@ For more information on the arguments passed to `ApiCalls`, please see the [conf
 
 ### Getting Data from IRIDA
 
+#### get_irida_version(self)
+API call to api/version to get a string with irida version.
+
+May contain "-SNAPSHOT" when querying against a development branch
+
 #### get_projects(self)
 API call to api/projects to get list of projects
 

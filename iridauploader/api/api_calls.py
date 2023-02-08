@@ -48,6 +48,8 @@ SESSION_HEADERS = {
 
 JSON_HEADERS = {"headers": {'Content-Type': 'application/json', **SESSION_HEADERS}}
 
+MINIMUM_IRIDA_VERSION = 23.01
+
 
 class ApiCalls(object):
 
@@ -85,6 +87,15 @@ class ApiCalls(object):
         # these two are used when sending signals to the progress module
         self._current_upload_project_id = None
         self._current_upload_sample_name = None
+
+        # Irida version if fetched once
+        self._irida_version = None
+        self.get_irida_version()
+        if not self._is_irida_version_compatible():
+            raise exceptions.IridaConnectionError(
+                f"This API requires minimum IRIDA Version '{MINIMUM_IRIDA_VERSION}'. "
+                f"IRIDA Version '{self._irida_version}' is outdated, please contact your system administrator."
+            )
 
     @property
     def _session(self):
@@ -264,6 +275,41 @@ class ApiCalls(object):
                                                     status_code=str(response.status_code),
                                                     err_msg=response.reason))
         return e
+
+    def _is_irida_version_compatible(self):
+        """
+        Strips extra data from fetched irida version and checks it against set minimum compatible irida version
+        returns: boolean: if api version is compatible with irida it is connected to
+        """
+        irida_version_raw = self.get_irida_version()
+        irida_version = float(irida_version_raw.replace('-SNAPSHOT', '').replace('irida-', ''))
+        logging.info("min irida version: " + str(MINIMUM_IRIDA_VERSION))
+        logging.info("fetched irida version: " + str(irida_version))
+        return irida_version >= MINIMUM_IRIDA_VERSION
+
+    def get_irida_version(self):
+        """
+        API call to api/version
+
+        returns: string with version information
+        """
+        if self._irida_version is None:
+            logging.debug("Fetching IRIDA version")
+
+            url = f"{self.base_url}/version"
+            try:
+                response = self._session.get(url)
+            except Exception as e:
+                raise ApiCalls._handle_rest_exception(url, e)
+
+            if response.status_code == HTTPStatus.OK:  # 200
+                result = response.json()['version']
+            else:
+                raise self._handle_irida_exception(response)
+
+            self._irida_version = result
+
+        return self._irida_version
 
     def get_projects(self):
         """

@@ -5,10 +5,6 @@ IRIDA Uploader
 [![Documentation Status](https://readthedocs.org/projects/irida-uploader/badge/?version=stable)](https://irida-uploader.readthedocs.io/en/stable/?badge=stable)
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io/recipes/irida-uploader/README.html)
 
-**Please Note: The latest version of the IRIDA Uploader requires IRIDA Version 20.05 or later.**
-
-If you are using an older version of IRIDA, please update your IRIDA, or use Uploader Release Version 0.4.3
-
 Download / Installation
 --------------------
 

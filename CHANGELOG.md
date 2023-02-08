@@ -1,11 +1,17 @@
 Changes
 =======
 
-Beta 0.8.4
+Beta 0.9.0
 ----------
+Changes:
+* Uploader checks IRIDA version compatibility when initializing a session.
+
 Bug Fixes:
 * Fixed config timeout value not being set correctly sometimes.
 * Fixed config timeout value division by string issue.
+
+Developer Changes:
+* Added get_irida_version(self) to api, returns a string with the irida version
 
 Beta 0.8.3
 ----------
