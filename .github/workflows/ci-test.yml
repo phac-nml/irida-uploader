@@ -7,14 +7,14 @@ name: Integration Tests
 on:
   pull_request: # Run on all pull requests
   push:
-    branches:   # Run on any push to development or master
+    branches:   # Run on any push to development or main
       - development
-      - master
-  schedule:     # Run weekly on development and master
+      - main
+  schedule:     # Run weekly on development and main
     - cron: 0 2 * * 1
       branches: development
     - cron: 0 2 * * 1
-      branches: master
+      branches: main
 
 
 jobs:
@@ -80,7 +80,7 @@ jobs:
     strategy:
       fail-fast: False #Setting so that if one of the test suites fail, the other will continue
       matrix:
-        branch: ['master','development'] # IRIDA Branches to test against
+        branch: ['main','development'] # IRIDA Branches to test against
 
     steps:
       - uses: actions/checkout@v3 #Checkout the project from git

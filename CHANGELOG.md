@@ -1,13 +1,15 @@
 Changes
 =======
 
-Beta 0.8.4
+Beta 0.9.0
 ----------
 Changes:
 * [Developer] Fixed minor bugs with object models not handling properties correctly.
 * [Developer] Added command `make coverage` to all tests and collect coverage, exporting results as html
 * [Developer] Added automated coverage report generation for PR reviews.
-* Bug Fixes:
+* [Developer] Changed `master` to `main` everywhere, including references to irida branches.
+
+Bug Fixes:
 * Fixed config timeout value not being set correctly sometimes.
 * Fixed config timeout value division by string issue.
 

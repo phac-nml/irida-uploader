@@ -1,5 +1,5 @@
 SHELL=/bin/bash
-IRIDA_VERSION?=master
+IRIDA_VERSION?=main
 
 requirements: clean env
 	source .virtualenv/bin/activate
@@ -58,7 +58,7 @@ coverage: clean env
 	coverage erase
 	export IRIDA_UPLOADER_TEST='True'
 	coverage run -m unittest discover -s tests -t iridauploader
-	coverage run -a iridauploader/tests_integration/start_integration_tests.py master $(db_host) $(db_port)
+	coverage run -a iridauploader/tests_integration/start_integration_tests.py main $(db_host) $(db_port)
 	coverage html
 	coverage report
 
