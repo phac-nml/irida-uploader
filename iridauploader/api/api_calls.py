@@ -4,6 +4,7 @@ import logging
 import threading
 
 from http import HTTPStatus
+from itertools import zip_longest
 from pathlib import Path
 from rauth import OAuth2Service
 from requests import ConnectionError
@@ -48,7 +49,7 @@ SESSION_HEADERS = {
 
 JSON_HEADERS = {"headers": {'Content-Type': 'application/json', **SESSION_HEADERS}}
 
-MINIMUM_IRIDA_VERSION = 23.01
+MINIMUM_IRIDA_VERSION = "23.01"
 
 
 class ApiCalls(object):
@@ -88,10 +89,9 @@ class ApiCalls(object):
         self._current_upload_project_id = None
         self._current_upload_sample_name = None
 
-        # Irida version if fetched once
+        # init irida version and check if version is compatible
         self._irida_version = None
-        self.get_irida_version()
-        if not self._is_irida_version_compatible():
+        if not self._is_irida_version_compatible(self.get_irida_version(), MINIMUM_IRIDA_VERSION):
             raise exceptions.IridaConnectionError(
                 f"This API requires minimum IRIDA Version '{MINIMUM_IRIDA_VERSION}'. "
                 f"IRIDA Version '{self._irida_version}' is outdated, please contact your system administrator."
@@ -276,16 +276,34 @@ class ApiCalls(object):
                                                     err_msg=response.reason))
         return e
 
-    def _is_irida_version_compatible(self):
+    @staticmethod
+    def _is_irida_version_compatible(irida_version, minimum_irida_version):
         """
         Strips extra data from fetched irida version and checks it against set minimum compatible irida version
+        param irida_version: String: actual irida version
+        param minimum_irida_version: String: minimum compatible irida version
         returns: boolean: if api version is compatible with irida it is connected to
         """
-        irida_version_raw = self.get_irida_version()
-        irida_version = float(irida_version_raw.replace('-SNAPSHOT', '').replace('irida-', ''))
-        logging.info("min irida version: " + str(MINIMUM_IRIDA_VERSION))
-        logging.info("fetched irida version: " + str(irida_version))
-        return irida_version >= MINIMUM_IRIDA_VERSION
+        def _compare_version(v1: str, v2: str) -> int:
+            """
+            compares version strings
+            returns: 1 if v1 > v2, 0 if v1 == v2, -1 if v1 < v2
+            """
+            v1, v2 = list(map(int, v1.split('.'))), list(map(int, v2.split('.')))
+            for rev1, rev2 in zip_longest(v1, v2, fillvalue=0):
+                if rev1 == rev2:
+                    continue
+                return -1 if rev1 < rev2 else 1
+            return 0
+
+        # Strip "irida-" and "-SNAPSHOT" if they are on the version id
+        irida_version_stripped = irida_version.replace('-SNAPSHOT', '').replace('irida-', '')
+        logging.info("min irida version: " + str(minimum_irida_version))
+        logging.info("fetched irida version: " + str(irida_version_stripped))
+        # print("min irida version: " + str(MINIMUM_IRIDA_VERSION))
+        # print("fetched irida version: " + str(irida_version))
+        # print("vercomp: " + str(_compare_version(irida_version, MINIMUM_IRIDA_VERSION)))
+        return _compare_version(irida_version_stripped, minimum_irida_version) >= 0
 
     def get_irida_version(self):
         """
