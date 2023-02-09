@@ -599,10 +599,10 @@ class ApiCalls(object):
         logging.info("Getting Sample object for project id '{}' and sample name '{}'".format(project_id, sample_name))
 
         url = f"{self.base_url}projects/{project_id}/samples/bySampleName"
-        json_obj = json.dumps({'sampleName': sample_name})
+        params = {'sampleName': sample_name}
 
         try:
-            response = self._session.get(url, data=json_obj, **JSON_HEADERS)
+            response = self._session.get(url, params=params)
         except Exception as e:
             raise ApiCalls._handle_rest_exception(url, e)
         if response.status_code == HTTPStatus.OK:  # 200, return sample object
