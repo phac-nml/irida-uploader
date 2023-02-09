@@ -1,8 +1,10 @@
 import unittest
 import os
+from unittest.mock import patch
+
 
 from iridauploader.parsers import common
-from iridauploader.parsers.exceptions import SampleSheetError
+from iridauploader.parsers.exceptions import SampleSheetError, DirectoryError
 
 path_to_module = os.path.abspath(os.path.dirname(__file__))
 if len(path_to_module) == 0:
@@ -41,6 +43,18 @@ class TestFindDirectoryList(unittest.TestCase):
         res = common.find_directory_list(directory)
 
         self.assertEqual(res, [])
+
+    @patch("iridauploader.parsers.common.cannot_read_directory")
+    def test_cannot_read_directory(self, mock_cannot_read_directory):
+        """
+        ensure exception is raised when an invalid directory is given
+        """
+        directory = os.path.join(path_to_module, "not a dir")
+
+        mock_cannot_read_directory.side_effect = [True]
+
+        with self.assertRaises(DirectoryError):
+            res = common.find_directory_list(directory)
 
 
 class TestGetCsvReader(unittest.TestCase):

@@ -36,7 +36,7 @@ class SequenceFile:
 
     def get(self, key):
         ret_val = None
-        if self._properties_dict in key:
+        if key in self._properties_dict:
             ret_val = self._properties_dict[key]
         return ret_val
 
@@ -48,7 +48,8 @@ class SequenceFile:
         return len(self._file_list) == 2
 
     def __str__(self):
-        return str(self._properties_dict) + str(self._file_list)
+        d = {'propertyDict': str(self._properties_dict), 'fileList': str(self._file_list)}
+        return str(d)
 
     def get_dict(self):
         return self.__dict__

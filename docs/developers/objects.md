@@ -30,7 +30,7 @@ When creating a new project on IRIDA using the API, a `name` at least 5 characte
 
 The `Sample` object includes:
 
- * `name` : How the sample is identified on IRIDA
+ * `sample_name` : How the sample is identified on IRIDA
  * `description` : the description of the sample on IRIDA
  * `sample_id` : IRIDA identifier for the sample object
  * `sample_number` : a number used by some sequencers to denote (pre parsed) sample order

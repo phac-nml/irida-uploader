@@ -94,6 +94,10 @@ class Sample:
         self._sequence_file = sq
 
     @property
+    def sample_dict(self):
+        return self._sample_dict
+
+    @property
     def skip(self):
         return self._skip
 
@@ -116,7 +120,9 @@ class Sample:
         return self.__getitem__(key)
 
     def __str__(self):
-        return str(self.get_uploadable_dict) + str(self.sequence_file)
+        d = self.get_uploadable_dict()
+        d["sequenceFile"] = str(self.sequence_file)
+        return str(d)
 
     def get_dict(self):
         return self.__dict__

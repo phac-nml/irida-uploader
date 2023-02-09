@@ -100,11 +100,11 @@ If there are errors that occur during installation, you will need to correct the
 
 ### Finally
 
-Pull development into master and push to origin
+Pull development into main and push to origin
 
-    git checkout master
-    git pull origin master
+    git checkout main
+    git pull origin main
     git pull origin development
-    git push origin master
+    git push origin main
 
 Congratulations, you have successfully completed a new release of the IRIDA Uploader.

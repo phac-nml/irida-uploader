@@ -1,5 +1,5 @@
 SHELL=/bin/bash
-IRIDA_VERSION?=master
+IRIDA_VERSION?=main
 
 requirements: clean env
 	source .virtualenv/bin/activate
@@ -36,7 +36,7 @@ unittests: clean env
 	source .virtualenv/bin/activate
 	pip3 install -e .[TEST]
 	export IRIDA_UPLOADER_TEST='True'
-	python3 -m unittest discover -s tests -t iridauploader
+	coverage run -m unittest discover -s tests -t iridauploader
 
 preintegration:
 	mkdir iridauploader/tests_integration/tmp
@@ -50,7 +50,17 @@ integrationtests: clean env preintegration
 	source .virtualenv/bin/activate
 	pip3 install -e .[TEST]
 	export IRIDA_UPLOADER_TEST='True'
-	integration-test $(branch) $(db_host) $(db_port)
+	coverage run iridauploader/tests_integration/start_integration_tests.py $(branch) $(db_host) $(db_port)
+
+coverage: clean env
+	source .virtualenv/bin/activate
+	pip3 install -e .[TEST]
+	coverage erase
+	export IRIDA_UPLOADER_TEST='True'
+	coverage run -m unittest discover -s tests -t iridauploader
+	coverage run -a iridauploader/tests_integration/start_integration_tests.py main $(db_host) $(db_port)
+	coverage html
+	coverage report
 
 pep8: clean env
 	source .virtualenv/bin/activate
