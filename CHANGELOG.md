@@ -8,14 +8,13 @@ Changes:
 * [Developer] Added command `make coverage` to all tests and collect coverage, exporting results as html
 * [Developer] Added automated coverage report generation for PR reviews.
 * [Developer] Changed `master` to `main` everywhere, including references to irida branches.
+* [Developer] Added python 3.10 and 3.11 to unit test matrix
+* [Developer] Added get_irida_version(self) to api, returns a string with the irida version
 * Uploader checks IRIDA version compatibility when initializing a session.
 
 Bug Fixes:
 * Fixed config timeout value not being set correctly sometimes.
 * Fixed config timeout value division by string issue.
-
-Developer Changes:
-* Added get_irida_version(self) to api, returns a string with the irida version
 
 Beta 0.8.3
 ----------
