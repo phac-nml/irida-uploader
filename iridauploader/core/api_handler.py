@@ -232,6 +232,7 @@ def upload_sequencing_run(sequencing_run, directory_status, upload_mode, run_id=
         # set seq run to error if there is an error
     except api.exceptions.IridaConnectionError as e:
         logging.error("Failed to upload SequencingRun, Could not connect to IRIDA")
+        api_instance.set_seq_run_error(run_id)
         raise e
     except api.exceptions.IridaResourceError as e:
         logging.error("Failed to upload SequencingRun, Could not access resources on IRIDA")
