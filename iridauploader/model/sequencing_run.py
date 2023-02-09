@@ -66,7 +66,7 @@ class SequencingRun:
         return self._sequencing_run_type
 
     @sequencing_run_type.setter
-    def upload_route_string(self, sequencing_run_type):
+    def sequencing_run_type(self, sequencing_run_type):
         self._sequencing_run_type = sequencing_run_type
 
     def get_dict(self):

@@ -54,7 +54,7 @@ def create_test_suite():
     return suite
 
 
-def start(branch="master", db_host="localhost", db_port="3306"):
+def start(branch="main", db_host="localhost", db_port="3306"):
     """
     Start running the integration tests
 

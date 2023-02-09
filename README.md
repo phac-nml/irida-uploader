@@ -83,6 +83,14 @@ You can run pep8 tests with:
 
     $ make pep8
 
+#### Test Coverage
+
+You can run the entire test suite and generate a coverage report with the following command:
+
+    $ make coverage
+
+To view the detailed report, open the generated `htmlcov/index.html` with your web browser.
+
 Documentation
 ------------------------------
 You can [ReadTheDocs](https://irida-uploader.readthedocs.io/en/stable/) here.

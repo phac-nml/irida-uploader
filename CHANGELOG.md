@@ -4,6 +4,10 @@ Changes
 Beta 0.9.0
 ----------
 Changes:
+* [Developer] Fixed minor bugs with object models not handling properties correctly.
+* [Developer] Added command `make coverage` to all tests and collect coverage, exporting results as html
+* [Developer] Added automated coverage report generation for PR reviews.
+* [Developer] Changed `master` to `main` everywhere, including references to irida branches.
 * Uploader checks IRIDA version compatibility when initializing a session.
 
 Bug Fixes:

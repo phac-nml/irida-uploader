@@ -1,4 +1,5 @@
 import unittest
+from http import HTTPStatus
 from unittest.mock import patch
 from os import path
 
@@ -6,7 +7,7 @@ from iridauploader.core import api_handler
 
 from iridauploader.parsers.miseq.parser import Parser
 from iridauploader.api import MODE_DEFAULT, MODE_FAST5, MODE_ASSEMBLIES
-from iridauploader.api.exceptions import IridaResourceError
+from iridauploader.api.exceptions import IridaResourceError, IridaConnectionError, FileError
 from iridauploader.model.exceptions import ModelValidationError
 from iridauploader.model import DirectoryStatus
 
@@ -60,6 +61,20 @@ class TestPrepareAndValidateForUpload(unittest.TestCase):
         ])
         self.assertTrue(res.is_valid())
 
+    def test_api_not_init(self):
+        """
+        Makes sure an exception is thrown when attempting to use api without initialization
+        :return:
+        """
+        global sequencing_run
+
+        # Api instance not init, so return None when fetched
+        # mock_api_instance.side_effect = [None]
+
+        # exception should be thrown
+        with self.assertRaises(Exception):
+            res = api_handler.prepare_and_validate_for_upload(sequencing_run)
+
     @patch("iridauploader.core.api_handler._get_api_instance")
     def test_invalid_validation_project_does_not_exist(self, mock_api_instance):
         """
@@ -72,6 +87,31 @@ class TestPrepareAndValidateForUpload(unittest.TestCase):
         # create mock data for a non existant project
         stub_api_instance = unittest.mock.MagicMock()
         stub_api_instance.project_exists.side_effect = [False]
+
+        mock_api_instance.side_effect = [stub_api_instance]
+
+        # verify the functions are called correctly
+        res = api_handler.prepare_and_validate_for_upload(sequencing_run)
+        stub_api_instance.project_exists.assert_called_once_with("6")
+
+        # the result should be invalid with an IridaResourceError
+        self.assertFalse(res.is_valid())
+        self.assertEqual(res.error_count(), 1)
+        self.assertEqual(type(res.error_list[0]), IridaResourceError)
+
+    @patch("iridauploader.core.api_handler._get_api_instance")
+    def test_invalid_validation_user_does_not_have_project_permission(self, mock_api_instance):
+        """
+        Makes sure the returned validation result includes all types of invalid properties in the sequencing run
+        User does not have project permission
+        :return:
+        """
+        global sequencing_run
+
+        # create mock data for a non existant project
+        stub_api_instance = unittest.mock.MagicMock()
+        stub_api_instance.project_exists.side_effect = [False]
+        stub_api_instance.try_project_access.side_effect = [HTTPStatus.UNAUTHORIZED]
 
         mock_api_instance.side_effect = [stub_api_instance]
 
@@ -136,6 +176,68 @@ class TestPrepareAndValidateForUpload(unittest.TestCase):
             unittest.mock.call('01-1111', '6'),
             unittest.mock.call('02-2222', '6'),
             unittest.mock.call('03-3333', '6'),
+            unittest.mock.call('03-3333', '6'),
+        ])
+
+        # check that it's invalid and the correct error is included
+        self.assertFalse(res.is_valid())
+        self.assertEqual(res.error_count(), 1)
+        self.assertEqual(type(res.error_list[0]), IridaResourceError)
+
+    @patch("iridauploader.core.api_handler._get_api_instance")
+    def test_invalid_connection_error(self, mock_api_instance):
+        """
+        Makes sure we try to send a sample to IRIDA if it doesn't exist,
+            and IridaConnectionError is thrown when it cannot send the sample
+        :return:
+        """
+        global sequencing_run
+
+        # create mocks for each function call that will occur
+        stub_api_instance = unittest.mock.MagicMock()
+        stub_api_instance.project_exists.side_effect = [True]
+        stub_api_instance.sample_exists.side_effect = [True, True, False]
+        stub_api_instance.send_sample.side_effect = [IridaConnectionError]
+
+        mock_api_instance.side_effect = [stub_api_instance]
+
+        res = api_handler.prepare_and_validate_for_upload(sequencing_run)
+
+        # Ensure we check the existence of the sample after uploading it
+        stub_api_instance.sample_exists.assert_has_calls([
+            unittest.mock.call('01-1111', '6'),
+            unittest.mock.call('02-2222', '6'),
+            unittest.mock.call('03-3333', '6'),
+        ])
+
+        # check that it's invalid and the correct error is included
+        self.assertFalse(res.is_valid())
+        self.assertEqual(res.error_count(), 1)
+        self.assertEqual(type(res.error_list[0]), IridaConnectionError)
+
+    @patch("iridauploader.core.api_handler._get_api_instance")
+    def test_invalid_resource_error(self, mock_api_instance):
+        """
+        Makes sure we try to send a sample to IRIDA if it doesn't exist,
+            and IridaResourceError is thrown when it cannot send the sample
+        :return:
+        """
+        global sequencing_run
+
+        # create mocks for each function call that will occur
+        stub_api_instance = unittest.mock.MagicMock()
+        stub_api_instance.project_exists.side_effect = [True]
+        stub_api_instance.sample_exists.side_effect = [True, True, False]
+        stub_api_instance.send_sample.side_effect = [IridaResourceError("")]
+
+        mock_api_instance.side_effect = [stub_api_instance]
+
+        res = api_handler.prepare_and_validate_for_upload(sequencing_run)
+
+        # Ensure we check the existence of the sample after uploading it
+        stub_api_instance.sample_exists.assert_has_calls([
+            unittest.mock.call('01-1111', '6'),
+            unittest.mock.call('02-2222', '6'),
             unittest.mock.call('03-3333', '6'),
         ])
 
@@ -305,7 +407,7 @@ class TestUploadSequencingRun(unittest.TestCase):
 
     @patch("iridauploader.core.api_handler._get_api_instance")
     @patch("iridauploader.progress.write_directory_status")
-    def test_invalid_error_raised(self, mock_progress, mock_api_instance):
+    def test_invalid_resource_error_raised(self, mock_progress, mock_api_instance):
         """
         Makes sure that the sequencing run is set to error when an exception is thrown
         :return:
@@ -328,6 +430,76 @@ class TestUploadSequencingRun(unittest.TestCase):
 
         # make sure the IridaResourceError was thrown correctly
         with self.assertRaises(IridaResourceError):
+            api_handler.upload_sequencing_run(sequencing_run,
+                                              directory_status=self.StubDirectoryStatus(),
+                                              upload_mode=MODE_DEFAULT)
+
+        # verify the sequencing run was set to an error state after the upload was run
+        stub_api_instance.create_seq_run.assert_called_once_with(sequencing_run.metadata,
+                                                                 sequencing_run.sequencing_run_type)
+        stub_api_instance.set_seq_run_uploading.assert_called_once_with(mock_sequence_run_id)
+        stub_api_instance.set_seq_run_error.assert_called_once_with(mock_sequence_run_id)
+
+    @patch("iridauploader.core.api_handler._get_api_instance")
+    @patch("iridauploader.progress.write_directory_status")
+    def test_invalid_connection_error_raised(self, mock_progress, mock_api_instance):
+        """
+        Makes sure that the sequencing run is set to error when an exception is thrown
+        :return:
+        """
+        global sequencing_run
+
+        # create mock data for our invalid sequencing run
+        for samp in sequencing_run.project_list[0].sample_list:
+            samp.sequence_file = "mock_sample"
+
+        mock_sequence_run_id = 55
+
+        stub_api_instance = unittest.mock.MagicMock()
+        stub_api_instance.create_seq_run.side_effect = [mock_sequence_run_id]
+        stub_api_instance.set_seq_run_uploading.side_effect = IridaConnectionError()
+        stub_api_instance.set_seq_run_error.side_effect = [True]
+
+        mock_api_instance.side_effect = [stub_api_instance]
+        mock_progress.side_effect = [None]
+
+        # make sure the IridaResourceError was thrown correctly
+        with self.assertRaises(IridaConnectionError):
+            api_handler.upload_sequencing_run(sequencing_run,
+                                              directory_status=self.StubDirectoryStatus(),
+                                              upload_mode=MODE_DEFAULT)
+
+        # verify the sequencing run was set to an error state after the upload was run
+        stub_api_instance.create_seq_run.assert_called_once_with(sequencing_run.metadata,
+                                                                 sequencing_run.sequencing_run_type)
+        stub_api_instance.set_seq_run_uploading.assert_called_once_with(mock_sequence_run_id)
+        stub_api_instance.set_seq_run_error.assert_called_once_with(mock_sequence_run_id)
+
+    @patch("iridauploader.core.api_handler._get_api_instance")
+    @patch("iridauploader.progress.write_directory_status")
+    def test_invalid_file_error_raised(self, mock_progress, mock_api_instance):
+        """
+        Makes sure that the sequencing run is set to error when an exception is thrown
+        :return:
+        """
+        global sequencing_run
+
+        # create mock data for our invalid sequencing run
+        for samp in sequencing_run.project_list[0].sample_list:
+            samp.sequence_file = "mock_sample"
+
+        mock_sequence_run_id = 55
+
+        stub_api_instance = unittest.mock.MagicMock()
+        stub_api_instance.create_seq_run.side_effect = [mock_sequence_run_id]
+        stub_api_instance.set_seq_run_uploading.side_effect = FileError()
+        stub_api_instance.set_seq_run_error.side_effect = [True]
+
+        mock_api_instance.side_effect = [stub_api_instance]
+        mock_progress.side_effect = [None]
+
+        # make sure the IridaResourceError was thrown correctly
+        with self.assertRaises(FileError):
             api_handler.upload_sequencing_run(sequencing_run,
                                               directory_status=self.StubDirectoryStatus(),
                                               upload_mode=MODE_DEFAULT)
@@ -412,4 +584,24 @@ class TestSendProject(unittest.TestCase):
         mock_model_validator.validate_send_project.side_effect = ModelValidationError("BOOM", None)
 
         with self.assertRaises(IridaResourceError):
+            api_handler.send_project(mock_project)
+
+    @patch("iridauploader.core.api_handler.model_validator")
+    @patch("iridauploader.core.api_handler._get_api_instance")
+    def test_invalid_connection_error(self, mock_api_instance, mock_model_validator):
+        """
+        Makes sure that an IridaConnectionError is thrown when an invalid project is
+            given (ModelValidationError) when uploading a project
+        :return:
+        """
+
+        mock_project = "mock_project"
+
+        stub_api_instance = unittest.mock.MagicMock()
+        mock_api_instance.side_effect = [stub_api_instance]
+
+        mock_model_validator.validate_send_project.side_effect = [True]
+        stub_api_instance.send_project.side_effect = IridaConnectionError()
+
+        with self.assertRaises(IridaConnectionError):
             api_handler.send_project(mock_project)
