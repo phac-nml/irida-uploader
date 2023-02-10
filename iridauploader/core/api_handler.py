@@ -138,6 +138,7 @@ def prepare_and_validate_for_upload(sequencing_run):
                 samples_to_create.append((sample, project.id))
 
         # Create samples that do not exist
+        samples_to_validate = []
         logging.debug("Creating {} samples".format(len(samples_to_create)))
         for sample_project_id_tuple in samples_to_create:
             sample = sample_project_id_tuple[0]
@@ -146,19 +147,17 @@ def prepare_and_validate_for_upload(sequencing_run):
                 sample.sample_name, project_id))
             try:
                 api_instance.send_sample(sample, project_id)
+                # we only want tovalidate created samples, not ones that errored out
+                samples_to_validate.append(sample_project_id_tuple)
                 logging.debug("Sample Created")
-            except api.exceptions.IridaResourceError as e:
-                logging.debug("Sample could not be created")
-                validation_result.add_error(e)
-                continue
-            except api.exceptions.IridaConnectionError as e:
+            except (api.exceptions.IridaResourceError, api.exceptions.IridaConnectionError) as e:
                 logging.debug("Sample could not be created")
                 validation_result.add_error(e)
                 continue
 
         # validate created samples were actually created
         logging.debug("validating creation of {} samples".format(len(samples_to_create)))
-        for sample_project_id_tuple in samples_to_create:
+        for sample_project_id_tuple in samples_to_validate:
             sample = sample_project_id_tuple[0]
             project_id = sample_project_id_tuple[1]
             logging.debug("Verifying sample {} on project {} was created".format(sample.sample_name, project_id))
