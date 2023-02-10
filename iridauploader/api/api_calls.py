@@ -49,7 +49,7 @@ SESSION_HEADERS = {
 
 JSON_HEADERS = {"headers": {'Content-Type': 'application/json', **SESSION_HEADERS}}
 
-MINIMUM_IRIDA_VERSION = "22.09.7"
+MINIMUM_IRIDA_VERSION = "20.05"
 
 
 class ApiCalls(object):
