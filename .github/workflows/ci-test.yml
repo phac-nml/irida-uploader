@@ -45,9 +45,9 @@ jobs:
     runs-on: ubuntu-20.04 #See pre-installed software at https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md
 
     steps:
-      - uses: actions/checkout@v2 #Checkout the project from git
+      - uses: actions/checkout@v3 #Checkout the project from git
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8
       - name: Run pep8
@@ -57,9 +57,9 @@ jobs:
     runs-on: ubuntu-20.04 #See pre-installed software at https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md
 
     steps:
-      - uses: actions/checkout@v2 #Checkout the project from git
+      - uses: actions/checkout@v3 #Checkout the project from git
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.7
       - name: Run mkdocs
