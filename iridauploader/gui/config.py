@@ -49,7 +49,7 @@ class ConfigDialog(QtWidgets.QDialog):
         self._min_file_size.setRange(0, 2147483647)  # set max as max allowed by QSpinBox
 
         self._btn_check_settings = QtWidgets.QPushButton("Save and Test Settings")
-        self._settings_status = QtWidgets.QLineEdit()
+        self._settings_status = QtWidgets.QPlainTextEdit()
         self._settings_status.setReadOnly(True)
         self._settings_status.setEnabled(False)
         self._settings_status.setStyleSheet("color: black")
@@ -134,10 +134,10 @@ class ConfigDialog(QtWidgets.QDialog):
         min_file_size_layout.addWidget(self._min_file_size)
         layout.addLayout(min_file_size_layout)
         # Buttons
-        status_layout = QtWidgets.QHBoxLayout()
-        status_layout.addWidget(self._btn_check_settings)
-        status_layout.addWidget(self._settings_status)
-        layout.addLayout(status_layout)
+        # status_layout = QtWidgets.QHBoxLayout()
+        layout.addWidget(self._btn_check_settings)
+        layout.addWidget(self._settings_status)
+        # layout.addLayout(status_layout)
         button_layout = QtWidgets.QHBoxLayout()
         button_layout.addWidget(self._btn_accept)
         button_layout.addWidget(self._btn_cancel)
@@ -204,12 +204,13 @@ class ConfigDialog(QtWidgets.QDialog):
         Sets the style and text of the status widget to green/red to indicate connected/error
         :return:
         """
-        if tools.is_connected_to_irida():
-            self._settings_status.setText("Connection OK")
+        try:
+            tools.is_connected_to_irida()
+            self._settings_status.setPlainText("Connection OK")
             self._settings_status.setStyleSheet("background-color: {}; color: black;".format(colours.GREEN_LIGHT))
             logging.info("Successfully connected to IRIDA")
-        else:
-            self._settings_status.setText("ERROR!")
+        except Exception as e:
+            self._settings_status.setPlainText("ERROR: " + str(e))
             self._settings_status.setStyleSheet("background-color: {}; color: black;".format(colours.RED_LIGHT))
             logging.info("Error occurred while trying to connect to IRIDA")
 

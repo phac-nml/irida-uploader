@@ -3,9 +3,6 @@ Changes
 
 Beta 0.9.0
 ----------
-Bug Fixes:
-* Fix GUI crash on python >3.9(?) when progress bar is set a float value instead of int
-
 Changes:
 * [Developer] Fixed minor bugs with object models not handling properties correctly.
 * [Developer] Added command `make coverage` to all tests and collect coverage, exporting results as html
@@ -14,10 +11,13 @@ Changes:
 * [Developer] Added python 3.10 and 3.11 to unit test matrix
 * [Developer] Added get_irida_version(self) to api, returns a string with the irida version
 * Api checks IRIDA version compatibility when initializing a session, throws exception if not compatible.
+* Improved GUI error reporting with details of failure to connect on configuration screen.
+* Improved GUI error popup when connection error occurs when starting upload.
 
 Bug Fixes:
 * Fixed config timeout value not being set correctly sometimes.
 * Fixed config timeout value division by string issue.
+* Fix GUI crash on python >3.9(?) when progress bar is set a float value instead of int
 
 Beta 0.8.3
 ----------
