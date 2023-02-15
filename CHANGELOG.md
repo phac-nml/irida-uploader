@@ -12,7 +12,6 @@ Changes:
 Bug Fixes:
 * Fixed config timeout value not being set correctly sometimes.
 * Fixed config timeout value division by string issue.
-* Fix GUI crash on python >3.9(?) when progress bar is set a float value instead of int
 
 Changes:
 * Added 2 new config arguments to specify number of retries and backoff time for http/https requests
