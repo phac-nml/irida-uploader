@@ -58,6 +58,7 @@ class ApiCalls(object):
                  base_url, username, password, timeout_multiplier=10, max_wait_time=20, http_max_retries=5):
         """
         Create OAuth2Session and store it
+        Raises IridaConnectionError with description of error if unable to connect
 
         arguments:
             client_id -- client_id for creating access token.
@@ -298,11 +299,8 @@ class ApiCalls(object):
 
         # Strip "irida-" and "-SNAPSHOT" if they are on the version id
         irida_version_stripped = irida_version.replace('-SNAPSHOT', '').replace('irida-', '')
-        logging.info("min irida version: " + str(minimum_irida_version))
-        logging.info("fetched irida version: " + str(irida_version_stripped))
-        # print("min irida version: " + str(MINIMUM_IRIDA_VERSION))
-        # print("fetched irida version: " + str(irida_version))
-        # print("vercomp: " + str(_compare_version(irida_version, MINIMUM_IRIDA_VERSION)))
+        logging.info("Minimum Compatible IRIDA Version: " + str(minimum_irida_version))
+        logging.info("Current IRIDA Version: " + str(irida_version_stripped))
         return _compare_version(irida_version_stripped, minimum_irida_version) >= 0
 
     def get_irida_version(self):

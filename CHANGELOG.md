@@ -10,7 +10,7 @@ Changes:
 * [Developer] Changed `master` to `main` everywhere, including references to irida branches.
 * [Developer] Added python 3.10 and 3.11 to unit test matrix
 * [Developer] Added get_irida_version(self) to api, returns a string with the irida version
-* Uploader checks IRIDA version compatibility when initializing a session.
+* Api checks IRIDA version compatibility when initializing a session, throws exception if not compatible.
 
 Bug Fixes:
 * Fixed config timeout value not being set correctly sometimes.
