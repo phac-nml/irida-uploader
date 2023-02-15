@@ -133,11 +133,9 @@ class ConfigDialog(QtWidgets.QDialog):
         min_file_size_layout.addWidget(self._min_file_size_label)
         min_file_size_layout.addWidget(self._min_file_size)
         layout.addLayout(min_file_size_layout)
-        # Buttons
-        # status_layout = QtWidgets.QHBoxLayout()
+        # Buttons and status
         layout.addWidget(self._btn_check_settings)
         layout.addWidget(self._settings_status)
-        # layout.addLayout(status_layout)
         button_layout = QtWidgets.QHBoxLayout()
         button_layout.addWidget(self._btn_accept)
         button_layout.addWidget(self._btn_cancel)
