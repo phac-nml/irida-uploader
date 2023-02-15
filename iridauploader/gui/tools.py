@@ -41,8 +41,7 @@ class MessageWriter(QtCore.QObject):
 
 
 def is_connected_to_irida():
-    try:
-        api_handler.initialize_api_from_config()
-        return True
-    except Exception:
-        return False
+    """
+    Attempts connection to IRIDA, raises IridaConnectionError if unable
+    """
+    api_handler.initialize_api_from_config()
