@@ -3,6 +3,9 @@ Changes
 
 Beta 0.9.0
 ----------
+Bug Fixes:
+* Fix GUI crash on python >3.9(?) when progress bar is set a float value instead of int
+
 Changes:
 * [Developer] Fixed minor bugs with object models not handling properties correctly.
 * [Developer] Added command `make coverage` to all tests and collect coverage, exporting results as html
