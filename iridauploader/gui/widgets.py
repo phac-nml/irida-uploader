@@ -94,11 +94,11 @@ class ProgressBarHandler:
 
         def setValue(self, value):
             """
-            Sets the value of the progress bar
+            Sets the value of of the progress bar
             :param value: int or float
             :return: None
             """
-            QtWidgets.QProgressBar.setValue(self, int(value))
+            QtWidgets.QProgressBar.setValue(self, value)
 
             # upload is complete, set the style
             if QtWidgets.QProgressBar.value(self) == 100:
