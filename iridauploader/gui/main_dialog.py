@@ -251,13 +251,14 @@ class MainDialog(QtWidgets.QDialog):
         """
         logging.debug("GUI: _btn_upload clicked")
 
-        if tools.is_connected_to_irida():
+        try:
+            tools.is_connected_to_irida()
             self._start_upload()
-        else:
+        except Exception as e:
             # If no connection to irida, display a warning to the user
             msg = QtWidgets.QMessageBox()
             msg.setIcon(QtWidgets.QMessageBox.Warning)
-            msg.setText("Cannot Connect to IRIDA")
+            msg.setText("Cannot Connect to IRIDA: " + str(e))
             msg.setInformativeText('Please check your configuration')
             msg.setWindowTitle("Connection Error")
             # You need 2 buttons on the widget for the exit button to not be the same as the Open Config button
