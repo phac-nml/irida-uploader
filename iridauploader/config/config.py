@@ -261,7 +261,9 @@ def read_config_option(key, expected_type=None, default_value=None):
                 try:
                     return int(res)
                 except Exception:
-                    raise NameError
+                    error_msg = f"Config file field '{key}' expected int but instead got '{res}'"
+                    logging.error(error_msg)
+                    raise NameError(error_msg)
         elif expected_type is float:
             res = _conf_parser.get("Settings", key)
             logging.debug("Got configuration for key {}: {}".format(key, res))
@@ -272,7 +274,9 @@ def read_config_option(key, expected_type=None, default_value=None):
                 try:
                     return float(res)
                 except Exception:
-                    raise NameError
+                    error_msg = f"Config file field '{key}' expected float but instead got '{res}'"
+                    logging.error(error_msg)
+                    raise NameError(error_msg)
         elif expected_type is bool:
             res = _conf_parser.get("Settings", key)
             logging.debug("Got configuration for key {}: {}".format(key, res))
@@ -284,7 +288,7 @@ def read_config_option(key, expected_type=None, default_value=None):
             else:
                 raise NameError
     except (ValueError, NameError, NoOptionError):
-        if default_value:
+        if default_value is not None:
             return default_value
         else:
             raise
