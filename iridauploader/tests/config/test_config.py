@@ -173,6 +173,33 @@ class TestConfig(unittest.TestCase):
         self.assertTrue(
             "Config file field 'readonly' expected 'True' or 'False' but instead got 'this_is_not_a_bool'" in
             str(context.exception))
+        with self.assertRaises(NameError) as context:
+            self.assertEqual(config.read_config_option('http_max_retries', int), False)
+        self.assertTrue(
+            "Config file field 'http_max_retries' expected int but instead got 'this_is_not_a_int'" in
+            str(context.exception))
+        with self.assertRaises(NameError) as context:
+            self.assertEqual(config.read_config_option('http_backoff_factor', float), False)
+        self.assertTrue(
+            "Config file field 'http_backoff_factor' expected float but instead got 'this_is_not_a_float'" in
+            str(context.exception))
+
+    def test_read_config_option_use_default(self):
+        """
+        Test reading from ill-defined config file and use default value
+        :return:
+        """
+        # set up config
+        config.set_config_file(os.path.join(path_to_module, "test_config_case_error.conf"))
+        config.setup()
+        # Test that all the parameters loaded from file are correct
+        self.assertEqual(config.read_config_option('readonly', bool, False), False)
+        self.assertEqual(config.read_config_option('readonly', bool, True), True)
+        self.assertEqual(config.read_config_option('http_max_retries', int, 0), 0)
+        self.assertEqual(config.read_config_option('http_max_retries', int, 1), 1)
+        self.assertEqual(config.read_config_option('http_backoff_factor', float, 0.5), 0.5)
+        self.assertEqual(config.read_config_option('http_backoff_factor', float, 0), 0)
+        self.assertEqual(config.read_config_option('http_backoff_factor', float, 1), 1)
 
     def test_set_config_options(self):
         """
@@ -184,6 +211,14 @@ class TestConfig(unittest.TestCase):
         config.setup()
         # Make sure id is initially set to what we expect
         self.assertEqual(config.read_config_option('client_id'), 'uploader')
+        self.assertEqual(config.read_config_option('http_max_retries', int), 5)
+        self.assertEqual(config.read_config_option('http_backoff_factor', float), 0.5)
         # Set and test to a new id
-        config.set_config_options(client_id="new_id")
+        config.set_config_options(
+            client_id="new_id",
+            http_max_retries=2,
+            http_backoff_factor=2.5
+        )
         self.assertEqual(config.read_config_option('client_id'), "new_id")
+        self.assertEqual(config.read_config_option('http_max_retries', int), 2)
+        self.assertEqual(config.read_config_option('http_backoff_factor', float), 2.5)

@@ -4,20 +4,31 @@ Changes
 Beta 0.9.0
 ----------
 Changes:
+* Api checks IRIDA version compatibility when initializing a session, throws exception if not compatible.
+* Improved GUI error reporting with details of failure to connect on configuration screen.
+* Improved GUI error popup when connection error occurs when starting upload.
+* Added 2 new config arguments to specify number of retries and backoff time for http/https requests
+  * http_max_retries
+  * http_backoff_factor
+* Uploader no longer has slowdown when uploading to projects with >100,000 samples
+* api methods `get_sample_details` has been replaced by two new methods
+  * `get_sample_by_id(self, sample_id)`
+  * `get_sample_by_name(self, project_id, sample_name)`
+  * core code has been switched over to these new methods for performance
+
+Developer Changes:
 * [Developer] Fixed minor bugs with object models not handling properties correctly.
 * [Developer] Added command `make coverage` to all tests and collect coverage, exporting results as html
 * [Developer] Added automated coverage report generation for PR reviews.
 * [Developer] Changed `master` to `main` everywhere, including references to irida branches.
 * [Developer] Added python 3.10 and 3.11 to unit test matrix
 * [Developer] Added get_irida_version(self) to api, returns a string with the irida version
-* Api checks IRIDA version compatibility when initializing a session, throws exception if not compatible.
-* Improved GUI error reporting with details of failure to connect on configuration screen.
-* Improved GUI error popup when connection error occurs when starting upload.
 
 Bug Fixes:
 * Fixed config timeout value not being set correctly sometimes.
 * Fixed config timeout value division by string issue.
 * Fix GUI crash on python >3.9(?) when progress bar is set a float value instead of int
+* Fixed edge case where a config default of `0` or `False` would return an error instead of the default.
 
 Beta 0.8.3
 ----------

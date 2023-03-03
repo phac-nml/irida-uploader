@@ -2,6 +2,7 @@ import ast
 import json
 import logging
 import threading
+import time
 
 from http import HTTPStatus
 from itertools import zip_longest
@@ -10,6 +11,7 @@ from rauth import OAuth2Service
 from requests import ConnectionError
 from requests.adapters import HTTPAdapter
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
+from urllib3.util.retry import Retry
 from urllib.parse import urljoin, urlparse
 from urllib.error import URLError
 
@@ -55,7 +57,8 @@ MINIMUM_IRIDA_VERSION = "20.05"
 class ApiCalls(object):
 
     def __init__(self, client_id, client_secret,
-                 base_url, username, password, timeout_multiplier=10, max_wait_time=20, http_max_retries=5):
+                 base_url, username, password, timeout_multiplier=10, max_wait_time=20,
+                 http_max_retries=5, http_backoff_factor=0):
         """
         Create OAuth2Session and store it
         Raises IridaConnectionError with description of error if unable to connect
@@ -79,6 +82,7 @@ class ApiCalls(object):
         self.timeout_multiplier = timeout_multiplier
         self.max_wait_time = max_wait_time
         self.http_max_retries = http_max_retries
+        self.http_backoff_factor = http_backoff_factor
 
         self._session_lock = threading.Lock()
         self._session_set_externally = False
@@ -120,8 +124,24 @@ class ApiCalls(object):
         access_token = self._get_access_token(oauth_service)
         _sess = oauth_service.get_session(access_token)
         # We add a HTTPAdapter with max retries so we don't fail out if one request gets lost
-        _sess.mount('https://', HTTPAdapter(max_retries=self.http_max_retries))
-        _sess.mount('http://', HTTPAdapter(max_retries=self.http_max_retries))
+        logging.info("Session configured with {} retries and {} backoff factor.".format(
+            self.http_max_retries, self.http_backoff_factor))
+        # Backoff calculation via Retry
+        # {backoff factor} * (2 ** ({number of total retries} - 1))
+        # example in seconds
+        # backoff = 1 = [0.5, 1, 2, 4, 8, 16, 32, 64, 128, 256, ...]
+        # backoff = 2 = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, ...]
+        # backoff = 10 = [5, 10, 20, 40, 80, 160, 320, 640, 1280, 2560, ...]
+        retry_strategy = Retry(
+            total=self.http_max_retries,
+            backoff_factor=self.http_backoff_factor,
+            status_forcelist=[429, 500, 502, 503, 504],
+            method_whitelist=["HEAD", "GET", "PUT", "POST"],  # by default POST is excluded
+        )
+        # override retries built in max backoff value
+        Retry.DEFAULT_BACKOFF_MAX = self.http_backoff_factor
+        _sess.mount('https://', HTTPAdapter(max_retries=retry_strategy))
+        _sess.mount('http://', HTTPAdapter(max_retries=retry_strategy))
         self._session_instance = _sess
 
     def _create_session(self):
@@ -408,20 +428,7 @@ class ApiCalls(object):
 
             sample_list = []
             for sample_dict in result:
-                # use name and description from dictionary as base parameters when creating sample
-                sample_name = sample_dict['sampleName']
-                sample_desc = sample_dict['description']
-                sample_id = int(sample_dict['identifier'])
-                # remove them from the dict so we don't have useless duplicate data
-                del sample_dict['sampleName']
-                del sample_dict['description']
-                del sample_dict['identifier']
-                sample_list.append(model.Sample(
-                    sample_name=sample_name,
-                    description=sample_desc,
-                    samp_dict=sample_dict,
-                    sample_id=sample_id
-                ))
+                sample_list.append(ApiCalls._build_sample_obj_from_resource(sample_dict))
             self.cached_samples[project_id] = sample_list
 
         return self.cached_samples[project_id]
@@ -588,6 +595,7 @@ class ApiCalls(object):
 
         return json_res
 
+    # TODO: in the graphql api rewrite, it would be nice if these types of functions returned the Object the created
     def send_sample(self, sample, project_id):
         """
         Post request to send a sample to a project
@@ -619,11 +627,11 @@ class ApiCalls(object):
 
         return json_res
 
-    def get_sample_details(self, sample_id):
+    def get_sample_by_id(self, sample_id):
         """
         Given a sample id, returns response from server for the baseurl/samples/sample_id endpoint
         :param sample_id:
-        :return: server resource response
+        :return: Sample obj or None
         """
         logging.info("Getting sample info for sample id '{}'".format(sample_id))
 
@@ -634,13 +642,65 @@ class ApiCalls(object):
         except Exception as e:
             raise ApiCalls._handle_rest_exception(url, e)
 
-        if response.status_code == HTTPStatus.OK:  # 200
-            result = response.json()
-        else:
+        if response.status_code == HTTPStatus.OK:  # 200, return sample object
+            sample_dict = response.json()["resource"]
+            return ApiCalls._build_sample_obj_from_resource(sample_dict)
+        elif response.status_code == HTTPStatus.NOT_FOUND:  # 404, return None
+            return None
+        else:  # any other exception
             raise self._handle_irida_exception(response)
 
-        # TODO: api refactor project: build this data into a model/Metadata object
-        return result
+    def get_sample_by_name(self, project_id, sample_name):
+        """
+        Given a project id and sample name, returns a Sample object, or None is sample does not exist
+        :param project_id:
+        :param sample_name:
+        :return: Sample obj or None
+        """
+
+        logging.info("Getting Sample object for project id '{}' and sample name '{}'".format(project_id, sample_name))
+
+        # This is using a deprecated end point. In a future release it will be replaced with
+        # /projects/{project_id}/samples/bySampleName
+        # and use params instead
+        url = f"{self.base_url}projects/{project_id}/samples/bySequencerId/{sample_name}"
+
+        try:
+            response = self._session.get(url)
+        except Exception as e:
+            raise ApiCalls._handle_rest_exception(url, e)
+        if response.status_code == HTTPStatus.OK:  # 200, return sample object
+            logging.debug("sample found")
+            sample_dict = response.json()["resource"]
+            return ApiCalls._build_sample_obj_from_resource(sample_dict)
+        elif response.status_code == HTTPStatus.NOT_FOUND:  # 404, return None
+            logging.debug("sample not found")
+            return None
+        else:  # any other exception
+            logging.debug("exception occurred: {}".format(response))
+            raise self._handle_irida_exception(response)
+
+    # TODO: in the graphql api rewrite these type of functions should exist in their own files per object type
+    @staticmethod
+    def _build_sample_obj_from_resource(resource_dict):
+        """
+        Given a resource dictionary for a sample, return a Sample object
+        """
+        # use name and description from dictionary as base parameters when creating sample
+        s_name = resource_dict['sampleName']
+        s_desc = resource_dict['description']
+        s_id = int(resource_dict['identifier'])
+        # remove them from the dict so we don't have useless duplicate data
+        del resource_dict['sampleName']
+        del resource_dict['description']
+        del resource_dict['identifier']
+        sample_obj = model.Sample(
+            sample_name=s_name,
+            description=s_desc,
+            samp_dict=resource_dict,
+            sample_id=s_id
+        )
+        return sample_obj
 
     def send_sequence_files(self, sequence_file, sample_name, project_id, upload_id, upload_mode=MODE_DEFAULT):
         """
@@ -1054,6 +1114,7 @@ class ApiCalls(object):
         logging.debug("IRIDA responded with status code: {}".format(response.status_code))
         return response.status_code
 
+    # TODO: this function should be removed during the graphql api rewrite
     def sample_exists(self, sample_name, project_id):
         """
         Given a sample name and project id, returns True or False for if sample exists
@@ -1061,9 +1122,12 @@ class ApiCalls(object):
         :param project_id:
         :return:
         """
-        return True if (self.get_sample_id(sample_name, project_id) is not False) else False
+        return True if (self.get_sample_by_name(project_id, sample_name) is not None) else False
 
-    def get_sample_id(self, sample_name, project_id):
+    # TODO: This function should be removed during the graphql api rewrite.
+    # It does not need to exist because get_sample_by_name returns an object with this information, but it is baked into
+    # other functions. Additionally we don't want to break any user scripts until we fully rewrite the api with graphql
+    def get_sample_id(self, sample_name, project_id):  # todo remove this
         """
         Given a sample name and project id, returns the sample id, or False if it doesn't exist
 
@@ -1074,8 +1138,5 @@ class ApiCalls(object):
         :return: Integer of the sample identifier if it exists, otherwise False
         """
         logging.debug("sample exists: sample: {}, on project: {}".format(sample_name, project_id))
-        sample_list = self.get_samples(project_id)
-        for s in sample_list:
-            if s.sample_name.lower() == sample_name.lower():
-                return s.sample_id
-        return False
+        res = self.get_sample_by_name(project_id, sample_name)
+        return res.sample_id if (res is not None) else False

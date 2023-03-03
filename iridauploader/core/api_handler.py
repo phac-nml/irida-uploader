@@ -19,7 +19,8 @@ _api_instance = None
 
 
 def _initialize_api(
-        client_id, client_secret, base_url, username, password, timeout_multiplier, max_wait_time=20):
+        client_id, client_secret, base_url, username, password, timeout_multiplier, max_wait_time=20,
+        http_max_retries=5, http_backoff_factor=0):
     """
     Creates the ApiCalls object from the api layer.
     Sets the instance to use the global _api_instance variable so it behaves as a singleton that can be easily re-init
@@ -46,6 +47,8 @@ def _initialize_api(
         password=password,
         timeout_multiplier=timeout_multiplier,
         max_wait_time=max_wait_time,
+        http_max_retries=http_max_retries,
+        http_backoff_factor=http_backoff_factor,
     )
     return _api_instance
 
@@ -77,13 +80,18 @@ def initialize_api_from_config():
     username = config.read_config_option("username")
     password = config.read_config_option("password")
     timeout = config.read_config_option("timeout", expected_type=int)
+    http_max_retries = config.read_config_option("http_max_retries", expected_type=int)
+    http_backoff_factor = config.read_config_option("http_backoff_factor", expected_type=float)
 
     return _initialize_api(client_id=client_id,
                            client_secret=client_secret,
                            base_url=base_url,
                            username=username,
                            password=password,
-                           timeout_multiplier=timeout)
+                           timeout_multiplier=timeout,
+                           http_max_retries=http_max_retries,
+                           http_backoff_factor=http_backoff_factor,
+                           )
 
 
 def prepare_and_validate_for_upload(sequencing_run):
@@ -104,6 +112,7 @@ def prepare_and_validate_for_upload(sequencing_run):
     # Start online validation
     logging.debug("Checking existence of projects")
     for project in sequencing_run.project_list:
+        # Validate project existence
         logging.debug("Checking existence of project: {}".format(project.id))
         if not api_instance.project_exists(project.id):
             if api_instance.try_project_access(project.id) in [HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN]:
@@ -118,30 +127,45 @@ def prepare_and_validate_for_upload(sequencing_run):
             continue
         logging.debug("Project {} exists".format(project.id))
 
+        # Validate sample existence
         logging.debug("Checking existence of samples")
+        samples_to_create = []
         for sample in project.sample_list:
             logging.debug("Checking existence of Sample {} on Project {}".format(sample.sample_name, project.id))
             if api_instance.sample_exists(sample.sample_name, project.id):
                 logging.debug("Sample {} exists on Project {}".format(sample.sample_name, project.id))
             else:
-                logging.debug("Sample not found, creating new Sample")
-                try:
-                    api_instance.send_sample(sample, project.id)
-                except api.exceptions.IridaResourceError as e:
-                    logging.debug("Sample could not be created")
-                    validation_result.add_error(e)
-                    continue
-                except api.exceptions.IridaConnectionError as e:
-                    logging.debug("Sample could not be created")
-                    validation_result.add_error(e)
-                    continue
-                logging.debug("Verifying sample was created")
-                if not api_instance.sample_exists(sample.sample_name, project.id):
-                    logging.debug("Sample was not created")
-                    err = api.exceptions.IridaResourceError("Could not create new Sample on Project {}", project.id)
-                    validation_result.add_error(err)
-                    continue
+                samples_to_create.append((sample, project.id))
+
+        # Create samples that do not exist
+        samples_to_validate = []
+        logging.debug("Creating {} samples".format(len(samples_to_create)))
+        for sample_project_id_tuple in samples_to_create:
+            sample = sample_project_id_tuple[0]
+            project_id = sample_project_id_tuple[1]
+            logging.debug("Sample {} was not found on project {}, creating new Sample".format(
+                sample.sample_name, project_id))
+            try:
+                api_instance.send_sample(sample, project_id)
+                # we only want tovalidate created samples, not ones that errored out
+                samples_to_validate.append(sample_project_id_tuple)
                 logging.debug("Sample Created")
+            except (api.exceptions.IridaResourceError, api.exceptions.IridaConnectionError) as e:
+                logging.debug("Sample could not be created")
+                validation_result.add_error(e)
+                continue
+
+        # validate created samples were actually created
+        logging.debug("validating creation of {} samples".format(len(samples_to_create)))
+        for sample_project_id_tuple in samples_to_validate:
+            sample = sample_project_id_tuple[0]
+            project_id = sample_project_id_tuple[1]
+            logging.debug("Verifying sample {} on project {} was created".format(sample.sample_name, project_id))
+            if not api_instance.sample_exists(sample.sample_name, project_id):
+                logging.debug("Sample was not created")
+                err = api.exceptions.IridaResourceError("Could not create new Sample on Project {}", project_id)
+                validation_result.add_error(err)
+                continue
 
     return validation_result
 
