@@ -6,16 +6,16 @@
 |------------------------------------------------------------------- | -------: | -------: | ------: | --------: |
 | iridauploader/\_\_init\_\_.py                                      |        1 |        0 |    100% |           |
 | iridauploader/api/\_\_init\_\_.py                                  |        2 |        0 |    100% |           |
-| iridauploader/api/api\_calls.py                                    |      451 |      113 |     75% |96, 107, 110-112, 145-146, 190-194, 210-216, 229-241, 255, 261, 266, 274, 318-319, 324, 345-346, 351, 363-368, 372, 399-400, 452-453, 461, 479-480, 489, 516-517, 526, 538-553, 580-581, 586-587, 610-611, 616-618, 634-635, 640, 685-687, 692-693, 715-723, 753-771, 904-905, 910-912, 931-932, 937-939, 1012-1013, 1018-1020, 1044-1055 |
+| iridauploader/api/api\_calls.py                                    |      476 |      119 |     75% |100, 111, 114-116, 165-166, 210-214, 230-236, 249-261, 275, 281, 286, 294, 338-339, 344, 365-366, 371, 383-388, 392, 419-420, 459-460, 468, 486-487, 496, 523-524, 533, 545-560, 587-588, 593-594, 618-619, 624-626, 642-643, 648-651, 670-671, 680-681, 745-747, 752-753, 775-783, 813-831, 964-965, 970-972, 991-992, 997-999, 1072-1073, 1078-1080, 1104-1115 |
 | iridauploader/api/exceptions/\_\_init\_\_.py                       |        4 |        0 |    100% |           |
 | iridauploader/api/exceptions/file\_error.py                        |        2 |        0 |    100% |           |
 | iridauploader/api/exceptions/irida\_connection\_error.py           |        2 |        0 |    100% |           |
 | iridauploader/api/exceptions/irida\_resource\_error.py             |       12 |        3 |     75% |21, 25, 28 |
 | iridauploader/api/exceptions/irida\_upload\_canceled\_exception.py |        2 |        0 |    100% |           |
 | iridauploader/config/\_\_init\_\_.py                               |        1 |        0 |    100% |           |
-| iridauploader/config/config.py                                     |      141 |       30 |     79% |66-86, 97-98, 102-104, 118-120, 149-150, 245-249, 259, 262 |
+| iridauploader/config/config.py                                     |      161 |       24 |     85% |69-89, 100-101, 105-107, 121-123, 156-157, 289 |
 | iridauploader/core/\_\_init\_\_.py                                 |        3 |        0 |    100% |           |
-| iridauploader/core/api\_handler.py                                 |      116 |        0 |    100% |           |
+| iridauploader/core/api\_handler.py                                 |      126 |        0 |    100% |           |
 | iridauploader/core/cli.py                                          |      114 |       86 |     25% |32-118, 127-197, 216-222, 234-235, 239-242, 277 |
 | iridauploader/core/exit\_return.py                                 |       14 |        1 |     93% |        28 |
 | iridauploader/core/file\_size\_validator.py                        |       19 |        0 |    100% |           |
@@ -70,7 +70,7 @@
 | iridauploader/progress/exceptions/directory\_error.py              |       10 |        0 |    100% |           |
 | iridauploader/progress/upload\_signals.py                          |       28 |       10 |     64% |11, 25, 29, 33, 41-48, 54 |
 | iridauploader/progress/upload\_status.py                           |       74 |       11 |     85% |74, 77-84, 101, 145, 157-158 |
-|                                                          **TOTAL** | **3066** |  **415** | **86%** |           |
+|                                                          **TOTAL** | **3121** |  **415** | **87%** |           |
 
 
 ## Setup coverage badge
