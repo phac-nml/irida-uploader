@@ -51,7 +51,7 @@ SESSION_HEADERS = {
 
 JSON_HEADERS = {"headers": {'Content-Type': 'application/json', **SESSION_HEADERS}}
 
-MINIMUM_IRIDA_VERSION = "20.05"
+MINIMUM_IRIDA_VERSION = "23.01"
 
 
 class ApiCalls(object):
@@ -660,13 +660,11 @@ class ApiCalls(object):
 
         logging.info("Getting Sample object for project id '{}' and sample name '{}'".format(project_id, sample_name))
 
-        # This is using a deprecated end point. In a future release it will be replaced with
-        # /projects/{project_id}/samples/bySampleName
-        # and use params instead
-        url = f"{self.base_url}projects/{project_id}/samples/bySequencerId/{sample_name}"
+        url = f"{self.base_url}projects/{project_id}/samples/bySampleName"
+        params = {'sampleName': sample_name}
 
         try:
-            response = self._session.get(url)
+            response = self._session.get(url, params=params)
         except Exception as e:
             raise ApiCalls._handle_rest_exception(url, e)
         if response.status_code == HTTPStatus.OK:  # 200, return sample object
