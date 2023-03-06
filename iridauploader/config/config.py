@@ -48,7 +48,10 @@ def _init_config_parser():
                         SettingsDefault._make(["readonly", False]),
                         SettingsDefault._make(["delay", 0]),
                         SettingsDefault._make(["timeout", 10]),  # default timeout scale is 10 seconds per mb
-                        SettingsDefault._make(["minimum_file_size", 0])]  # default minimum file size in kb
+                        SettingsDefault._make(["minimum_file_size", 0]),  # default minimum file size in kb
+                        SettingsDefault._make(["http_max_retries", 5]),
+                        SettingsDefault._make(["http_backoff_factor", 0]),
+                        ]
     # add defaults to config parser
     for config in default_settings:
         _conf_parser.set("Settings", config.setting, config.default_value)
@@ -129,7 +132,9 @@ def set_config_options(client_id=None,
                        readonly=None,
                        delay=None,
                        timeout=None,
-                       minimum_file_size=None):
+                       minimum_file_size=None,
+                       http_max_retries=None,
+                       http_backoff_factor=None):
     """
     Updates the config options for all not None parameters
     :param client_id:
@@ -142,6 +147,8 @@ def set_config_options(client_id=None,
     :param delay:
     :param timeout:
     :param minimum_file_size:
+    :param http_max_retries:
+    :param http_backoff_factor:
     :return:
     """
     global _conf_parser
@@ -183,6 +190,14 @@ def set_config_options(client_id=None,
         # minimum_file_size is always an int
         logging.debug("Setting 'minimum_file_size' config to {}".format(minimum_file_size))
         _update_config_option('minimum_file_size', minimum_file_size)
+    if http_max_retries is not None:
+        # http_max_retries is always an int
+        logging.debug("Setting 'http_max_retries' config to {}".format(http_max_retries))
+        _update_config_option('http_max_retries', http_max_retries)
+    if http_backoff_factor is not None:
+        # http_backoff_factor is always a float
+        logging.debug("Setting 'http_backoff_factor' config to {}".format(http_backoff_factor))
+        _update_config_option('http_backoff_factor', http_backoff_factor)
 
 
 def setup():
@@ -246,7 +261,22 @@ def read_config_option(key, expected_type=None, default_value=None):
                 try:
                     return int(res)
                 except Exception:
-                    raise NameError
+                    error_msg = f"Config file field '{key}' expected int but instead got '{res}'"
+                    logging.error(error_msg)
+                    raise NameError(error_msg)
+        elif expected_type is float:
+            res = _conf_parser.get("Settings", key)
+            logging.debug("Got configuration for key {}: {}".format(key, res))
+            # Return int, or string evaluated to int, or NameError exception otherwise
+            if type(res) is float:
+                return res
+            elif type(res) is str:
+                try:
+                    return float(res)
+                except Exception:
+                    error_msg = f"Config file field '{key}' expected float but instead got '{res}'"
+                    logging.error(error_msg)
+                    raise NameError(error_msg)
         elif expected_type is bool:
             res = _conf_parser.get("Settings", key)
             logging.debug("Got configuration for key {}: {}".format(key, res))
@@ -258,7 +288,7 @@ def read_config_option(key, expected_type=None, default_value=None):
             else:
                 raise NameError
     except (ValueError, NameError, NoOptionError):
-        if default_value:
+        if default_value is not None:
             return default_value
         else:
             raise

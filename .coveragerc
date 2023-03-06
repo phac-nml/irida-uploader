@@ -1,0 +1,6 @@
+# .coveragerc to control coverage.py
+[run]
+omit =
+    iridauploader/tests/*
+    iridauploader/tests_integration/*
+relative_files = true

@@ -7,14 +7,14 @@ name: Integration Tests
 on:
   pull_request: # Run on all pull requests
   push:
-    branches:   # Run on any push to development or master
+    branches:   # Run on any push to development or main
       - development
-      - master
-  schedule:     # Run weekly on development and master
+      - main
+  schedule:     # Run weekly on development and main
     - cron: 0 2 * * 1
       branches: development
     - cron: 0 2 * * 1
-      branches: master
+      branches: main
 
 
 jobs:
@@ -23,24 +23,31 @@ jobs:
     strategy:
       fail-fast: False #Setting so that if one of the test suites fail, the other will continue
       matrix:
-        python-version: [3.6, 3.7, 3.8, 3.9]
+        python-version: [3.6, 3.7, 3.8, 3.9, "3.10", 3.11]
 
     steps:
-    - uses: actions/checkout@v2 #Checkout the project from git
+    - uses: actions/checkout@v3 #Checkout the project from git
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
     - name: Run Unit Tests
       run: make unittests
+      env:
+        COVERAGE_FILE: ".coverage.unit${{ matrix.python-version }}"
+    - name: Store coverage file
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage
+        path: .coverage.unit${{ matrix.python-version }}
 
   build-pep8:
     runs-on: ubuntu-20.04 #See pre-installed software at https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md
 
     steps:
-      - uses: actions/checkout@v2 #Checkout the project from git
+      - uses: actions/checkout@v3 #Checkout the project from git
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8
       - name: Run pep8
@@ -50,9 +57,9 @@ jobs:
     runs-on: ubuntu-20.04 #See pre-installed software at https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md
 
     steps:
-      - uses: actions/checkout@v2 #Checkout the project from git
+      - uses: actions/checkout@v3 #Checkout the project from git
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.7
       - name: Run mkdocs
@@ -73,10 +80,10 @@ jobs:
     strategy:
       fail-fast: False #Setting so that if one of the test suites fail, the other will continue
       matrix:
-        branch: ['master','development'] # IRIDA Branches to test against
+        branch: ['main','development'] # IRIDA Branches to test against
 
     steps:
-      - uses: actions/checkout@v2 #Checkout the project from git
+      - uses: actions/checkout@v3 #Checkout the project from git
       - name: Setup MySQL
         uses: mirromutth/mysql-action@v1.1
         with:
@@ -105,3 +112,37 @@ jobs:
       - name: Run Integration Tests ${{ matrix.branch }}
         timeout-minutes: 60
         run: make integrationtests branch=${{ matrix.branch }} db_host=${{ env.MYSQL_HOST }} db_port=${{ env.MYSQL_PORT }}
+        env:
+          COVERAGE_FILE: ".coverage.integration${{ matrix.branch }}"
+      - name: Store coverage file
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage
+          path: .coverage.integration${{ matrix.branch }}
+
+  coverage:
+    if: github.event_name != 'schedule'
+    name: Coverage
+    runs-on: ubuntu-latest
+    needs: [build-unittests, build-irida-integration]
+    permissions:
+      pull-requests: write
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/download-artifact@v3
+        id: download
+        with:
+          name: 'coverage'
+      - name: Coverage comment
+        id: coverage_comment
+        uses: py-cov-action/python-coverage-comment-action@v3
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MERGE_COVERAGE_FILES: true
+      - name: Store Pull Request comment to be posted
+        uses: actions/upload-artifact@v3
+        if: steps.coverage_comment.outputs.COMMENT_FILE_WRITTEN == 'true'
+        with:
+          name: python-coverage-comment-action
+          path: python-coverage-comment-action.txt

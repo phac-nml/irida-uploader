@@ -22,6 +22,11 @@ For more information on the arguments passed to `ApiCalls`, please see the [conf
 
 ### Getting Data from IRIDA
 
+#### get_irida_version(self)
+API call to api/version to get a string with irida version.
+
+May contain "-SNAPSHOT" when querying against a development branch
+
 #### get_projects(self)
 API call to api/projects to get list of projects
 
@@ -31,6 +36,7 @@ List containing projects. each project is Project object.
 
 #### get_samples(self, project_id)
 API call to api/projects/project_id/samples
+Note: This function should be avoided if possible as it is slow when a project has >100000 samples. Use get_sample_by_name or get_sample_by_id instead.
 
 **arguments:**
 
@@ -123,16 +129,30 @@ project_id -- id of project to send sample too
 
 Unmodified json response from server
 
-#### get_sample_details(self, sample_id)
-Given a sample id, returns response from server for the baseurl/samples/sample_id endpoint
+#### get_sample_by_id(self, sample_id)
+Given a sample id, returns Sample object via the baseurl/samples/sample_id endpoint
 
 **arguments:**
 
-sample_id -- Sample to fetch details from
+sample_id -- Sample to fetch
 
 **returns:**
 
-Unmodified json response from server
+Sample Object or None
+
+#### get_sample_by_name(self, project_id, sample_name)
+Given a project id and sample name, returns a Sample object, or None is sample does not exist
+
+Note: this currently uses the deprecated endpoint "/projects/{project_id}/samples/bySequencerId/{sample_name}"
+
+**arguments:**
+
+project_id -- id where sample is located
+sample_name -- name of sample to fetch
+
+**returns:**
+
+Sample Object or None
 
 #### send_sequence_files(self, sequence_file, sample_name, project_id, upload_id, upload_mode=MODE_DEFAULT)
 Post request to send sequence files found in given sample argument

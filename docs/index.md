@@ -41,9 +41,13 @@ Run an installer (links above) and follow along with the install wizard.
 
 You will need to configure your uploader before running. See [Configuration](configuration.md) for details
 
-If you would prefer to build a windows installer from source code, please see the README on [GitHub](https://github.com/phac-nml/irida-uploader)
+If you prefer to build a windows installer from source code, please see the README on [GitHub](https://github.com/phac-nml/irida-uploader)
 
 #### Linux
+
+If you prefer to build the uploader from source code, please see the README on [GitHub](https://github.com/phac-nml/irida-uploader)
+
+##### Command Line
 
 The IRIDA Uploader requires Python version 3.6 or newer
 
@@ -62,13 +66,13 @@ Run the uploader
 
     $ irida-uploader
 
-You can also install and run the GUI in the same way
+##### GUI
 
-    $ pip3 install iridauploader[GUI]
-    # irida-uploader-gui
+You can also install the GUI by specifying the `GUI` extra in your pip install command
 
-If you would prefer to build the uploader from source code, please see the README on [GitHub](https://github.com/phac-nml/irida-uploader)
-    
+    $ pip3 install 'iridauploader[GUI]'
+    $ irida-uploader-gui
+
 *Please Note: You will need to configure your uploader to connect to IRIDA before running. See Configuration section below.*
 
 ### Upload Modes
