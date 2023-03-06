@@ -19,9 +19,9 @@
 
 ## Version Compatibility
 
-**IRIDA Uploader Version 0.5.0** and later require IRIDA to be at least **IRIDA Version 20.05**
+**IRIDA Uploader Version 0.9.1** and later require IRIDA to be at least **IRIDA Version 23.01**
 
-If you are using an older version of IRIDA, you can use **IRIDA Uploader Version 0.4.3**, but we recommend that you speak with your IRIDA administrator to upgrade to the latest version.
+If you are using an older version of IRIDA, you can use **IRIDA Uploader Version 0.9.0**, but we recommend that you speak with your IRIDA administrator to upgrade to the latest version.
 
 # Getting Started
 

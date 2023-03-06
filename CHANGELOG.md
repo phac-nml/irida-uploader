@@ -1,6 +1,12 @@
 Changes
 =======
 
+Beta 0.9.1
+----------
+Changes:
+* Changed api method `get_sample_by_name` to use new irida endpoint.
+* Minimum IRIDA version is now `23.01`
+
 Beta 0.9.0
 ----------
 Changes:
