@@ -70,9 +70,9 @@ Run the uploader
 
 You can also install the GUI by specifying the `GUI` extra in your pip install command
 
-    $ pip3 install iridauploader[GUI]
+    $ pip3 install 'iridauploader[GUI]'
     $ irida-uploader-gui
- 
+
 *Please Note: You will need to configure your uploader to connect to IRIDA before running. See Configuration section below.*
 
 ### Upload Modes
