@@ -37,11 +37,11 @@ You can find a tutorial and walkthrough on the phac-nml github https://github.co
 
 You can download pre-built packages for Windows from our [GitHub releases page](https://github.com/phac-nml/irida-uploader/releases).
 
-Run ang installer (links above) and follow along with the install wizard.
+Run an installer (links above) and follow along with the install wizard.
 
 You will need to configure your uploader before running. See [Configuration](configuration.md) for details
 
-If you would prefer to build a windows installer from source code, please see the README on [GitHub](https://github.com/phac-nml/irida-uploader)
+If you prefer to build a windows installer from source code, please see the README on [GitHub](https://github.com/phac-nml/irida-uploader)
 
 #### Linux
 
