@@ -1,6 +1,11 @@
 Changes
 =======
 
+Beta 0.9.2
+----------
+Bug Fixes:
+* [CRITICAL] Fixed use of deprecated urllib3 method to `allowed_methods`
+
 Beta 0.9.1
 ----------
 Changes:
