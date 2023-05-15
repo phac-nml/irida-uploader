@@ -136,7 +136,7 @@ class ApiCalls(object):
             total=self.http_max_retries,
             backoff_factor=self.http_backoff_factor,
             status_forcelist=[429, 500, 502, 503, 504],
-            method_whitelist=["HEAD", "GET", "PUT", "POST"],  # by default POST is excluded
+            allowed_methods=["HEAD", "GET", "PUT", "POST"],  # by default POST is excluded
         )
         # override retries built in max backoff value
         Retry.DEFAULT_BACKOFF_MAX = self.http_backoff_factor
