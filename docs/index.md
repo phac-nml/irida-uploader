@@ -49,7 +49,7 @@ If you prefer to build the uploader from source code, please see the README on [
 
 ##### Command Line
 
-The IRIDA Uploader requires Python version 3.6 or newer
+The IRIDA Uploader requires Python version 3.7 or newer
 
     $ python3 --version
 
