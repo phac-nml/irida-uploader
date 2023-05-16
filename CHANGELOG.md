@@ -1,6 +1,20 @@
 Changes
 =======
 
+Beta 0.9.2
+----------
+Bug Fixes:
+* [CRITICAL] Fixed use of deprecated urllib3 method to `allowed_methods`
+
+Developer Changes:
+* Dropped support for Python v3.6 as urllib3 no longer supports it
+
+Beta 0.9.1
+----------
+Changes:
+* Changed api method `get_sample_by_name` to use new irida endpoint.
+* Minimum IRIDA version is now `23.01`
+
 Beta 0.9.0
 ----------
 Changes:

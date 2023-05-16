@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='iridauploader',
-    version='0.9.0',
+    version='0.9.2',
     description='IRIDA uploader: upload NGS data to IRIDA system',
     url='https://github.com/phac-nml/irida-uploader',
     author='Jeffrey Thiessen',
@@ -46,7 +46,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     include_package_data=True,
-    # Test cases makes make it incompatible with pre 3.6
-    python_requires='>=3.6',
+    # urllib3 v2.0 requires >=3.7
+    python_requires='>=3.7',
 
 )

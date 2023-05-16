@@ -143,8 +143,6 @@ Sample Object or None
 #### get_sample_by_name(self, project_id, sample_name)
 Given a project id and sample name, returns a Sample object, or None is sample does not exist
 
-Note: this currently uses the deprecated endpoint "/projects/{project_id}/samples/bySequencerId/{sample_name}"
-
 **arguments:**
 
 project_id -- id where sample is located
