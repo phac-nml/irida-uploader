@@ -993,7 +993,10 @@ class ApiCalls(object):
         except Exception as e:
             raise ApiCalls._handle_rest_exception(url, e)
 
-        if response.status_code != HTTPStatus.OK:  # 200
+        if response.status_code == HTTPStatus.NOT_FOUND:  # 404
+            logging.error("Could not find Sequencing run to delete with ID {}".format(run_id))
+            raise self._handle_irida_exception(response)
+        elif response.status_code != HTTPStatus.OK:  # 200
             logging.error("Encountered error while deleting sequence run: {} {}"
                           "".format(response.status_code, response.reason))
             raise self._handle_irida_exception(response)
