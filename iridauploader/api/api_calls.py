@@ -974,6 +974,33 @@ class ApiCalls(object):
         logging.debug("Sequencing run id '{}' has been created".format(sequencing_run_id))
         return sequencing_run_id
 
+    def delete_seq_run(self, run_id):
+        """
+        Delete a sequencing run by run id.
+
+        arguments:
+            run_id -- string of the run id
+
+        returns: the sequencing run identifier for the sequencing run that was deleted
+        """
+
+        logging.debug("Deleting sequencing run {} on IRIDA".format(run_id))
+
+        url = f"{self.base_url}sequencingrun/{run_id}"
+
+        try:
+            response = self._session.delete(url)
+        except Exception as e:
+            raise ApiCalls._handle_rest_exception(url, e)
+
+        if response.status_code != HTTPStatus.OK:  # 200
+            logging.error("Encountered error while deleting sequence run: {} {}"
+                          "".format(response.status_code, response.reason))
+            raise self._handle_irida_exception(response)
+
+        logging.debug("Sequencing run id '{}' has been deleted".format(run_id))
+        return run_id
+
     def get_seq_runs(self):
         """
         Get list of all SequencingRun objects

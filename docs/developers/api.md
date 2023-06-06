@@ -212,6 +212,17 @@ metadata -- SequencingRun's metadata
 
 the sequencing run identifier for the sequencing run that was created
 
+#### delete_seq_run(self, run_id)
+Delete a sequencing run by run id.
+
+**arguments:**
+
+run_id -- string of the run id
+
+**returns:**
+
+the sequencing run identifier for the sequencing run that was deleted
+
 #### set_seq_run_complete(self, identifier)
 Update a sequencing run's upload status to "COMPLETE"
 
