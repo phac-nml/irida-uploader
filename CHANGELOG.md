@@ -5,6 +5,7 @@ Beta 0.9.3
 ----------
 Developer Changes:
 * Added `delete_seq_run` method to `api`
+* Added script `scripts/delete_sequencing_run.sh` for run deletion
 
 Beta 0.9.2
 ----------
