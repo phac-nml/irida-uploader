@@ -105,7 +105,7 @@ def write_directory_status(directory_status):
     if config.read_config_option("readonly", bool, False) is False or log_directory:
         if not os.access(directory_status.directory, os.W_OK) and not bool(log_directory):  # check if directory can be accessed, or that the log_directory is set
             raise exceptions.DirectoryError("Cannot access directory", directory_status.directory)
-        elif bool(log_directory) and not os.access(log_directory, os.W_OK): # need to check that path is filled out in addition to checking access
+        elif bool(log_directory) and not os.access(log_directory, os.W_OK):  # need to check that path is filled out in addition to checking access
             raise exceptions.DirectoryError("log directory set but no write access", directory_status.directory)
         json_data = directory_status.to_json_dict()
         if log_directory:
