@@ -51,7 +51,7 @@ def _init_config_parser():
                         SettingsDefault._make(["minimum_file_size", 0]),  # default minimum file size in kb
                         SettingsDefault._make(["http_max_retries", 5]),
                         SettingsDefault._make(["http_backoff_factor", 0]),
-                        SettingsDefault._make(["log_directory", None]),
+                        SettingsDefault._make(["log_directory", ""]),
                         ]
     # add defaults to config parser
     for config in default_settings:
@@ -201,7 +201,7 @@ def set_config_options(client_id=None,
         # http_backoff_factor is always a float
         logging.debug("Setting 'http_backoff_factor' config to {}".format(http_backoff_factor))
         _update_config_option('http_backoff_factor', http_backoff_factor)
-    if log_directory is not None:
+    if log_directory:
         # log_directory is always a str
         logging.debug("Setting 'log_directory' config to {}".format(log_directory))
         _update_config_option('log_directory', log_directory)

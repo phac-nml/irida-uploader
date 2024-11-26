@@ -29,7 +29,7 @@ def get_directory_status(directory, required_file_list):
     """
     # Verify directory is readable
     log_directory = config.read_config_option("log_directory")
-    if not os.access(directory, os.R_OK) and log_directory == None:
+    if not os.access(directory, os.R_OK) and not bool(log_directory):
         return DirectoryStatus(directory=directory,
                                status=DirectoryStatus.INVALID,
                                message='Directory cannot be read. Please check permissions')
@@ -55,7 +55,7 @@ def get_directory_status(directory, required_file_list):
 
     # All pre-validation passed
     # Determine if status file already exists, or if the run is brand new
-    if log_directory != None:
+    if log_directory:
         status_directory = os.path.join(log_directory, directory)
     else:
         status_directory = directory
@@ -102,13 +102,13 @@ def write_directory_status(directory_status):
     :return: None
     """
     log_directory = config.read_config_option("log_directory")
-    if config.read_config_option("readonly", bool, False) is False or log_directory != None:
-        if not os.access(directory_status.directory, os.W_OK) and log_directory == None:  # check if directory can be accessed, or that the log_directory is set
+    if config.read_config_option("readonly", bool, False) is False or log_directory:
+        if not os.access(directory_status.directory, os.W_OK) and not bool(log_directory):  # check if directory can be accessed, or that the log_directory is set
             raise exceptions.DirectoryError("Cannot access directory", directory_status.directory)
-        elif not os.access(log_directory, os.W_OK):
-            raise exceptions.DirectoryError("log directory set but no write access")
+        elif bool(log_directory) and not os.access(log_directory, os.W_OK): # need to check that path is filled out in addition to checking access
+            raise exceptions.DirectoryError("log directory set but no write access", directory_status.directory)
         json_data = directory_status.to_json_dict()
-        if log_directory != None:
+        if log_directory:
             run_log_path = os.path.join(log_directory, os.path.basename(directory_status.directory))
             if not os.path.isdir(run_log_path):
                 os.mkdir(run_log_path)

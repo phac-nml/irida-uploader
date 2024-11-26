@@ -272,16 +272,14 @@ def logging_start_block(directory):
     :return:
     """
     log_directory = config.read_config_option("log_directory")
-    #print(log_directory)
-    if log_directory != None:
+    if log_directory:
         run_name = os.path.basename(directory)
         log_directory_run_path = os.path.join(log_directory, run_name)
-        #print(log_directory_run_path)
         if not os.path.isdir(log_directory_run_path):
             os.mkdir(log_directory_run_path)
     else:
         log_directory_run_path = directory
-    if config.read_config_option("readonly", bool, False) is False or log_directory != None:
+    if config.read_config_option("readonly", bool, False) is False or bool(log_directory):
         logger.add_log_to_directory(log_directory_run_path)
     logging.info("==================================================")
     logging.info("---------------STARTING UPLOAD RUN----------------")
