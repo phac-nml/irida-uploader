@@ -112,6 +112,8 @@ class SetupIridaData:
         Adds a user and a client for api operations to IRIDA database
         :return:
         """
+        sleep(120)
+
         db_update_proc = subprocess.Popen(self.IRIDA_DB_UPDATE, shell=True)
         proc_res = db_update_proc.wait()
 
