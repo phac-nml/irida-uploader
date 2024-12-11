@@ -35,6 +35,7 @@ The config file has the following fields:
   * backoff = 1 = [0.5, 1, 2, 4, 8, 16, 32, 64, 128, 256, ...]
   * backoff = 2 = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, ...]
   * backoff = 10 = [5, 10, 20, 40, 80, 160, 320, 640, 1280, 2560, ...]
+* `log_directory` : Accepts a String to set the base directory to log runs to. Logs will be put into a folder with their run directory name within this specified directory.
 
 ###Example
 ```
