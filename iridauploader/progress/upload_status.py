@@ -28,7 +28,8 @@ def get_directory_status(directory, required_file_list):
     :return: directory and status dictionary
     """
     # Verify directory is readable
-    if not os.access(directory, os.R_OK):
+    log_directory = config.read_config_option("log_directory")
+    if not os.access(directory, os.R_OK) and not bool(log_directory):
         return DirectoryStatus(directory=directory,
                                status=DirectoryStatus.INVALID,
                                message='Directory cannot be read. Please check permissions')
@@ -54,8 +55,12 @@ def get_directory_status(directory, required_file_list):
 
     # All pre-validation passed
     # Determine if status file already exists, or if the run is brand new
-    if STATUS_FILE_NAME in file_list:  # Status file already exists, use it.
-        return read_directory_status_from_file(directory)
+    if log_directory:
+        status_directory = os.path.join(log_directory, directory)
+    else:
+        status_directory = directory
+    if os.path.isfile(os.path.join(status_directory, STATUS_FILE_NAME)):  # Status file already exists, use it.
+        return read_directory_status_from_file(status_directory)
     else:  # no irida_uploader_status.info file yet, has not been uploaded
         return DirectoryStatus(directory=directory, status=DirectoryStatus.NEW)
 
@@ -96,13 +101,20 @@ def write_directory_status(directory_status):
     :param directory_status: DirectoryStatus object containing status to write to directory
     :return: None
     """
-    if config.read_config_option("readonly", bool, False) is False:
-        if not os.access(directory_status.directory, os.W_OK):  # Cannot access upload directory
+    log_directory = config.read_config_option("log_directory")
+    if config.read_config_option("readonly", bool, False) is False or log_directory:
+        if not os.access(directory_status.directory, os.W_OK) and not bool(log_directory):  # check if directory can be accessed, or that the log_directory is set
             raise exceptions.DirectoryError("Cannot access directory", directory_status.directory)
-
+        elif bool(log_directory) and not os.access(log_directory, os.W_OK):  # need to check that path is filled out in addition to checking access
+            raise exceptions.DirectoryError("log directory set but no write access", directory_status.directory)
         json_data = directory_status.to_json_dict()
-
-        uploader_info_file = os.path.join(directory_status.directory, STATUS_FILE_NAME)
+        if log_directory:
+            run_log_path = os.path.join(log_directory, os.path.basename(directory_status.directory))
+            if not os.path.isdir(run_log_path):
+                os.mkdir(run_log_path)
+            uploader_info_file = os.path.join(run_log_path, STATUS_FILE_NAME)
+        else:
+            uploader_info_file = os.path.join(directory_status.directory, STATUS_FILE_NAME)
         with open(uploader_info_file, "w") as json_file:
             json.dump(json_data, json_file, indent=4, sort_keys=True)
             json_file.write("\n")

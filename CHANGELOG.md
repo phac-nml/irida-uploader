@@ -1,6 +1,17 @@
 Changes
 =======
 
+Beta 0.9.3
+----------
+Features:
+* Added `log_directory` config option to allow a user specified base directory to log in.
+
+Developer Changes:
+* Updated IRIDA's integration test java version from 11 to 17
+* Added a backoff of 30 seconds between IRIDA launching and SQL commands starting to allow the SQL DB to populate.
+* Updated SQL command to accommodate new `user_type` field on IRIDA's `client_details` table.
+* Update readthedocs compatibility
+
 Beta 0.9.2
 ----------
 Bug Fixes:
