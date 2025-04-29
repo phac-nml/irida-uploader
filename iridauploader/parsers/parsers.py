@@ -9,6 +9,7 @@ supported_parsers = [
     'miseq_win10_jun2021',
     'miniseq',
     'nextseq',
+    'nextseq_nml_no_desc',
     'nextseq2k_nml',
     'iseq',
     'directory',
@@ -44,5 +45,8 @@ def parser_factory(parser_type):
         return nextseq.Parser(parser_type_name=parser_type)
     if parser_type == "nextseq2k_nml":
         logging.debug("Creating nextseq2k_nml parser")
+        return nextseq2k_nml.Parser(parser_type_name=parser_type)
+    if parser_type == "nextseq_nml_no_desc":
+        logging.debug("Creating nextseq_nml_no_desc parser")
         return nextseq2k_nml.Parser(parser_type_name=parser_type)
     raise AssertionError("Bad parser creation, invalid parser_type given: {}".format(parser_type))
