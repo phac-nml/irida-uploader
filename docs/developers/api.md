@@ -58,6 +58,19 @@ project_id -- the id of the project the sample is on
 
 **returns:**
 
+list of sequencefile dictionary for given sample_name
+
+#### get_sequence_files_by_id(self, project_id, sample_id)
+API call to api/projects/project_id/sample_id/sequenceFiles
+We fetch the sequence files directly on this route
+
+**arguments:**
+
+sample_id -- the sample id to get from irida, relative to a project
+project_id -- the id of the project the sample is on
+
+**returns:**
+
 list of sequencefile dictionary for given sample_id
 
 #### get_assemblies_files(self, sample_id)
