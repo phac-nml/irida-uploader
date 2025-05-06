@@ -23,12 +23,12 @@ jobs:
     strategy:
       fail-fast: False #Setting so that if one of the test suites fail, the other will continue
       matrix:
-        python-version: [3.7, 3.8, 3.9, "3.10", 3.11]
+        python-version: [3.11, 3.12, 3.13, 3.14]
 
     steps:
-    - uses: actions/checkout@v3 #Checkout the project from git
+    - uses: actions/checkout@v4 #Checkout the project from git
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Run Unit Tests
@@ -36,7 +36,7 @@ jobs:
       env:
         COVERAGE_FILE: ".coverage.unit${{ matrix.python-version }}"
     - name: Store coverage file
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: coverage
         path: .coverage.unit${{ matrix.python-version }}
@@ -45,11 +45,11 @@ jobs:
     runs-on: ubuntu-20.04 #See pre-installed software at https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md
 
     steps:
-      - uses: actions/checkout@v3 #Checkout the project from git
+      - uses: actions/checkout@v4 #Checkout the project from git
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.8
+          python-version: 3.14
       - name: Run pep8
         run: make pep8
 
@@ -57,11 +57,11 @@ jobs:
     runs-on: ubuntu-20.04 #See pre-installed software at https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md
 
     steps:
-      - uses: actions/checkout@v3 #Checkout the project from git
+      - uses: actions/checkout@v4 #Checkout the project from git
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.7
+          python-version: 3.14
       - name: Run mkdocs
         run: make docs
 
@@ -83,7 +83,7 @@ jobs:
         branch: ['main','development'] # IRIDA Branches to test against
 
     steps:
-      - uses: actions/checkout@v3 #Checkout the project from git
+      - uses: actions/checkout@v4 #Checkout the project from git
       - name: Setup MySQL
         uses: mirromutth/mysql-action@v1.1
         with:
@@ -115,7 +115,7 @@ jobs:
         env:
           COVERAGE_FILE: ".coverage.integration${{ matrix.branch }}"
       - name: Store coverage file
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage
           path: .coverage.integration${{ matrix.branch }}
@@ -129,8 +129,8 @@ jobs:
       pull-requests: write
       contents: write
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/download-artifact@v3
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
         id: download
         with:
           name: 'coverage'
@@ -141,7 +141,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MERGE_COVERAGE_FILES: true
       - name: Store Pull Request comment to be posted
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: steps.coverage_comment.outputs.COMMENT_FILE_WRITTEN == 'true'
         with:
           name: python-coverage-comment-action

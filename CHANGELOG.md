@@ -12,6 +12,8 @@ Developer Changes:
 * Added a backoff of 30 seconds between IRIDA launching and SQL commands starting to allow the SQL DB to populate.
 * Updated SQL command to accommodate new `user_type` field on IRIDA's `client_details` table.
 * Update readthedocs compatibility
+* Updated github actions to new versions
+* Updated test matrix to new python versions
 
 Beta 0.9.2
 ----------
