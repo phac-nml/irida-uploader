@@ -19,7 +19,7 @@ on:
 
 jobs:
   build-unittests:
-    runs-on: ubuntu-20.04 #See pre-installed software at https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md
+    runs-on: ubuntu-24.04 #See pre-installed software at https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md
     strategy:
       fail-fast: False #Setting so that if one of the test suites fail, the other will continue
       matrix:
