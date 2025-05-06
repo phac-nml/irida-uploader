@@ -445,13 +445,25 @@ class ApiCalls(object):
 
         returns list of sequencefile dictionary for given sample_id
         """
-
-        logging.info("Getting sequence files from sample '{}' on project '{}'".format(sample_name, project_id))
-
         # Need the sample id for upload, not the sample name.
-        # This is cached so it's only 1 call per project uploading to
-        # TODO: In the future, this function should accept sample_id instead of sample_name
         sample_id = self.get_sample_id(sample_name, project_id)
+        return self.get_sequence_files_by_id(project_id, sample_id)
+
+    def get_sequence_files_by_id(self, project_id, sample_id):
+        """
+        API call to api/projects/project_id/sample_id/sequenceFiles
+        We fetch the sample file through the project id on this route
+
+        arguments:
+
+            sample_id -- the sample id to get from irida, relative to a project
+            project_id -- the id of the project the sample is on
+
+        returns list of sequencefile dictionary for given sample_id
+        """
+
+        logging.info("Getting sequence files from sample id '{}' on project '{}'".format(sample_id, project_id))
+
         url = f"{self.base_url}samples/{sample_id}/sequenceFiles"
 
         try:

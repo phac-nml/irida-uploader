@@ -123,7 +123,7 @@ class TestApiIntegration(unittest.TestCase):
         sample = model.Sample(sample_name, sample_desc)
 
         self.test_api.send_sample(sample, project_id)
-        self.assertNotEquals(self.test_api.get_sample_id(sample_name, project_id), False)
+        self.assertNotEqual(self.test_api.get_sample_id(sample_name, project_id), False)
 
     def test_send_and_get_sequence_files(self):
         """
