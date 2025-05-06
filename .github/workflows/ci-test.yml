@@ -42,7 +42,7 @@ jobs:
         path: .coverage.unit${{ matrix.python-version }}
 
   build-pep8:
-    runs-on: ubuntu-20.04 #See pre-installed software at https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md
+    runs-on: ubuntu-24.04 #See pre-installed software at https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md
 
     steps:
       - uses: actions/checkout@v4 #Checkout the project from git
@@ -54,7 +54,7 @@ jobs:
         run: make pep8
 
   build-docs:
-    runs-on: ubuntu-20.04 #See pre-installed software at https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md
+    runs-on: ubuntu-24.04 #See pre-installed software at https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md
 
     steps:
       - uses: actions/checkout@v4 #Checkout the project from git
@@ -66,7 +66,7 @@ jobs:
         run: make docs
 
   build-irida-integration:
-    runs-on: ubuntu-20.04 #See pre-installed software at https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md
+    runs-on: ubuntu-24.04 #See pre-installed software at https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md
 
     env:
       MYSQL_PORT: 3306
