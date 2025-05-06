@@ -5,6 +5,7 @@ Beta 0.9.3
 ----------
 Features:
 * Added `log_directory` config option to allow a user specified base directory to log in.
+* Added `get_sequence_file_by_id(project_id, sample_id)` to api
 
 Developer Changes:
 * Updated IRIDA's integration test java version from 11 to 17
