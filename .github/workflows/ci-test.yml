@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: False #Setting so that if one of the test suites fail, the other will continue
       matrix:
-        python-version: [3.11, 3.12, 3.13, 3.14]
+        python-version: [3.11, 3.12, 3.13]
 
     steps:
     - uses: actions/checkout@v4 #Checkout the project from git
