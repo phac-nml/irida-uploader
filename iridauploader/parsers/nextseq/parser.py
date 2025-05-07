@@ -14,12 +14,12 @@ class Parser(BaseParser):
 
     UPLOAD_COMPLETE_FILE_NAME = 'RTAComplete.txt'
 
-    def __init__(self, parser_type_name='miseq', sample_sheet_override = None):
+    def __init__(self, parser_type_name='miseq', sample_sheet_override=None):
         """
         Initialize the Parser
         :param parser_type_name: string to be included in metadata of sequencing run for type identification in IRIDA
         """
-        if (sample_sheet_override != None):
+        if sample_sheet_override is not None:
             self.SAMPLE_SHEET_FILE_NAME = sample_sheet_override
         else:
             self.SAMPLE_SHEET_FILE_NAME = 'SampleSheet.csv'
