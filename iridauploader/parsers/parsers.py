@@ -42,6 +42,9 @@ def parser_factory(parser_type):
     if parser_type == "nextseq":
         logging.debug("Creating nextseq parser")
         return nextseq.Parser(parser_type_name=parser_type)
+    if parser_type == "nextseq_nml":
+        logging.debug("Creating nml custom nextseq parser")
+        return nextseq.Parser(parser_type_name=parser_type, sample_sheet_override='SampleSheetClassic.csv')
     if parser_type == "nextseq2k_nml":
         logging.debug("Creating nextseq2k_nml parser")
         return nextseq2k_nml.Parser(parser_type_name=parser_type)
