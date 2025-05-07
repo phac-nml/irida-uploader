@@ -1,0 +1,24 @@
+[Header]
+IEMFileVersion,4
+Investigator Name,Some Guy
+Experiment Name,1
+Date,10/15/2013
+Workflow,GenerateFASTQ
+Application,FASTQ Only
+Assay,Nextera XT
+Description,Superbug
+Chemistry,Amplicon
+
+[Reads]
+251
+250
+
+[Settings]
+ReverseComplement,0
+Adapter,AAAAGGGGAAAAGGGGAAA
+
+[Data]
+Sample_ID,Sample_Name,Sample_Plate,Sample_Well,I7_Index_ID,index,I5_Index_ID,index2,Sample_Project,Description
+01-1111,01-1111,1,01,N01,AAAAAAAA,S01,TTTTTTTT,6,Super bug 
+02-2222,02-2222,2,02,N02,GGGGGGGG,S02,CCCCCCCC,6,Scary bug 
+03-3333,03-3333,3,03,N03,CCCCCCCC,S03,GGGGGGGG,6,Deadly bug 
