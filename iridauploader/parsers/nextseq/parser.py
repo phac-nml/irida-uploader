@@ -12,7 +12,6 @@ from iridauploader.parsers.nextseq import sample_parser, validation
 
 class Parser(BaseParser):
 
-    # SAMPLE_SHEET_FILE_NAME = 'SampleSheet.csv'
     UPLOAD_COMPLETE_FILE_NAME = 'RTAComplete.txt'
 
     def __init__(self, parser_type_name='miseq', sample_sheet_override = None):
