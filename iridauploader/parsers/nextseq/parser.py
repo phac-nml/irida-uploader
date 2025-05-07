@@ -12,7 +12,7 @@ from iridauploader.parsers.nextseq import sample_parser, validation
 
 class Parser(BaseParser):
 
-    SAMPLE_SHEET_FILE_NAME = 'SampleSheet.csv'
+    # SAMPLE_SHEET_FILE_NAME = 'SampleSheet.csv'
     UPLOAD_COMPLETE_FILE_NAME = 'RTAComplete.txt'
 
     def __init__(self, parser_type_name='miseq', sample_sheet_override = None):
@@ -22,12 +22,14 @@ class Parser(BaseParser):
         """
         if (sample_sheet_override != None):
             self.SAMPLE_SHEET_FILE_NAME = sample_sheet_override
+        else:
+            self.SAMPLE_SHEET_FILE_NAME = 'SampleSheet.csv'
 
         super().__init__(
 
             parser_type_name=parser_type_name,
             required_file_list=[
-                Parser.SAMPLE_SHEET_FILE_NAME,
+                self.SAMPLE_SHEET_FILE_NAME,
                 Parser.UPLOAD_COMPLETE_FILE_NAME
             ])
         logging.warning("NOTE: If bcl2fastq has not finished, run may return as invalid, "
@@ -60,8 +62,7 @@ class Parser(BaseParser):
 
         return progress.get_directory_status(directory, self.get_required_file_list())
 
-    @staticmethod
-    def get_sample_sheet(directory):
+    def get_sample_sheet(self, directory):
         """
         gets the sample sheet file path from a given run directory
 
@@ -77,7 +78,7 @@ class Parser(BaseParser):
             raise exceptions.DirectoryError("The directory is not accessible, "
                                             "can not parse samples from this directory {}".format(directory), directory)
 
-        sample_sheet_file_name = Parser.SAMPLE_SHEET_FILE_NAME
+        sample_sheet_file_name = self.SAMPLE_SHEET_FILE_NAME
         file_list = next(os.walk(directory))[2]  # Gets the list of files in the directory
         if sample_sheet_file_name not in file_list:
             logging.error("No sample sheet file in the NextSeq format found")
