@@ -24,10 +24,7 @@ class Parser(BaseParser):
         else:
             self.SAMPLE_SHEET_FILE_NAME = 'SampleSheet.csv'
 
-        req_files=[
-            self.SAMPLE_SHEET_FILE_NAME,
-            Parser.UPLOAD_COMPLETE_FILE_NAME
-        ]
+        req_files = [self.SAMPLE_SHEET_FILE_NAME, Parser.UPLOAD_COMPLETE_FILE_NAME]
         if additional_required_files is not None:
             for f in additional_required_files:
                 req_files.append(f)
@@ -35,7 +32,7 @@ class Parser(BaseParser):
         super().__init__(
             parser_type_name=parser_type_name,
             required_file_list=req_files
-            )
+        )
         logging.warning("NOTE: If bcl2fastq has not finished, run may return as invalid, "
                         "or incomplete files could be uploaded!")
 

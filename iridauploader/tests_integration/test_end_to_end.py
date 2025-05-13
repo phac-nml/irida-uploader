@@ -947,7 +947,6 @@ class TestEndToEnd(unittest.TestCase):
         self.assertEqual(sample_1_found, True)
         self.assertEqual(sample_2_found, True)
 
-
     def test_valid_nextseq_nml_dual_upload(self):
         """
         Test a valid nextseq_nml directory for upload from end to end
