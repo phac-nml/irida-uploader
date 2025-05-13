@@ -14,7 +14,7 @@ class Parser(BaseParser):
 
     UPLOAD_COMPLETE_FILE_NAME = 'RTAComplete.txt'
 
-    def __init__(self, parser_type_name='miseq', sample_sheet_override=None):
+    def __init__(self, parser_type_name='miseq', sample_sheet_override=None, additional_required_files=None):
         """
         Initialize the Parser
         :param parser_type_name: string to be included in metadata of sequencing run for type identification in IRIDA
@@ -24,13 +24,18 @@ class Parser(BaseParser):
         else:
             self.SAMPLE_SHEET_FILE_NAME = 'SampleSheet.csv'
 
-        super().__init__(
+        req_files=[
+            self.SAMPLE_SHEET_FILE_NAME,
+            Parser.UPLOAD_COMPLETE_FILE_NAME
+        ]
+        if additional_required_files is not None:
+            for f in additional_required_files:
+                req_files.append(f)
 
+        super().__init__(
             parser_type_name=parser_type_name,
-            required_file_list=[
-                self.SAMPLE_SHEET_FILE_NAME,
-                Parser.UPLOAD_COMPLETE_FILE_NAME
-            ])
+            required_file_list=req_files
+            )
         logging.warning("NOTE: If bcl2fastq has not finished, run may return as invalid, "
                         "or incomplete files could be uploaded!")
 

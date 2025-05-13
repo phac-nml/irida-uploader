@@ -4,7 +4,8 @@ Changes
 Beta 0.9.4
 ----------
 Features:
-* Added `nextseq_nml` to list of parsers. This is a custom parser for the NML's unique dual upload scheme for sending data to IRIDA and IRIDA Next.
+* Added `nextseq_nml_classic` to list of parsers. This is a custom parser for the NML's unique dual upload scheme for sending data to IRIDA and IRIDA Next.
+* Added `nextseq_nml_dual_upload` to list of parsers. This is a custom parser for the NML's unique dual upload scheme for sending data to IRIDA and IRIDA Next.
 
 Beta 0.9.3
 ----------

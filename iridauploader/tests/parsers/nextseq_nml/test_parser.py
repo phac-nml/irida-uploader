@@ -102,6 +102,19 @@ class TestFindSingleRun(unittest.TestCase):
         self.assertEqual(res.status, "new")
         self.assertEqual(res.directory, directory)
 
+    def test_find_dir_with_additional_file_req(self):
+        """
+        Given a valid run directory, show as new
+        :return:
+        """
+        directory = path.join(path_to_module, "additional_req_file")
+
+        res = Parser(additional_required_files=['RunMetadata.csv']).find_single_run(directory)
+
+        self.assertEqual(type(res), model.DirectoryStatus)
+        self.assertEqual(res.status, "new")
+        self.assertEqual(res.directory, directory)
+
     def test_find_dir_no_completed_file(self):
         """
         Given a run directory with no run completed file, show as invalid
