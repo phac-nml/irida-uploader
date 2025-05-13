@@ -1,0 +1,25 @@
+[Header],,,,,,,,,
+IEMFileVersion,4,,,,,,,,
+Investigator Name,Investigator,,,,,,,,
+Experiment Name,252,,,,,,,,
+Date,2015-11-12,,,,,,,,
+Workflow,GenerateFASTQ,,,,,,,,
+Application,FASTQ Only,,,,,,,,
+Assay,TruSeq HT,,,,,,,,
+Description,252,,,,,,,,
+Chemistry,Amplicon,,,,,,,,
+,,,,,,,,,
+[Reads],,,,,,,,,
+301,,,,,,,,,
+301,,,,,,,,,
+,,,,,,,,,
+[Settings],,,,,,,,,
+ReverseComplement,0,,,,,,,,
+Adapter,AGATCGGAAGAGCACACGTCTGAACTCCAGTCA,,,,,,,,
+AdapterRead2,AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT,,,,,,,,
+,,,,,,,,,
+[Data],,,,,,,,,
+Sample_ID,Sample_Name,Sample_Plate,Sample_Well,I7_Index_ID,index,I5_Index_ID,index2,Sample_Project,Description
+01-1111,,Sample,A01,D701,ATTACTCG,D501,TATAGCCT,6,252
+02-2222,,Sample,A02,D702,TCCGGAGA,D501,TATAGCCT,6,252
+03-3333,,Sample,A04,D704,GAGATTCC,D501,TATAGCCT,6,252
