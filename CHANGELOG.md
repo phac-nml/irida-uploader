@@ -1,6 +1,11 @@
 Changes
 =======
 
+Beta 0.9.5
+----------
+Features:
+* Added `nextseq_nml_strict_sample_name` to list of parsers. This is a custom parser based on nextseq where sample names are strictly starting from the start of the file name for matching.
+
 Beta 0.9.4
 ----------
 Features:
