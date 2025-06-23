@@ -14,7 +14,7 @@ class Parser(BaseParser):
 
     UPLOAD_COMPLETE_FILE_NAME = 'RTAComplete.txt'
 
-    def __init__(self, parser_type_name='miseq', sample_sheet_override=None, additional_required_files=None):
+    def __init__(self, parser_type_name='miseq', sample_sheet_override=None, additional_required_files=None, strict_sample_name_matching=False):
         """
         Initialize the Parser
         :param parser_type_name: string to be included in metadata of sequencing run for type identification in IRIDA
@@ -28,6 +28,8 @@ class Parser(BaseParser):
         if additional_required_files is not None:
             for f in additional_required_files:
                 req_files.append(f)
+
+        self.strict_sample_name_matching = strict_sample_name_matching
 
         super().__init__(
             parser_type_name=parser_type_name,
@@ -119,7 +121,7 @@ class Parser(BaseParser):
         try:
             sequencing_run = sample_parser.build_sequencing_run_from_samples(sample_sheet,
                                                                              run_metadata,
-                                                                             self.get_parser_type_name())
+                                                                             self.get_parser_type_name(), self.strict_sample_name_matching)
         except exceptions.SequenceFileError as error:
             validation_result.add_error(error)
             logging.error("Errors occurred while building sequence run from sample sheet")

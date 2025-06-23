@@ -1,0 +1,24 @@
+[Header]
+IEMFileVersion,5
+Investigator Name,Ikari Yui
+Experiment Name,NGS-Adam
+Date,2000-09-13
+Workflow,GenerateFASTQ
+Application,NextSeq FASTQ Only
+Instrument Type,NextSeq/MiniSeq
+Assay,Nextera XT
+Index Adapters,"Nextera XT v2 Index Kit A"
+Description,Contact Experiment
+Chemistry,Amplicon
+
+[Reads]
+151
+151
+
+[Settings]
+Adapter,CTGTCTCTTATACACATCT
+
+[Data]
+Sample_ID,Sample_Name,Sample_Plate,Sample_Well,I7_Index_ID,index,I5_Index_ID,index2,Sample_Project,Description
+SA20121712,SA20121712,NGS-001 Plate FNC-7,A01,N701,TAAGGCGA,S502,ATAGAGAG,1,Code Blue
+other-SA20121712,SA20121712,NGS-001 Plate FNC-7,A02,N702,CGTACTAG,S502,ATAGAGAG,1,Code Blue
