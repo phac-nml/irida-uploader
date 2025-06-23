@@ -1073,7 +1073,7 @@ class TestEndToEnd(unittest.TestCase):
         project_id_1 = "1"
 
         # Do the upload
-        upload_result = upload_run_single_entry(path.join(path_to_module, "fake_nextseq_nml_strict_sample_name"))
+        upload_result = upload_run_single_entry(path.join(path_to_module, "fake_nextseq_data_nml_strict_sample_name"))
 
         # Make sure the upload was a success
         self.assertEqual(upload_result.exit_code, 0)
