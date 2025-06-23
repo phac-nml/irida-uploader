@@ -1098,7 +1098,7 @@ class TestEndToEnd(unittest.TestCase):
                     'SA20121712b_S2_R2_001.fastq.qz'
                 ]
                 self.assertEqual(res_sequence_file_names.sort(), expected_sequence_file_names.sort())
-            if sample.sample_name == "other-SA20121716b":
+            if sample.sample_name == "other-SA20121712b":
                 sample_2_found = True
                 sequence_files = test_api.get_sequence_files(project_id_1, sample.sample_name)
                 self.assertEqual(len(sequence_files), 2)
@@ -1107,8 +1107,8 @@ class TestEndToEnd(unittest.TestCase):
                     sequence_files[1]['fileName']
                 ]
                 expected_sequence_file_names = [
-                    'other-SA20121716b_S1_R1_001.fastq.qz',
-                    'other-SA20121716b_S1_R2_001.fastq.qz'
+                    'other-SA20121712b_S1_R1_001.fastq.qz',
+                    'other-SA20121712b_S1_R2_001.fastq.qz'
                 ]
                 self.assertEqual(res_sequence_file_names.sort(), expected_sequence_file_names.sort())
 
