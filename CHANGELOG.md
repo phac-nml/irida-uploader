@@ -1,6 +1,14 @@
 Changes
 =======
 
+Beta 0.9.5
+----------
+Features:
+* Added `nextseq_nml_strict_sample_name` to list of parsers. This is a custom parser based on nextseq where sample names are strictly starting from the start of the file name for matching.
+
+Developer Changes:
+* locked urllib3 version to <2.3.0 to ensure library compatibility with windows 11 dll files.
+
 Beta 0.9.4
 ----------
 Features:
