@@ -26,7 +26,7 @@ gui: clean env
 
 windows: clean env
 	source .virtualenv/bin/activate
-	pip3 install -e .[WINDOWS]
+	pip3 install -e .[WINDOWS] --config-settings editable_mode=compat
 	python3 -m nsist windows-installer.cfg
 
 wheel: clean

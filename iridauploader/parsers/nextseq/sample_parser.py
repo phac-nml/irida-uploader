@@ -90,7 +90,7 @@ def parse_metadata(sample_sheet_file):
     return metadata_dict
 
 
-def build_sequencing_run_from_samples(sample_sheet_file, metadata, sequencing_run_type):
+def build_sequencing_run_from_samples(sample_sheet_file, metadata, sequencing_run_type, strict_matching=False):
     """
     Create a SequencingRun object with full project/sample/sequence_file structure
 
@@ -99,7 +99,7 @@ def build_sequencing_run_from_samples(sample_sheet_file, metadata, sequencing_ru
     :param sequencing_run_type:
     :return: SequencingRun
     """
-    sample_list = _parse_sample_list(sample_sheet_file)
+    sample_list = _parse_sample_list(sample_sheet_file, strict_matching)
 
     logging.debug("Building SequencingRun from parsed data")
 
@@ -123,7 +123,7 @@ def build_sequencing_run_from_samples(sample_sheet_file, metadata, sequencing_ru
     return sequence_run
 
 
-def _parse_sample_list(sample_sheet_file):
+def _parse_sample_list(sample_sheet_file, strict_matching=False):
     """
     Creates a list of all samples in the sample_sheet_file, with accompanying data/metadata
 
@@ -153,6 +153,8 @@ def _parse_sample_list(sample_sheet_file):
         properties_dict = _parse_out_sequence_file(sample)
         file_pattern = "{sample_name}_S(\\S+)_R(\\d+)_(\\S*)\\.fastq.*$".format(
             sample_name=re.escape(sample.sample_name))
+        if strict_matching:
+            file_pattern = "^" + file_pattern
         logging.info("Looking for files with pattern {}".format(file_pattern))
         regex = re.compile(file_pattern)
         pf_list = list(filter(regex.search, data_dir_file_list))

@@ -54,6 +54,12 @@ def parser_factory(parser_type):
             parser_type_name=parser_type,
             additional_required_files=['RunMetadata.csv']
         )
+    if parser_type == "nextseq_nml_strict_sample_name":
+        logging.debug("Creating nml custom nextseq parser with strict sample name matching")
+        return nextseq.Parser(
+            parser_type_name=parser_type,
+            strict_sample_name_matching=True
+        )
     if parser_type == "nextseq2k_nml":
         logging.debug("Creating nextseq2k_nml parser")
         return nextseq2k_nml.Parser(parser_type_name=parser_type)
