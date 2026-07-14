@@ -237,6 +237,20 @@ class TestBuildSequencingRunFromSamples(unittest.TestCase):
         self.assertEqual(type(sequencing_run.project_list[0].sample_list[0].sequence_file), model.SequenceFile)
         self.assertEqual(type(sequencing_run.project_list[1].sample_list[0].sequence_file), model.SequenceFile)
 
+    def test_build_duplicate_sample(self):
+        """
+        When given a valid directory, ensure a valid SequencingRun is built with Projects, Samples, ect
+        :return:
+        """
+        sheet_file = path.join(path_to_module, "fake_nextseq_run_duplicate",
+                               "SampleSheetClassic.csv")
+        meta_data = sample_parser.parse_metadata(sheet_file)
+
+        sequencing_run_type = 'nextseq'
+
+        with self.assertRaises(SequenceFileError):
+            sequencing_run = sample_parser.build_sequencing_run_from_samples(sheet_file, meta_data, sequencing_run_type, True)
+
 
 class TestGetCsvReader(unittest.TestCase):
     """

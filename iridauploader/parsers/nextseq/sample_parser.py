@@ -105,14 +105,25 @@ def build_sequencing_run_from_samples(sample_sheet_file, metadata, sequencing_ru
 
     # create list of projects and add samples to appropriate project
     project_list = []
+    # create a set to verify each entry is unique
+    project_sample_set = set()
     for sample in sample_list:
         project = None
+        sample_project = sample.get('sample_project')
         for p in project_list:
-            if sample.get('sample_project') == p.id:
+            if sample_project == p.id:
                 project = p
         if project is None:
-            project = model.Project(id=sample.get('sample_project'))
+            project = model.Project(id=sample_project)
             project_list.append(project)
+
+        # verify that the sample is unique within the project
+        new_entry = (sample_project, sample.sample_name)
+        if new_entry in project_sample_set:
+            raise exceptions.SequenceFileError(
+                ("Your sample sheet is malformed. Multiple entries found for sample {} with project {}".format(sample.sample_name, sample_project))
+            )
+        project_sample_set.add(new_entry)
 
         project.add_sample(sample)
 
