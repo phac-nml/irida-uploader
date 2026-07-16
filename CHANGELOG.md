@@ -5,6 +5,7 @@ Beta 0.9.6
 ----------
 Bug Fixes: 
 * Nextseq based parsers now throw an error when a duplicate entry in the sample sheet is detected. 
+* Fixed file handlers not being closed by parsers
 
 Features:
 * Added `nextseq_nml_strict_sample_name` to gui available parsers.
