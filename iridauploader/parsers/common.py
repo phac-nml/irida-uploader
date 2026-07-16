@@ -29,14 +29,14 @@ def get_csv_reader(sample_sheet_file):
     """
 
     if os.path.isfile(sample_sheet_file):
-        csv_file = open(sample_sheet_file, "r")
-        # strip any trailing newline characters from the end of the line
-        # including Windows newline characters (\r\n)
-        csv_lines = [x.rstrip('\n') for x in csv_file]
-        csv_lines = [x.rstrip('\r') for x in csv_lines]
+        with open(sample_sheet_file, "r") as csv_file:
+            # strip any trailing newline characters from the end of the line
+            # including Windows newline characters (\r\n)
+            csv_lines = [x.rstrip('\n') for x in csv_file]
+            csv_lines = [x.rstrip('\r') for x in csv_lines]
 
-        # open and read file in binary then send it to be parsed by csv's reader
-        csv_reader = reader(csv_lines)
+            # open and read file in binary then send it to be parsed by csv's reader
+            csv_reader = reader(csv_lines)
     else:
         raise exceptions.SampleSheetError("Sample sheet cannot be parsed as a CSV file because it's not a regular file.",
                                           sample_sheet_file)
