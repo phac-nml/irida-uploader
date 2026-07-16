@@ -1115,6 +1115,48 @@ class TestEndToEnd(unittest.TestCase):
         self.assertEqual(sample_1_found, True)
         self.assertEqual(sample_2_found, True)
 
+    def test_invalid_nextseq_nml_strict_sample_name_matching_duplicate_sample(self):
+        """
+        Test an invalid nextseq_nml directory for upload from end to end
+        :return:
+        """
+        # Set our sample config file to use miseq parser and the correct irida credentials
+        self.write_to_config_file(
+            client_id=tests_integration.client_id,
+            client_secret=tests_integration.client_secret,
+            username=tests_integration.username,
+            password=tests_integration.password,
+            base_url=tests_integration.base_url,
+            parser="nextseq_nml_strict_sample_name",
+            readonly=False
+        )
+
+        # instance an api
+        test_api = api.ApiCalls(
+            client_id=tests_integration.client_id,
+            client_secret=tests_integration.client_secret,
+            base_url=tests_integration.base_url,
+            username=tests_integration.username,
+            password=tests_integration.password
+        )
+
+        # Create a test project, the uploader does not make new projects on its own
+        # so one must exist to upload samples into
+        # This may not be the project that the files get uploaded to,
+        # but one will be made in the case this is the only test being run
+        project_name = "test_project_nextseq_nml_strict_duplicate_sample"
+        project_description = "test_project_description_nextseq_nml_strict_duplicate_sample"
+        project = model.Project(name=project_name, description=project_description)
+        test_api.send_project(project)
+        # We always upload to project "1" so that tests will be consistent no matter how many / which tests are run
+        project_id_1 = "1"
+
+        # Do the upload
+        upload_result = upload_run_single_entry(path.join(path_to_module, "fake_nextseq_data_nml_strict_sample_name_duplicate_sample"))
+
+        # Make sure the upload was a failure
+        self.assertEqual(upload_result.exit_code, 1)
+
     def test_valid_nextseq2k_upload(self):
         """
         Test a valid nextseq2k directory for upload from end to end

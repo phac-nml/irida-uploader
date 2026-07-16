@@ -14,6 +14,7 @@ supported_parsers = [
     'directory',
     'nanopore_assemblies',
     'seqfu',
+    'nextseq_nml_strict_sample_name'
 ]
 
 
